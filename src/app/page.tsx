@@ -7,9 +7,16 @@ export default function Home() {
       {/* Navbar */}
       <nav className="w-full bg-white shadow">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <Image src="/LinkLOGO.png" alt="Linktech Logo" width={64} height={64} className="mr-3" />
-            <span className="text-3xl font-bold text-blue-700 tracking-tight">Linktech</span>
+          <div className="flex items-center justify-between">
+            <div className="flex-1"></div>
+            <div className="flex items-center justify-center flex-1">
+              <Image src="/LinkLOGO.png" alt="Linktech Logo" width={96} height={96} className="mr-3" />
+            </div>
+            <div className="flex-1 flex justify-end">
+              <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
+                Iniciar Sesión
+              </button>
+            </div>
           </div>
         </div>
       </nav>
