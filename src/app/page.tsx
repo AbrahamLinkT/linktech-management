@@ -8,15 +8,12 @@ export default function Home() {
       <nav className="w-full bg-white shadow">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex-1"></div>
-            <div className="flex items-center justify-center flex-1">
-              <Image src="/LinkLOGO.png" alt="Linktech Logo" width={96} height={96} className="mr-3" />
+            <div className="flex-shrink-0">
+              <Image src="/LinkLOGO.png" alt="Linktech Logo" width={140} height={140} priority />
             </div>
-            <div className="flex-1 flex justify-end">
-              <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
-                Iniciar Sesión
-              </button>
-            </div>
+            <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
+              Iniciar Sesión
+            </button>
           </div>
         </div>
       </nav>
