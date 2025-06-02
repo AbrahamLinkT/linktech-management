@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge } from '@tremor/react';
 import { useProjectStore } from '@/store/projectStore';

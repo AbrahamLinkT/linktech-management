@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Card, Title } from '@tremor/react';
 import { useProjectStore } from '@/store/projectStore';
