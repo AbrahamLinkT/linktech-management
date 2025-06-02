@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Carousel from "../components/Carousel";
-import Link from "next/link";
+import { ClerkAuthButtons } from "../components/ClerkAuthButtons";
 
 export default function Home() {
   return (
@@ -12,11 +12,7 @@ export default function Home() {
             <div className="flex-shrink-0">
               <Image src="/LinkLOGO.png" alt="Linktech Logo" width={300} height={300} priority />
             </div>
-            <Link href="/dashboard">
-              <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
-                Iniciar Sesión
-              </button>
-            </Link>
+            <ClerkAuthButtons />
           </div>
         </div>
       </nav>
