@@ -1,37 +1,46 @@
 import React from 'react';
+import Link from 'next/link';
+
+const modules = [
+  {
+    title: 'Gestión de Proyectos',
+    description: 'Administra el ciclo de vida completo de proyectos SAP',
+    href: '/dashboard/projects',
+  },
+  {
+    title: 'Plan de Facturación',
+    description: 'Gestiona planes de facturación y seguimiento de pagos',
+    href: '/dashboard/billing',
+  },
+  {
+    title: 'Métricas',
+    description: 'Visualiza KPIs y métricas importantes del negocio',
+    href: '/dashboard/metrics',
+  },
+  {
+    title: 'Consultores',
+    description: 'Gestiona la disponibilidad y asignación de consultores',
+    href: '/dashboard/consultants',
+  },
+];
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-700">Dashboard</h1>
-            <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition">
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">Panel de Control</h1>
       
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Proyectos Activos</h2>
-            <p className="text-gray-600">Visualiza y gestiona tus proyectos SAP actuales</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Soporte Técnico</h2>
-            <p className="text-gray-600">Accede a tu portal de soporte y tickets</p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Documentación</h2>
-            <p className="text-gray-600">Consulta documentos y recursos importantes</p>
-          </div>
-        </div>
-      </main>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {modules.map((module) => (
+          <Link
+            key={module.href}
+            href={module.href}
+            className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
+          >
+            <h2 className="text-xl font-semibold text-blue-700">{module.title}</h2>
+            <p className="mt-2 text-gray-600">{module.description}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
