@@ -17,16 +17,22 @@ export default function ConsultantPerformance() {
     }));
 
   return (
-    <Card>
-      <Title>Rendimiento de Consultores</Title>
-      <AreaChart
-        className="mt-6"
-        data={performanceData}
-        index="name"
-        categories={['Tasa de Éxito', 'Proyectos Completados']}
-        colors={['blue', 'cyan']}
-        yAxisWidth={48}
-      />
+    <Card className="bg-white">
+      <Title className="text-xl font-semibold text-gray-900 mb-4">Rendimiento de Consultores</Title>
+      {performanceData.length > 0 ? (
+        <AreaChart
+          className="mt-6 h-80"
+          data={performanceData}
+          index="name"
+          categories={['Tasa de Éxito', 'Proyectos Completados']}
+          colors={['blue', 'cyan']}
+          yAxisWidth={48}
+          showLegend={true}
+          valueFormatter={(value) => `${value}${typeof value === 'number' && value <= 100 ? '%' : ''}`}
+        />
+      ) : (
+        <div className="text-gray-600 text-center py-8">No hay datos disponibles</div>
+      )}
     </Card>
   );
 }

@@ -24,16 +24,21 @@ export default function ConsultantAvailability() {
   ];
 
   return (
-    <Card>
-      <Title>Disponibilidad de Consultores</Title>
-      <BarChart
-        className="mt-6"
-        data={availabilityData}
-        index="status"
-        categories={["count"]}
-        colors={["blue"]}
-        yAxisWidth={48}
-      />
+    <Card className="bg-white">
+      <Title className="text-xl font-semibold text-gray-900 mb-4">Disponibilidad de Consultores</Title>
+      {availabilityData.some(d => d.count > 0) ? (
+        <BarChart
+          className="mt-6 h-80"
+          data={availabilityData}
+          index="status"
+          categories={["count"]}
+          colors={["blue"]}
+          yAxisWidth={48}
+          showLegend={false}
+        />
+      ) : (
+        <div className="text-gray-600 text-center py-8">No hay datos disponibles</div>
+      )}
     </Card>
   );
 }
