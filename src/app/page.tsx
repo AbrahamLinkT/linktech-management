@@ -9,7 +9,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex-shrink-0">
-              <Image src="/LinkLOGO.png" alt="Linktech Logo" width={140} height={140} priority />
+              <Image src="/LinkLOGO.png" alt="Linktech Logo" width={300} height={300} priority />
             </div>
             <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
               Iniciar Sesión
