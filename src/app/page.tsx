@@ -103,34 +103,55 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-12">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Contacto</h3>
-              <p className="mb-2">¿Necesita ayuda?</p>
-              <p className="mb-2">📞 81 4165 5465</p>
-              <p>📧 dc.operations@linktech.com.mx</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-4">Ubicaciones</h3>
+              <h3 className="text-xl font-bold mb-4">Oferta Linktech</h3>
               <ul className="space-y-2">
-                <li>Monterrey</li>
-                <li>CDMX</li>
-                <li>Guadalajara</li>
-                <li>Dallas Texas, US</li>
+                <li>Migración a SAP S/4HANA</li>
+                <li>SAP Analytics Cloud SAC</li>
+                <li>SAP BPC</li>
+                <li>SuccessFactors</li>
+                <li>C/4HANA</li>
+                <li>Soluciones Fiscales</li>
+                <li>Document Compliance</li>
+                <li>Localización, MX, US & LATAM</li>
+                <li>Módulos y más evolución para tu ERP</li>
+                <li>Implementación | Soporte | Consultoría</li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-4">Servicios</h3>
+              <h3 className="text-xl font-bold mb-4">Servicios de Soporte</h3>
+              <p className="mb-4">
+                Brindamos soporte remoto funcional y técnico para cubrir necesidades de 1er, 2o y 3er nivel de tu ambiente SAP.
+                Contamos con la certificación SAP PCoE, esto avala la calidad de nuestros servicios.
+              </p>
               <ul className="space-y-2">
-                <li>Cloud Service</li>
-                <li>Reportes Inteligentes</li>
-                <li>Soporte SAP</li>
-                <li>Consultoría</li>
+                <li>Soporte Funcional</li>
+                <li>Soporte Basis</li>
+                <li>SAP BPC</li>
+                <li>Staff Augmentation</li>
+                <li>Contenido para Capacitación</li>
+                <li>Fábrica de Software</li>
+                <li>Soporte SAP AMS, pólizas basadas en tus necesidades.</li>
               </ul>
             </div>
             <div>
               <Image src="/LinkLOGO.png" alt="Linktech Logo" width={120} height={120} className="mb-4" />
               <p className="text-sm">Link Technologies - SAPI d.c. v.</p>
+              <div className="mt-4">
+                <p className="mb-2">¿Necesita ayuda?</p>
+                <p className="mb-2">📞 81 4165 5465</p>
+                <p>📧 dc.operations@linktech.com.mx</p>
+              </div>
+              <div className="mt-4">
+                <h4 className="font-bold mb-2">Ubicaciones</h4>
+                <ul className="space-y-1">
+                  <li>Monterrey</li>
+                  <li>CDMX</li>
+                  <li>Guadalajara</li>
+                  <li>Dallas Texas, US</li>
+                </ul>
+              </div>
             </div>
           </div>
           <div className="border-t border-blue-800 mt-8 pt-8 text-center">
