@@ -5,17 +5,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
-      <nav className="w-full bg-white shadow flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-3">
-          <Image src="/LinkLOGO.png" alt="Linktech Logo" width={48} height={48} />
-          <span className="text-2xl font-bold text-blue-700 tracking-tight">Linktech</span>
+      <nav className="w-full bg-white shadow">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-center">
+            <Image src="/LinkLOGO.png" alt="Linktech Logo" width={64} height={64} className="mr-3" />
+            <span className="text-3xl font-bold text-blue-700 tracking-tight">Linktech</span>
+          </div>
         </div>
-        <ul className="flex gap-8 text-gray-700 font-medium">
-          <li><a href="#" className="hover:text-blue-700 transition">Inicio</a></li>
-          <li><a href="#" className="hover:text-blue-700 transition">Soluciones SAP</a></li>
-          <li><a href="#" className="hover:text-blue-700 transition">Nosotros</a></li>
-          <li><a href="#" className="hover:text-blue-700 transition">Contacto</a></li>
-        </ul>
       </nav>
 
       {/* Carrusel */}
@@ -120,12 +116,12 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-4">Enlaces</h3>
+              <h3 className="text-xl font-bold mb-4">Servicios</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-blue-300 transition">Inicio</a></li>
-                <li><a href="#" className="hover:text-blue-300 transition">Soluciones SAP</a></li>
-                <li><a href="#" className="hover:text-blue-300 transition">Nosotros</a></li>
-                <li><a href="#" className="hover:text-blue-300 transition">Contacto</a></li>
+                <li>Cloud Service</li>
+                <li>Reportes Inteligentes</li>
+                <li>Soporte SAP</li>
+                <li>Consultoría</li>
               </ul>
             </div>
             <div>
