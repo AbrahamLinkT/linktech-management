@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Carousel from "../components/Carousel";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -11,9 +12,11 @@ export default function Home() {
             <div className="flex-shrink-0">
               <Image src="/LinkLOGO.png" alt="Linktech Logo" width={300} height={300} priority />
             </div>
-            <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
-              Iniciar Sesión
-            </button>
+            <Link href="/dashboard">
+              <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
+                Iniciar Sesión
+              </button>
+            </Link>
           </div>
         </div>
       </nav>
