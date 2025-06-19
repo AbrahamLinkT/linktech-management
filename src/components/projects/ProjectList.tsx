@@ -13,6 +13,7 @@ import {
 import { useProjectStore } from "src/store/projectStore";
 import { ProjectStatus } from "src/types/project";
 
+
 export default function ProjectList() {
   const { projects, loading } = useProjectStore();
 
@@ -58,6 +59,7 @@ export default function ProjectList() {
             <TableCell>
               {new Date(project.endDate).toLocaleDateString()}
             </TableCell>
+
             <TableCell>${project.budget.toLocaleString()}</TableCell>
           </TableRow>
         ))}

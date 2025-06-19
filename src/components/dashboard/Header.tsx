@@ -34,6 +34,7 @@ export default function Header() {
                     onClick={() => {
                       /* Implement logout */
                     }}
+
                     type="button"
                   >
                     Cerrar Sesión

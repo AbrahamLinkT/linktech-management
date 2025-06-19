@@ -10,6 +10,7 @@ import {
 } from "@tremor/react";
 import { BillingPlan, PaymentStatus } from "src/types/billing";
 
+
 export default function BillingPlanList() {
   // TODO: Replace with actual data from API
   const billingPlans: BillingPlan[] = [];
@@ -40,6 +41,7 @@ export default function BillingPlanList() {
                     : "gray"
                 }
               >
+
                 {plan.status}
               </Badge>
             </TableCell>
@@ -53,6 +55,7 @@ export default function BillingPlanList() {
               $
               {plan.milestones
                 .filter((m) => m.status === PaymentStatus.PENDING)
+
                 .reduce((sum, m) => sum + m.amount, 0)
                 .toLocaleString()}
             </TableCell>
@@ -61,4 +64,5 @@ export default function BillingPlanList() {
       </TableBody>
     </Table>
   );
+
 }

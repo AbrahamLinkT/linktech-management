@@ -13,6 +13,7 @@ import {
 import { useConsultantStore } from "src/store/consultantStore";
 import { AvailabilityStatus } from "src/types/consultant";
 
+
 export default function ConsultantList() {
   const { consultants, loading } = useConsultantStore();
 
@@ -26,6 +27,7 @@ export default function ConsultantList() {
         No hay consultores disponibles
       </div>
     );
+
   }
 
   return (

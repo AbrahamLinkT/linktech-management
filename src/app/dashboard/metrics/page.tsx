@@ -5,6 +5,7 @@ import ProjectProgress from "src/components/metrics/ProjectProgress";
 import CostAnalysis from "src/components/metrics/CostAnalysis";
 import TimeAllocation from "src/components/metrics/TimeAllocation";
 
+
 export default function MetricsPage() {
   return (
     <div className="space-y-6">

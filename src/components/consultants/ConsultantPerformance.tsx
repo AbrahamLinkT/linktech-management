@@ -14,6 +14,7 @@ export default function ConsultantPerformance() {
       name: consultant.name,
       "Tasa de Éxito": consultant.successRate,
       "Proyectos Completados": consultant.totalProjectsCompleted,
+
     }));
 
   return (
@@ -21,6 +22,7 @@ export default function ConsultantPerformance() {
       <Title className="text-xl font-semibold text-gray-900 mb-4">
         Rendimiento de Consultores
       </Title>
+
       {performanceData.length > 0 ? (
         <AreaChart
           className="mt-6 h-80"

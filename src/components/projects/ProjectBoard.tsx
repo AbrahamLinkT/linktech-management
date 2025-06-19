@@ -5,6 +5,7 @@ import { Card, Title } from "@tremor/react";
 import { useProjectStore } from "src/store/projectStore";
 import { ProjectStatus } from "src/types/project";
 
+
 export default function ProjectBoard() {
   const { projects } = useProjectStore();
 
