@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Project, ProjectStatus } from 'src/types/project';
-import { projectApi } from 'src/services/api';
+import { Project, ProjectStatus } from '@/types/project';
+import { projectApi } from '@/services/api';
 
 interface ProjectState {
   projects: Project[];

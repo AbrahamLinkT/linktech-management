@@ -1,16 +1,8 @@
-import React from "react";
-import {
-  Card,
-  Title,
-  TabGroup,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-} from "@tremor/react";
-import ConsultantList from "src/components/consultants/ConsultantList";
-import ConsultantAvailability from "src/components/consultants/ConsultantAvailability";
-import ConsultantPerformance from "src/components/consultants/ConsultantPerformance";
+import React from 'react';
+import { Card, Title, TabGroup, TabList, Tab, TabPanels, TabPanel } from '@tremor/react';
+import ConsultantList from '@/components/consultants/ConsultantList';
+import ConsultantAvailability from '@/components/consultants/ConsultantAvailability';
+import ConsultantPerformance from '@/components/consultants/ConsultantPerformance';
 
 export default function ConsultantsPage() {
   return (
@@ -25,15 +17,9 @@ export default function ConsultantsPage() {
       <Card className="overflow-hidden">
         <TabGroup>
           <TabList className="border-b border-gray-200">
-            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">
-              Lista
-            </Tab>
-            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">
-              Disponibilidad
-            </Tab>
-            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">
-              Rendimiento
-            </Tab>
+            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">Lista</Tab>
+            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">Disponibilidad</Tab>
+            <Tab className="text-gray-700 hover:text-blue-700 px-6 py-3 text-sm font-medium">Rendimiento</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
