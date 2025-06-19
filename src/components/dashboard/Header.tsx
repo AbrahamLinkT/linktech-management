@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState } from "react";
+import Image from "next/image";
 
 export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -11,7 +11,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Image src="/LinkLOGO.png" alt="Linktech Logo" width={150} height={50} />
+            <Image
+              src="/LinkLOGO.png"
+              alt="Linktech Logo"
+              width={150}
+              height={50}
+            />
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -26,7 +31,10 @@ export default function Header() {
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                    onClick={() => {/* Implement logout */}}
+                    onClick={() => {
+                      /* Implement logout */
+                    }}
+
                     type="button"
                   >
                     Cerrar Sesión

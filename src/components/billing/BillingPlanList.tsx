@@ -1,6 +1,15 @@
-import React from 'react';
-import { Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge } from '@tremor/react';
-import { BillingPlan, PaymentStatus } from '@/types/billing';
+import React from "react";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableHeaderCell,
+  TableBody,
+  TableCell,
+  Badge,
+} from "@tremor/react";
+import { BillingPlan, PaymentStatus } from "src/types/billing";
+
 
 export default function BillingPlanList() {
   // TODO: Replace with actual data from API
@@ -23,22 +32,30 @@ export default function BillingPlanList() {
             <TableCell>{plan.projectId}</TableCell>
             <TableCell>${plan.totalAmount.toLocaleString()}</TableCell>
             <TableCell>
-              <Badge color={
-                plan.status === 'ACTIVE' ? 'blue' :
-                plan.status === 'COMPLETED' ? 'green' :
-                'gray'
-              }>
+              <Badge
+                color={
+                  plan.status === "ACTIVE"
+                    ? "blue"
+                    : plan.status === "COMPLETED"
+                    ? "green"
+                    : "gray"
+                }
+              >
+
                 {plan.status}
               </Badge>
             </TableCell>
             <TableCell>
               {plan.milestones
-                .filter(m => m.status === PaymentStatus.PENDING)
-                .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0]?.dueDate.toLocaleDateString()}
+                .filter((m) => m.status === PaymentStatus.PENDING)
+                .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0]
+                ?.dueDate.toLocaleDateString()}
             </TableCell>
             <TableCell>
-              ${plan.milestones
-                .filter(m => m.status === PaymentStatus.PENDING)
+              $
+              {plan.milestones
+                .filter((m) => m.status === PaymentStatus.PENDING)
+
                 .reduce((sum, m) => sum + m.amount, 0)
                 .toLocaleString()}
             </TableCell>
@@ -47,4 +64,5 @@ export default function BillingPlanList() {
       </TableBody>
     </Table>
   );
+
 }

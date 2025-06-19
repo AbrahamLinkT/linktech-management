@@ -1,9 +1,10 @@
-import React from 'react';
-import { Card, Title, Grid } from '@tremor/react';
-import MetricsOverview from '@/components/metrics/MetricsOverview';
-import ProjectProgress from '@/components/metrics/ProjectProgress';
-import CostAnalysis from '@/components/metrics/CostAnalysis';
-import TimeAllocation from '@/components/metrics/TimeAllocation';
+import React from "react";
+import { Card, Title, Grid } from "@tremor/react";
+import MetricsOverview from "src/components/metrics/MetricsOverview";
+import ProjectProgress from "src/components/metrics/ProjectProgress";
+import CostAnalysis from "src/components/metrics/CostAnalysis";
+import TimeAllocation from "src/components/metrics/TimeAllocation";
+
 
 export default function MetricsPage() {
   return (
