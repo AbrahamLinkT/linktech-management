@@ -41,11 +41,15 @@ export function ListProjects() {
                         <table className="table w-full min-w-max border-collapse">
                             <thead className="table-header">
                                 <tr className="table-row">
-                                    <th className="table-head">Orden interna</th>
-                                    <th className="table-head">Titulo</th>
-                                    <th className="table-head">Descripcion</th>
+                                    <th className="table-head">Orden Interna</th>
+                                    <th className="table-head">Nombre de proyecto</th>
+                                    <th className="table-head">Descripción</th>
+                                    <th className="table-head">Cliente</th>
                                     <th className="table-head">Estatus</th>
-                                    <th className="table-head">Responsable</th>
+                                    <th className="table-head">Departamento</th>
+                                    <th className="table-head">Gerente de proyecto</th>
+                                    <th className="table-head">Fecha de inicio</th>
+                                    <th className="table-head">Fecha fin</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -56,10 +60,14 @@ export function ListProjects() {
                                         className="table-row h-10 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-slate-700"
                                     >
                                         <td className="table-cell">{data.ordenInterna}</td>
-                                        <td className="table-cell">{data.titulo}</td>
+                                        <td className="table-cell">{data.nombre}</td>
                                         <td className="table-cell">{data.descripcion}</td>
+                                        <td className="table-cell">{data.cliente}</td>
                                         <td className="table-cell">{data.estatus}</td>
+                                        <td className="table-cell">{data.departamento}</td>
                                         <td className="table-cell">{data.responsable}</td>
+                                        <td className="table-cell">{data.fechaIn}</td>
+                                        <td className="table-cell">{data.fechaFn}</td>
                                     </tr>
                                 ))}
                             </tbody>

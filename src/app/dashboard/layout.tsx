@@ -1,8 +1,6 @@
 "use client";
 
-/* import { useMediaQuery } from "@uidotdev/usehooks";*/
-import { useMediaQuery } from 'react-responsive'
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Sidebar } from "@/layouts/sidebar";
 import { Header } from "@/layouts/header";
 
@@ -13,15 +11,9 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-
-    const isDesktopDevice = useMediaQuery({ query: '(min-width: 768px)' });
-    const [collapsed, setCollapsed] = useState(!isDesktopDevice);
-
+    // El menú lateral inicia abierto siempre
+    const [collapsed, setCollapsed] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
-    
-    useEffect(()=>{
-        setCollapsed(!isDesktopDevice)
-    },[isDesktopDevice])
 
     return (
         <div className="min-h-screen bg-slate-100 transition-colors dark:bg-slate-950">

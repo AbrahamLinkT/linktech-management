@@ -33,7 +33,7 @@ export function ProjectDetailsModal({ project, onClose }: Props) {
                         <strong>Orden Interna:</strong> {project.ordenInterna}
                     </p>
                     <p>
-                        <strong>Título:</strong> {project.titulo}
+                        <strong>Nombre del proyecto:</strong> {project.titulo}
                     </p>
                     <p>
                         <strong>Nombre:</strong> {project.nombre}
