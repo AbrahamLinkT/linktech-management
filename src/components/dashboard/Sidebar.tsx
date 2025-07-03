@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menuItems = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Panel" },
   { href: "/dashboard/projects", label: "Gestión de Proyectos" },
   { href: "/dashboard/billing", label: "Plan de Facturación" },
   { href: "/dashboard/metrics", label: "Métricas" },

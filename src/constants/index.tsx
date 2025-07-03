@@ -2,7 +2,7 @@ import { ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, UserChe
 
 export const navbarLinks = [
     {
-        title: "Dashboard",
+        title: "Panel",
         links: [
             {
                 label: "Inicio",
@@ -10,7 +10,7 @@ export const navbarLinks = [
                 path: "/dashboard",
             },
             {
-                label: "Analisis",
+                label: "Análisis",
                 icon: ChartColumn,
                 path: "/dashboard/project",
             },
@@ -25,7 +25,7 @@ export const navbarLinks = [
         title: "Trabajadores",
         links: [
             {
-                label: "Product Manager",
+                label: "Gestor de Producto",
                 icon: Users,
                 path: "/customers",
             },
@@ -57,10 +57,10 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Configuracion",
+        title: "Configuración",
         links: [
             {
-                label: "Configuracion",
+                label: "Configuración",
                 icon: Settings,
                 path: "/settings",
             },
