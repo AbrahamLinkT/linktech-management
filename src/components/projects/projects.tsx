@@ -4,10 +4,77 @@ import { useState } from "react";
 import { CreateProject } from "./CreateProject";
 import { FilterOfProjects } from "./FilterOfProjects";
 import { ProjectDetailsModal } from "../modal/ProjectDetails";
+import { useReactTable, getCoreRowModel, flexRender, ColumnDef } from '@tanstack/react-table';
+
 export function ListProjects() {
     const [showFilters, setShowFilters] = useState(false);
     const [showCreate, setCreate] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+    // Definir columnas para react-table
+    const columns = [
+        {
+            accessorKey: 'ordenInterna',
+            header: 'Orden Interna',
+            size: 120,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'nombre',
+            header: 'Nombre de proyecto',
+            size: 180,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'descripcion',
+            header: 'Descripción',
+            size: 220,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'cliente',
+            header: 'Cliente',
+            size: 120,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'estatus',
+            header: 'Estatus',
+            size: 100,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'departamento',
+            header: 'Departamento',
+            size: 140,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'responsable',
+            header: 'Gerente de proyecto',
+            size: 160,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'fechaIn',
+            header: 'Fecha de inicio',
+            size: 120,
+            enableResizing: true,
+        },
+        {
+            accessorKey: 'fechaFn',
+            header: 'Fecha fin',
+            size: 120,
+            enableResizing: true,
+        },
+    ] as ColumnDef<Project>[];
+
+    const table = useReactTable({
+        data: Projects.proyectos,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        columnResizeMode: 'onChange',
+    });
 
     return (
         <>
@@ -36,38 +103,47 @@ export function ListProjects() {
                 />
                 {/* contenedor de busqueda */}
                 <FilterOfProjects showFilters={showFilters} />
-                <div className="overflow-hidden rounded-xl border border-gray-300 bg-white p-0 shadow-md dark:border-slate-700 dark:bg-slate-800">
+                <div className="overflow-x-auto rounded-xl border border-gray-300 bg-white p-0 shadow-md dark:border-slate-700 dark:bg-slate-800">
                     <div className="relative max-h-[550px] min-h-[100px] w-full overflow-y-auto rounded-none [scrollbar-width:thin]">
                         <table className="table w-full min-w-max border-collapse">
                             <thead className="table-header">
-                                <tr className="table-row">
-                                    <th className="table-head">Orden Interna</th>
-                                    <th className="table-head">Nombre de proyecto</th>
-                                    <th className="table-head">Descripción</th>
-                                    <th className="table-head">Cliente</th>
-                                    <th className="table-head">Estatus</th>
-                                    <th className="table-head">Departamento</th>
-                                    <th className="table-head">Gerente de proyecto</th>
-                                    <th className="table-head">Fecha de inicio</th>
-                                    <th className="table-head">Fecha fin</th>
-                                </tr>
+                                {table.getHeaderGroups().map(headerGroup => (
+                                    <tr key={headerGroup.id} className="table-row">
+                                        {headerGroup.headers.map(header => (
+                                            <th
+                                                key={header.id}
+                                                className="table-head relative group"
+                                                style={{ width: header.getSize() }}
+                                            >
+                                                {flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                                {header.column.getCanResize() && (
+                                                    <div
+                                                        onMouseDown={header.getResizeHandler()}
+                                                        onTouchStart={header.getResizeHandler()}
+                                                        className={`absolute right-0 top-0 h-full w-2 cursor-col-resize select-none group-hover:bg-blue-200 transition`}
+                                                        style={{ zIndex: 10 }}
+                                                    />
+                                                )}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                ))}
                             </thead>
                             <tbody className="table-body">
-                                {Projects.proyectos.map((data, index) => (
+                                {table.getRowModel().rows.map(row => (
                                     <tr
-                                        key={index}
-                                        onClick={() => setSelectedProject(data)}
+                                        key={row.id}
+                                        onClick={() => setSelectedProject(row.original)}
                                         className="table-row h-10 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-slate-700"
                                     >
-                                        <td className="table-cell">{data.ordenInterna}</td>
-                                        <td className="table-cell">{data.nombre}</td>
-                                        <td className="table-cell">{data.descripcion}</td>
-                                        <td className="table-cell">{data.cliente}</td>
-                                        <td className="table-cell">{data.estatus}</td>
-                                        <td className="table-cell">{data.departamento}</td>
-                                        <td className="table-cell">{data.responsable}</td>
-                                        <td className="table-cell">{data.fechaIn}</td>
-                                        <td className="table-cell">{data.fechaFn}</td>
+                                        {row.getVisibleCells().map(cell => (
+                                            <td key={cell.id} className="table-cell">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </td>
+                                        ))}
                                     </tr>
                                 ))}
                             </tbody>

@@ -22,22 +22,37 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Trabajadores",
+        title: "Capital humano",
         links: [
             {
-                label: "Gestor de Producto",
+                label: "Empleados",
                 icon: Users,
-                path: "/customers",
+                path: "/employees",
             },
             {
-                label: "Nuevo trabajador",
-                icon: UserPlus,
-                path: "/new-customer",
+                label: "Departamentos",
+                icon: Package,
+                path: "/departments",
             },
             {
-                label: "Disponibilidad",
+                label: "Disponibilidad de tiempo",
                 icon: UserCheck,
-                path: "/verified-customers",
+                path: "/availability",
+            },
+            {
+                label: "Esquema de contratación",
+                icon: Settings,
+                path: "/hiring-scheme",
+            },
+            {
+                label: "Especialidades",
+                icon: NotepadText,
+                path: "/specialties",
+            },
+            {
+                label: "Niveles",
+                icon: ChartColumn,
+                path: "/levels",
             },
         ],
     },

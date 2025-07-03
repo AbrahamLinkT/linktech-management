@@ -1,5 +1,5 @@
 "use client";
-import { Projects } from "@/constants/index";
+import Projects from "@/data/Projects.json";
 import { useRouter } from "next/navigation"; 
 import { useEffect, useState } from "react";
 import { Project } from "@/constants/index";
@@ -29,7 +29,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
 
     const handleGuardar = () => {
         // Crear nuevo id
-        const lastId = Projects[Projects.length - 1]?.id || "0";
+        const lastId = Projects.proyectos[Projects.proyectos.length - 1]?.id || "0";
         const newId = (parseInt(lastId) + 1).toString();
 
         const nuevoProyecto: Project = {
@@ -47,7 +47,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
         };
 
         // Simulación de guardado (solo en memoria temporal, no persistente)
-        Projects.push(nuevoProyecto);
+        Projects.proyectos.push(nuevoProyecto);
 
         // Redirigir a detalle del nuevo proyecto
         router.push(`/dashboard/project?id=${newId}`);
