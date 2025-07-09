@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Carousel from "../components/Carousel";
 import { ClerkAuthButtons } from "../components/ClerkAuthButtons";
-import Link from "next/link";
 
 export default function Home() {
   return (

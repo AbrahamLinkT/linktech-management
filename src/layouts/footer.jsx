@@ -7,13 +7,13 @@ export const Footer = () => {
                     href="#"
                     className="link"
                 >
-                    Política de privacidad
+                    Politica de privasidad
                 </a>
                 <a
                     href="#"
                     className="link"
                 >
-                    Términos y servicios
+                    terminos y servicios
                 </a>
             </div>
         </footer>

@@ -2,7 +2,7 @@ import { ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, UserChe
 
 export const navbarLinks = [
     {
-        title: "Panel",
+        title: "Dashboard",
         links: [
             {
                 label: "Inicio",
@@ -10,7 +10,7 @@ export const navbarLinks = [
                 path: "/dashboard",
             },
             {
-                label: "Análisis",
+                label: "Analisis",
                 icon: ChartColumn,
                 path: "/dashboard/project",
             },
@@ -22,37 +22,22 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Capital humano",
+        title: "Trabajadores",
         links: [
             {
-                label: "Empleados",
+                label: "Workers",
                 icon: Users,
-                path: "/employees",
+                path: "/dashboard/workers",
             },
             {
-                label: "Departamentos",
-                icon: Package,
-                path: "/departments",
+                label: "Nuevo trabajador",
+                icon: UserPlus,
+                path: "/new-customer",
             },
             {
-                label: "Disponibilidad de tiempo",
+                label: "Disponibilidad",
                 icon: UserCheck,
-                path: "/availability",
-            },
-            {
-                label: "Esquema de contratación",
-                icon: Settings,
-                path: "/hiring-scheme",
-            },
-            {
-                label: "Especialidades",
-                icon: NotepadText,
-                path: "/specialties",
-            },
-            {
-                label: "Niveles",
-                icon: ChartColumn,
-                path: "/levels",
+                path: "/verified-customers",
             },
         ],
     },
@@ -72,10 +57,10 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Configuración",
+        title: "Configuracion",
         links: [
             {
-                label: "Configuración",
+                label: "Configuracion",
                 icon: Settings,
                 path: "/settings",
             },
@@ -165,3 +150,5 @@ export interface AssignedHours {
     fecha: string;
     horas: number;
 }
+
+

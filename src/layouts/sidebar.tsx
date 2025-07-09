@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef } from "react";
 import Link from "next/link";
 
 import { navbarLinks } from "@/constants";
@@ -15,8 +15,6 @@ interface SidebarProps {
 }
 
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, ref) => {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
   return (
     <aside
       ref={ref}
@@ -29,7 +27,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
       <div className="flex gap-x-3 p-3">
         <img src={logoLight.src} alt="Logo" className="dark:hidden" />
         <img src={logoDark.src} alt="Logo" className="hidden dark:block" />
-        {mounted && !collapsed && (
+        {!collapsed && (
           <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">
             Linktech
           </p>
@@ -37,12 +35,14 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
       </div>
 
       <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:thin]">
-        {mounted && navbarLinks.map((navbarLink) => (
+        {navbarLinks.map((navbarLink) => (
           <nav
             key={navbarLink.title}
             className={cn("sidebar-group", collapsed && "md:items-center")}
           >
-            <p className={cn("sidebar-group-title", collapsed && "md:w-[45px]")}>{navbarLink.title}</p>
+            <p className={cn("sidebar-group-title", collapsed && "md:w-[45px]")}>
+              {navbarLink.title}
+            </p>
             {navbarLink.links.map((link) => (
               <Link
                 key={link.label}

@@ -1,5 +1,5 @@
 "use client";
-import Projects from "@/data/Projects.json";
+import { Projects } from "@/constants/index";
 import { useRouter } from "next/navigation"; 
 import { useEffect, useState } from "react";
 import { Project } from "@/constants/index";
@@ -13,12 +13,11 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
 
     // Inputs nuevos
     const [ordenInterna, setOrdenInterna] = useState("");
-    const [nombre, setNombre] = useState("");
+    const [titulo, setTitulo] = useState("");
     const [cliente, setCliente] = useState("");
-    const [estatus, setEstatus] = useState("Activo");
-    const [departamento, setDepartamento] = useState("");
     const [responsable, setResponsable] = useState("");
     const [descripcion, setDescripcion] = useState("");
+    const [departamento, setDepartamento] = useState("");
 
     useEffect(() => {
         if (fechIn && fechFn) {
@@ -29,25 +28,25 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
 
     const handleGuardar = () => {
         // Crear nuevo id
-        const lastId = Projects.proyectos[Projects.proyectos.length - 1]?.id || "0";
+        const lastId = Projects[Projects.length - 1]?.id || "0";
         const newId = (parseInt(lastId) + 1).toString();
 
         const nuevoProyecto: Project = {
             id: newId,
+            titulo,
+            nombre: titulo,
             ordenInterna,
-            nombre,
-            descripcion,
             cliente,
-            estatus,
             departamento,
+            descripcion,
             responsable,
+            estatus: "pendiente",
             fechaIn: fechIn,
             fechaFn: fechFn,
-            titulo: nombre,
         };
 
         // Simulación de guardado (solo en memoria temporal, no persistente)
-        Projects.proyectos.push(nuevoProyecto);
+        Projects.push(nuevoProyecto);
 
         // Redirigir a detalle del nuevo proyecto
         router.push(`/dashboard/project?id=${newId}`);
@@ -70,77 +69,67 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Orden interna:</label>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Numero de orden interna:</label>
                         <input
                             type="text"
-                            placeholder="Ej. 12345"
+                            placeholder="Ej. Barra Vaz"
                             value={ordenInterna}
                             onChange={(e)=>setOrdenInterna(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
+
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre de proyecto:</label>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Título:</label>
                         <input
                             type="text"
-                            placeholder="Ej. Implementación SAP"
-                            value={nombre}
-                            onChange={(e)=>setNombre(e.target.value)}
+                            placeholder="Ej. SD"
+                            value={titulo}
+                            onChange={(e)=>setTitulo(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
-                    </div>
-                    <div className="col-span-2 row-span-2 row-start-2 w-full">
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Descripción:</label>
-                        <textarea
-                            value={descripcion}
-                            onChange={(e)=>setDescripcion(e.target.value)}
-                            placeholder="Ej. Descripción detallada del proyecto..."
-                            className="h-full w-full resize-none overflow-y-auto rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
-                        ></textarea>
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Cliente:</label>
                         <input
                             type="text"
-                            placeholder="Ej. Empresa XYZ"
+                            placeholder="Ej. SD"
                             value={cliente}
                             onChange={(e)=>setCliente(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Estatus:</label>
-                        <select
-                            value={estatus}
-                            onChange={(e)=>setEstatus(e.target.value)}
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Responsable:</label>
+                        <input
+                            type="text"
+                            placeholder="Ej. Delivery"
+                            value={responsable}
+                            onChange={(e)=>setResponsable(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
-                        >
-                            <option value="Activo">Activo</option>
-                            <option value="Detenido">Detenido</option>
-                            <option value="Cerrado">Cerrado</option>
-                        </select>
+                        />
                     </div>
+                    <div className="col-span-2 row-span-2 row-start-2 w-full">
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Descripción:</label>
+                        <textarea
+                        value={descripcion}
+                            onChange={(e)=>setDescripcion(e.target.value)}
+                            placeholder="Ej. Descripción detallada del proyecto..."
+                            className="h-full w-full resize-none overflow-y-auto rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
+                        ></textarea>
+                    </div>
+
                     <div>
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Departamento:</label>
                         <input
                             type="text"
                             value={departamento}
                             onChange={(e)=>setDepartamento(e.target.value)}
-                            placeholder="Ej. Tecnología"
+                            placeholder="Ej. Delivery"
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Gerente de proyecto:</label>
-                        <input
-                            type="text"
-                            value={responsable}
-                            onChange={(e)=>setResponsable(e.target.value)}
-                            placeholder="Ej. Juan Pérez"
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
-                        />
-                    </div>
-                    <div className="sm:col-span-1 lg:col-span-1">
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha de inicio:</label>
                         <input
                             type="date"
@@ -149,8 +138,9 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
-                    <div className="sm:col-span-1 lg:col-start-3 lg:row-start-4">
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha fin:</label>
+
+                    <div className="col-start-3 row-start-3">
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha final:</label>
                         <input
                             type="date"
                             value={fechFn}
@@ -161,10 +151,9 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                     <div className="col-start-4 row-start-3">
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Total de horas:</label>
                         <input
-                            type="number"
-                            min={0}
-                            value={totalHoras}
-                            onChange={e => setTotalHoras(Number(e.target.value))}
+                            type="text"
+                            disabled
+                            value={`${totalHoras} horas`}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>

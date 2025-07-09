@@ -1,45 +1,29 @@
 {
     "OI": [
         {
-            "ORD-001": [
+            "OI4555": [
                 {
-                    "trabjador-1": [
+                    "1": [
                         {
-                            "trabajador": "worker123",
+                            "consultor": "sanchez perez luis",
                             "horas": {
-                                "2025-06-17": 6
+                                "2025-06-17": 6,
+                                "2025-06-18": 4
                             },
                             "dias": [
-                                "2025-06-17"
-                            ]
-                        },
-                        {
-                            "trabajador": "worker123",
-                            "horas": {
-                                "2025-06-18": 7
-                            },
-                            "dias": [
+                                "2025-06-17",
                                 "2025-06-18"
                             ]
                         }
                     ],
-                    "trabjador-2": [
+                    "2": [
                         {
-                            "trabajador": "worker123",
+                            "trabajador": "sanchez perez luis",
                             "horas": {
                                 "2025-06-17": 6
                             },
                             "dias": [
                                 "2025-06-17"
-                            ]
-                        },
-                        {
-                            "trabajador": "worker123",
-                            "horas": {
-                                "2025-06-18": 7
-                            },
-                            "dias": [
-                                "2025-06-18"
                             ]
                         }
                     ]

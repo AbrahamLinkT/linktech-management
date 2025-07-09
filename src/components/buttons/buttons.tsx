@@ -31,3 +31,10 @@ export function ButtonEdit(){
         </>
     )
 }
+
+export function Btn_data ({text, Onclick} : {text: string, Onclick: ()=> void}){
+
+    return (
+        <button onClick={Onclick} className=" rounded-lg border border-gray-400 bg-transparent px-2 py-[2px] text-sm font-medium transition  cursor-pointer hover:bg-blue-400 hover:text-white">{text}</button>
+    )
+}

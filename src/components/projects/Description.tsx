@@ -1,4 +1,4 @@
-import  Projects  from "@/data/Projects.json";
+import Projects from "@/data/Projects.json";
 import TableWorkers from "@/components/projects/Workers";
 import ButtonFilterWork, { ButtonSave } from "../buttons/buttons";
 import { FilterStaff } from "../filters/filters";
