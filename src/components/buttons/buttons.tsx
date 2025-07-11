@@ -21,20 +21,35 @@ export function ButtonSave() {
     );
 }
 
-/* boton edith */
+// btn reutilizable
+export function Btn_data({ text, Onclick, styles, text_color, hover_color }: { text: string, Onclick: () => void, styles?: string, text_color?: string, hover_color?: string }) {
+    const stylesDefault = text_color?.trim()
+        ? `absolute top-4 right-4 text-xl font-bold ${text_color} hover:${hover_color}`
+        : "absolute top-4 right-4 text-xl font-bold text-gray-500 hover:text-red-500";
 
-export function ButtonEdit(){
-
-    return(
-        <>
-        este es un botton
-        </>
+    return (
+        <button onClick={Onclick} className={styles?.trim() ? styles : stylesDefault}>{text}</button>
     )
 }
 
-export function Btn_data ({text, Onclick} : {text: string, Onclick: ()=> void}){
+// btn_list
+type BtnListProps = {
+    text: string;
+    onClick: () => void;
+};
 
+export function Btn_list({ items }: { items: BtnListProps[] }) {
     return (
-        <button onClick={Onclick} className=" rounded-lg border border-gray-400 bg-transparent px-2 py-[2px] text-sm font-medium transition  cursor-pointer hover:bg-blue-400 hover:text-white">{text}</button>
-    )
+        <div className="absolute right-0 z-50 mt-2 w-40 bg-white shadow-lg rounded border border-gray-200">
+            {items.map((item, index) => (
+                <button
+                    key={index}
+                    onClick={item.onClick}
+                    className="block w-full text-left px-4 py-2 hover:bg-blue-100"
+                >
+                    {item.text}
+                </button>
+            ))}
+        </div>
+    );
 }

@@ -3,6 +3,7 @@ import { RefObject } from "react";
 import Asignados from "@/data/ProyectosAsignados.json"
 import Projects from "@/data/Projects.json"
 import horasData from "@/data/HorasAsignadas.json" assert { type: "json" };
+import { Table_1 } from "../tables/table";
 
 /* estructura  */
 type HorasPorFecha = { [fecha: string]: number };
@@ -81,12 +82,12 @@ export function DetailsWorkers({ id, n, close, dialogRef, }: { id: string | null
 
                         {ProyectosAsignados.length > 0 ? (
 
-                            <SimpleTable
+                            <Table_1
                                 headers={["Orden Interna", "Proyecto", "Estado", "Fecha Inicio", "Fecha Final", "Horas"]}
                                 rows={ProyectosAsignados.map((p) => [
                                     p.ordenInterna, p.titulo, p.estatus, p.fechaIn, p.fechaFn, ""
                                 ])}
-                                onClickRow={(row) => {
+                                EventOnclick={(row) => {
                                     const ordenInterna = row[0];
 
                                     handleClick(ordenInterna)
@@ -110,7 +111,7 @@ export function DetailsWorkers({ id, n, close, dialogRef, }: { id: string | null
 
                         {ProyectosAsignados.length > 0 ? (
 
-                            <SimpleTable
+                            <Table_1
                                 headers={["Orden Interna", "Proyecto", "Estado", "Fecha Inicio", "Fecha Final", "Horas"]}
                                 rows={ProyectosAsignados.map((p) => [
                                     p.ordenInterna, p.titulo, p.estatus, p.fechaIn, p.fechaFn, ""
@@ -136,57 +137,8 @@ export function DetailsWorkers({ id, n, close, dialogRef, }: { id: string | null
                 text-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         >
             {renderContent()}
-            <Btn_data Onclick={close} text="cerrar" />
+            <Btn_data Onclick={close} text="x" />
         </dialog>
     );
 }
 
-/* componente  */
-type SimpleTableProps = {
-    headers: string[];
-    rows: string[][];
-    onClickRow?: (row: string[]) => void
-};
-
-export const SimpleTable: React.FC<SimpleTableProps> = ({ headers, rows, onClickRow }) => {
-    return (
-        <div className="relative max-h-[750px] min-h-[100px] w-full overflow-y-auto rounded-none [scrollbar-width:thin">
-            <table className="table w-full min-w-max border-collapse">
-                <thead className="table-header">
-                    <tr className="table-row">
-                        {headers.map((header, index) => (
-                            <th key={index} className="table-head">
-                                {header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="table-body">
-                    {rows.map((row, rowIndex) => (
-                        <tr
-                            key={rowIndex}
-                            className="table-row cursor-pointer hover:bg-gray-100 "
-                            onClick={() => onClickRow?.(row)}
-                        >
-                            {row.map((cell, colIndex) => (
-                                <td key={colIndex} className="table-cell ">
-                                    {cell}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-};
-
-export function workersDetails() {
-    return (
-        <>
-            <h2>
-                detalles de trabajador
-            </h2>
-        </>
-    )
-}

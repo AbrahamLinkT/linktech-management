@@ -39,6 +39,11 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/verified-customers",
             },
+            {
+                label: "Cargabilidad ",
+                icon: UserCheck,
+                path: "/dashboard/cargabilidad",
+            },
         ],
     },
     {

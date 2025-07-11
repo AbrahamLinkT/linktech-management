@@ -1,11 +1,11 @@
 "use client";
 import { Projects } from "@/constants/index";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Project } from "@/constants/index";
 /* checar el centrado del modal  */
 export function CreateProject({ showCreate, onClose }: { showCreate: boolean; onClose: () => void }) {
- const router = useRouter();
+    const router = useRouter();
 
     const [fechIn, setFechIn] = useState("");
     const [fechFn, setFechFn] = useState("");
@@ -74,7 +74,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                             type="text"
                             placeholder="Ej. Barra Vaz"
                             value={ordenInterna}
-                            onChange={(e)=>setOrdenInterna(e.target.value)}
+                            onChange={(e) => setOrdenInterna(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
@@ -85,7 +85,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                             type="text"
                             placeholder="Ej. SD"
                             value={titulo}
-                            onChange={(e)=>setTitulo(e.target.value)}
+                            onChange={(e) => setTitulo(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
@@ -95,7 +95,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                             type="text"
                             placeholder="Ej. SD"
                             value={cliente}
-                            onChange={(e)=>setCliente(e.target.value)}
+                            onChange={(e) => setCliente(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
@@ -105,15 +105,15 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                             type="text"
                             placeholder="Ej. Delivery"
                             value={responsable}
-                            onChange={(e)=>setResponsable(e.target.value)}
+                            onChange={(e) => setResponsable(e.target.value)}
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />
                     </div>
                     <div className="col-span-2 row-span-2 row-start-2 w-full">
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Descripción:</label>
                         <textarea
-                        value={descripcion}
-                            onChange={(e)=>setDescripcion(e.target.value)}
+                            value={descripcion}
+                            onChange={(e) => setDescripcion(e.target.value)}
                             placeholder="Ej. Descripción detallada del proyecto..."
                             className="h-full w-full resize-none overflow-y-auto rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         ></textarea>
@@ -124,7 +124,7 @@ export function CreateProject({ showCreate, onClose }: { showCreate: boolean; on
                         <input
                             type="text"
                             value={departamento}
-                            onChange={(e)=>setDepartamento(e.target.value)}
+                            onChange={(e) => setDepartamento(e.target.value)}
                             placeholder="Ej. Delivery"
                             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:text-white"
                         />

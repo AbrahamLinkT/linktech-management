@@ -1,5 +1,5 @@
-import {  Project } from "@/constants/index";
-import  Projects  from "@/data/Projects.json";
+import { Project } from "@/constants/index";
+import Projects from "@/data/Projects.json";
 import { useState } from "react";
 import { CreateProject } from "./CreateProject";
 import { FilterOfProjects } from "./FilterOfProjects";
