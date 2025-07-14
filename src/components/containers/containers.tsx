@@ -24,3 +24,5 @@ export function ContentTable({ header, Body }: { header?: React.ReactNode, Body:
         </>
     )
 }
+
+
