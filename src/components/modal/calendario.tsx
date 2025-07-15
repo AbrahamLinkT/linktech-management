@@ -60,6 +60,7 @@ export default function Calendario({ onclose, workerId, ordenInterna }: Props) {
                             onSelect={setRange}
                             disabled={isWeekend}
                             showOutsideDays
+                            showWeekNumber
                             className="border rounded-md p-2"
                             locale={es}
                         />
@@ -109,9 +110,12 @@ export default function Calendario({ onclose, workerId, ordenInterna }: Props) {
                                                 value={valor}
                                                 min={0}
                                                 max={8}
-                                                onChange={(e) =>
-                                                    actualizarHorasIndividual(clave, parseInt(e.target.value))
-                                                }
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const num = val === "" ? 0 : parseInt(val);
+                                                    actualizarHorasIndividual(clave, num);
+                                                }}
+
                                                 className="w-16 text-center border rounded px-1 py-0.5"
                                             />
                                         </li>

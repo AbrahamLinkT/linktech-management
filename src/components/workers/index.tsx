@@ -20,7 +20,6 @@ export default function DataTable() {
   const handleClose = () => {
     dialogRef.current?.close();
   }
-
   // mostrar el menu de opciones y capturar el valor 
   const toggleMenu = (id: string) => {
     setMenuOpenId(prev => (prev === id ? null : id));
@@ -80,6 +79,7 @@ export default function DataTable() {
           n={selectedAction}
         />
       </DialogBase>
+
     </>
   )
 }
