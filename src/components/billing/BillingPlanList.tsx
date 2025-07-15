@@ -8,7 +8,7 @@ import {
   TableCell,
   Badge,
 } from "@tremor/react";
-import { BillingPlan, PaymentStatus } from "src/types/billing";
+import { BillingPlan, PaymentStatus } from "@/types/billing";
 
 
 export default function BillingPlanList() {

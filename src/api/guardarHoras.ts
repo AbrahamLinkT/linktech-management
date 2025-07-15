@@ -4,7 +4,26 @@ import path from "path";
 import { NextApiRequest, NextApiResponse } from "next";
 
 
- /* dat seguimiento a esta parte de post */
+
+// Tipos explícitos para la estructura de HorasAsignadas
+interface EntradaHoras {
+  trabajador: string;
+  horas: number;
+  dias: string[];
+}
+
+type TrabajadorHoras = {
+  [workerId: string]: EntradaHoras[];
+};
+
+type OrdenInterna = {
+  [ordenInterna: string]: TrabajadorHoras[];
+};
+
+interface HorasAsignadasData {
+  OI: OrdenInterna[];
+}
+
 const DATA_PATH = path.join(process.cwd(), "src/data/HorasAsignadas.json");
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,7 +34,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
         const { workerId, ordenInterna, horasPorDia, diasSeleccionados } = req.body;
 
-        let fileData = { OI: [] };
+        let fileData: HorasAsignadasData = { OI: [] };
 
         // Cargar JSON existente si existe
         if (fs.existsSync(DATA_PATH)) {
@@ -23,14 +42,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             fileData = JSON.parse(json);
         }
 
-        const nuevaEntrada = {
+        const nuevaEntrada: EntradaHoras = {
             trabajador: workerId,
             horas: horasPorDia,
             dias: diasSeleccionados,
         };
 
         // Buscar si ya existe la orden interna
-        const oiIndex = fileData.OI.findIndex((oi: any) =>
+        const oiIndex = fileData.OI.findIndex((oi) =>
             Object.prototype.hasOwnProperty.call(oi, ordenInterna)
         );
         if (oiIndex === -1) {
@@ -45,10 +64,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         } else {
             // Orden existe
             const ordenData = fileData.OI[oiIndex][ordenInterna];
-
             // Suponiendo que es un array con 1 objeto (estructura definida)
             const trabajadorBloque = ordenData[0];
-
             if (trabajadorBloque[workerId]) {
                 trabajadorBloque[workerId].push(nuevaEntrada); // Añadir al arreglo existente
             } else {

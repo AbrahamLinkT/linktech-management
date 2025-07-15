@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Card, Title, BarChart } from "@tremor/react";
-import { useConsultantStore } from "src/store/consultantStore";
-import { AvailabilityStatus } from "src/types/consultant";
+import { useConsultantStore } from "@/store/consultantStore";
+import { AvailabilityStatus } from "@/types/consultant";
 
 
 export default function ConsultantAvailability() {

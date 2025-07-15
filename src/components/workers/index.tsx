@@ -34,20 +34,17 @@ export default function DataTable() {
   };
   return (
     <>
-      <ContentBody
-        title="Trabajadores"
-        children={
-
-          <ContentTable
-            header={<SearchWorkers />}
-            Body={
-              <Table_1
-                headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Tiempo", "Estatus", ""]}
-                rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.tiempo, p.estatus,
+      <ContentBody title="Trabajadores"
+      >
+        <ContentTable
+          header={<SearchWorkers />}
+          Body={
+            <Table_1
+              headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Tiempo", "Estatus", ""]}
+              rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.tiempo, p.estatus,
                 <>
                   <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
                   {menuOpenId === p.id && (
-
                     <Btn_list
                       items={[
                         {
@@ -60,15 +57,13 @@ export default function DataTable() {
                         },
                       ]}
                     />
-
                   )}
                 </>
-                ])}
-              />
-            }
-          />
-        }
-      />
+              ])}
+            />
+          }
+        />
+      </ContentBody>
 
       {/* fin de el contenedor de tabla */}
       <DetailsWorkers id={selectId} n={selectedAction} close={handleClose} dialogRef={dialogRef} />

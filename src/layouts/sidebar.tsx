@@ -1,4 +1,5 @@
-'use client';
+"use client";
+import Image from "next/image";
 
 import { forwardRef } from "react";
 import Link from "next/link";
@@ -25,14 +26,15 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
       )}
     >
       <div className="flex gap-x-3 p-3">
-        <img src={logoLight.src} alt="Logo" className="dark:hidden" />
-        <img src={logoDark.src} alt="Logo" className="hidden dark:block" />
+        <Image src={logoLight} alt="Logo" className="dark:hidden" width={40} height={40} priority />
+        <Image src={logoDark} alt="Logo" className="hidden dark:block" width={40} height={40} priority />
         {!collapsed && (
           <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">
             Linktech
           </p>
         )}
       </div>
+
 
       <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:thin]">
         {navbarLinks.map((navbarLink) => (

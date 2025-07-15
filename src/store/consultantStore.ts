@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Consultant, AvailabilityStatus } from '@/types/consultant';
+import { Consultant } from '@/types/consultant';
 import { consultantApi } from '@/services/api';
 
 interface ConsultantState {
@@ -20,7 +20,7 @@ export const useConsultantStore = create<ConsultantState>((set) => ({
     try {
       const response = await consultantApi.getAll();
       set({ consultants: response.data, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch consultants', loading: false });
     }
   },
@@ -29,7 +29,7 @@ export const useConsultantStore = create<ConsultantState>((set) => ({
     try {
       const response = await consultantApi.getAvailable();
       set({ consultants: response.data, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch available consultants', loading: false });
     }
   },
@@ -38,7 +38,7 @@ export const useConsultantStore = create<ConsultantState>((set) => ({
       await consultantApi.update(id, consultant);
       const response = await consultantApi.getAll();
       set({ consultants: response.data });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update consultant' });
     }
   },
