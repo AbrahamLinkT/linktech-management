@@ -19,14 +19,14 @@ export function Table_1({ headers, rows, EventOnclick }: { headers: string[], ro
                         rows.map((row, index) => (
                             <tr
                                 key={index}
-                                className="table-row"
+                                className="table-row hover:bg-gray-100 cursor-pointer"
                                 onClick={() => EventOnclick?.(row)}
                             >
                                 {
                                     row.map((cell, colIndex) => (
                                         <td
                                             key={colIndex}
-                                            className={`table-cell ${colIndex === row.length - 1 ? "relative text-right" : ""}`}
+                                            className={`table-cell ${colIndex === row.length - 1 ? "relative text-center" : ""}`}
                                         >
                                             {cell}
                                         </td>

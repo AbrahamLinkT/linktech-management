@@ -3,9 +3,10 @@ import staf from "@/data/staff.json"
 import { Btn_data, Btn_list } from "../buttons/buttons";
 import { useRef, useState } from "react";
 import { SearchWorkers } from "../filters/filters";
-import { DetailsWorkers } from "../modal/modals";
+import { DialogBase } from "../modal/modals";
 import { Table_1 } from "../tables/table";
 import { ContentBody, ContentTable } from "../containers/containers";
+import { LogicaSwtich } from "../modal/logica";
 export default function DataTable() {
   // referencia al elemento del dialogo 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -19,7 +20,6 @@ export default function DataTable() {
   const handleClose = () => {
     dialogRef.current?.close();
   }
-
   // mostrar el menu de opciones y capturar el valor 
   const toggleMenu = (id: string) => {
     setMenuOpenId(prev => (prev === id ? null : id));
@@ -34,14 +34,20 @@ export default function DataTable() {
   };
   return (
     <>
+<<<<<<< HEAD
       <ContentBody title="Trabajadores"
       >
+=======
+      <ContentBody
+        title="Trabajadores">
+>>>>>>> origin/rama-de-pruebas
         <ContentTable
           header={<SearchWorkers />}
           Body={
             <Table_1
               headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Tiempo", "Estatus", ""]}
               rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.tiempo, p.estatus,
+<<<<<<< HEAD
                 <>
                   <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
                   {menuOpenId === p.id && (
@@ -59,14 +65,49 @@ export default function DataTable() {
                     />
                   )}
                 </>
+=======
+              <>
+                <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
+                {menuOpenId === p.id && (
+
+                  <Btn_list
+                    items={[
+                      {
+                        text: "Horas",
+                        onClick: () => handleOption("horas", p.id),
+                      },
+                      {
+                        text: "Proyectos",
+                        onClick: () => handleOption("proyectos", p.id),
+                      },
+                    ]}
+                  />
+
+                )}
+              </>
+>>>>>>> origin/rama-de-pruebas
               ])}
             />
           }
         />
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/rama-de-pruebas
       </ContentBody>
 
       {/* fin de el contenedor de tabla */}
-      <DetailsWorkers id={selectId} n={selectedAction} close={handleClose} dialogRef={dialogRef} />
+
+      {/* Modal*/}
+      <DialogBase
+        close={handleClose}
+        dialogRef={dialogRef}>
+        <LogicaSwtich
+          id={selectId}
+          n={selectedAction}
+        />
+      </DialogBase>
+
     </>
   )
 }

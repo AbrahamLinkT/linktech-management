@@ -32,12 +32,12 @@ export const navbarLinks = [
             {
                 label: "Nuevo trabajador",
                 icon: UserPlus,
-                path: "/new-customer",
+                path: "/dashboard/new_worker",
             },
             {
                 label: "Disponibilidad",
                 icon: UserCheck,
-                path: "/verified-customers",
+                path: "/dashboard/disponibilidad",
             },
             {
                 label: "Cargabilidad ",
