@@ -1,8 +1,6 @@
 "use client";
-<<<<<<< HEAD
+
 import Image from "next/image";
-=======
->>>>>>> origin/rama-de-pruebas
 
 import { forwardRef } from "react";
 import Link from "next/link";

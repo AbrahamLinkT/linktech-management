@@ -34,20 +34,13 @@ export default function DataTable() {
   };
   return (
     <>
-<<<<<<< HEAD
-      <ContentBody title="Trabajadores"
-      >
-=======
-      <ContentBody
-        title="Trabajadores">
->>>>>>> origin/rama-de-pruebas
+      <ContentBody title="Trabajadores">
         <ContentTable
           header={<SearchWorkers />}
           Body={
             <Table_1
               headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Tiempo", "Estatus", ""]}
               rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.tiempo, p.estatus,
-<<<<<<< HEAD
                 <>
                   <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
                   {menuOpenId === p.id && (
@@ -65,35 +58,10 @@ export default function DataTable() {
                     />
                   )}
                 </>
-=======
-              <>
-                <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
-                {menuOpenId === p.id && (
-
-                  <Btn_list
-                    items={[
-                      {
-                        text: "Horas",
-                        onClick: () => handleOption("horas", p.id),
-                      },
-                      {
-                        text: "Proyectos",
-                        onClick: () => handleOption("proyectos", p.id),
-                      },
-                    ]}
-                  />
-
-                )}
-              </>
->>>>>>> origin/rama-de-pruebas
               ])}
             />
           }
         />
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/rama-de-pruebas
       </ContentBody>
 
       {/* fin de el contenedor de tabla */}

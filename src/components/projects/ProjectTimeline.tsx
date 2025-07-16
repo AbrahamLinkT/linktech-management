@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useProjectStore } from "src/store/projectStore";
+import { useProjectStore } from "@/store/projectStore";
 
 
 export default function ProjectTimeline() {
