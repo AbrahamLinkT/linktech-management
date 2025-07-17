@@ -1,0 +1,56 @@
+{
+  "proyectos": [
+    {
+      "id": "1",
+      "titulo": "Copa mex",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4555",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },
+    {
+      "id": "2",
+      "titulo": "Copa mundial",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4554",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },
+    {
+      "id": "3",
+      "titulo": "Nhubex",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4553",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },
+    {
+      "id": "4",
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    }
+  ]
+}

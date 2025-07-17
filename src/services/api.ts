@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { Project } from 'src/types/project';
-import { Consultant } from 'src/types/consultant';
-import { BillingPlan } from 'src/types/billing';
+import { BillingPlan } from '@/types/billing';
 
 const api = axios.create({
   baseURL: '/api',
@@ -10,25 +8,33 @@ const api = axios.create({
   },
 });
 
+
+// Puedes reemplazar 'unknown' por un tipo Project si lo tienes definido
 export const projectApi = {
-  getAll: () => api.get<Project[]>('/projects'),
-  getById: (id: string) => api.get<Project>(`/projects/${id}`),
-  create: (data: Partial<Project>) => api.post<Project>('/projects', data),
-  update: (id: string, data: Partial<Project>) => api.put<Project>(`/projects/${id}`, data),
-  delete: (id: string) => api.delete<void>(`/projects/${id}`),
+
+  getAll: () => api.get('/projects'),
+  getById: (id: string) => api.get(`/projects/${id}`),
+  create: (data: Record<string, unknown>) => api.post('/projects', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/projects/${id}`, data),
+  delete: (id: string) => api.delete(`/projects/${id}`),
 };
 
+
+// Puedes reemplazar 'unknown' por un tipo BillingPlan si lo tienes definido
 export const billingApi = {
   getPlan: (projectId: string) => api.get<BillingPlan>(`/billing/plan/${projectId}`),
   createPlan: (data: Partial<BillingPlan>) => api.post<BillingPlan>('/billing/plan', data),
   updatePlan: (id: string, data: Partial<BillingPlan>) => api.put<BillingPlan>(`/billing/plan/${id}`, data),
 };
 
+
+// Puedes reemplazar 'unknown' por un tipo Consultant si lo tienes definido
 export const consultantApi = {
-  getAll: () => api.get<Consultant[]>('/consultants'),
-  getAvailable: () => api.get<Consultant[]>('/consultants/available'),
-  getById: (id: string) => api.get<Consultant>(`/consultants/${id}`),
-  update: (id: string, data: Partial<Consultant>) => api.put<Consultant>(`/consultants/${id}`, data),
+  getAll: () => api.get('/consultants'),
+  getAvailable: () => api.get('/consultants/available'),
+  getById: (id: string) => api.get(`/consultants/${id}`),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/consultants/${id}`, data),
+
 };
 
 export const metricsApi = {

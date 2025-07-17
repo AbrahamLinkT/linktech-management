@@ -10,8 +10,9 @@ import {
   TableCell,
   Badge,
 } from "@tremor/react";
-import { useConsultantStore } from "src/store/consultantStore";
-import { AvailabilityStatus } from "src/types/consultant";
+import { useConsultantStore } from "@/store/consultantStore";
+import { AvailabilityStatus } from "@/types/consultant";
+
 
 export default function ConsultantList() {
   const { consultants, loading } = useConsultantStore();
@@ -26,6 +27,7 @@ export default function ConsultantList() {
         No hay consultores disponibles
       </div>
     );
+
   }
 
   return (

@@ -1,15 +1,7 @@
-import React from "react";
-import {
-  Card,
-  Title,
-  TabGroup,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-} from "@tremor/react";
-import BillingPlanList from "src/components/billing/BillingPlanList";
-import BillingCalendar from "src/components/billing/BillingCalendar";
+import React from 'react';
+import { Card, Title, TabGroup, TabList, Tab, TabPanels, TabPanel } from '@tremor/react';
+import BillingPlanList from '@/components/billing/BillingPlanList';
+import BillingCalendar from '@/components/billing/BillingCalendar';
 
 export default function BillingPage() {
   return (

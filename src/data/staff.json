@@ -1,0 +1,74 @@
+{
+  "staff": [
+    {
+      "id": "1",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "2",
+      "consultor": "sanchez ",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "3",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "4",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "5",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "6",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    },
+    {
+      "id": "7",
+      "consultor": "sanchez perez luis",
+      "especialidad": "SD",
+      "nivel": "sr",
+      "departamento": "delivery",
+      "esquema": "Asimilados",
+      "tiempo": "completo",
+      "estatus": "Activo"
+    }
+  ]
+}

@@ -25,18 +25,18 @@ export default function Header() {
                 className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
                 type="button"
               >
-                <span className="font-medium">Admin</span>
+                <span className="font-medium">Administrador</span>
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
                     onClick={() => {
-                      /* Implement logout */
+                      /* Implementar cierre de sesión */
                     }}
                     type="button"
                   >
-                    Cerrar Sesión
+                    Cerrar sesión
                   </button>
                 </div>
               )}

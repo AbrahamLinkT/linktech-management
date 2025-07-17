@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Card, Title, BarChart } from "@tremor/react";
-import { useConsultantStore } from "src/store/consultantStore";
-import { AvailabilityStatus } from "src/types/consultant";
+import { useConsultantStore } from "@/store/consultantStore";
+import { AvailabilityStatus } from "@/types/consultant";
+
 
 export default function ConsultantAvailability() {
   const { consultants } = useConsultantStore();
@@ -27,6 +28,7 @@ export default function ConsultantAvailability() {
         (c) => c.availability === AvailabilityStatus.UNAVAILABLE
       ).length,
     },
+
   ];
 
   return (
@@ -35,6 +37,7 @@ export default function ConsultantAvailability() {
         Disponibilidad de Consultores
       </Title>
       {availabilityData.some((d) => d.count > 0) ? (
+
         <BarChart
           className="mt-6 h-80"
           data={availabilityData}
@@ -52,3 +55,4 @@ export default function ConsultantAvailability() {
     </Card>
   );
 }
+

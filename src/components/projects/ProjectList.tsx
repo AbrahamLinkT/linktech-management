@@ -10,8 +10,9 @@ import {
   TableCell,
   Badge,
 } from "@tremor/react";
-import { useProjectStore } from "src/store/projectStore";
-import { ProjectStatus } from "src/types/project";
+import { useProjectStore } from "@/store/projectStore";
+import { ProjectStatus } from "@/types/project";
+
 
 export default function ProjectList() {
   const { projects, loading } = useProjectStore();
@@ -58,6 +59,7 @@ export default function ProjectList() {
             <TableCell>
               {new Date(project.endDate).toLocaleDateString()}
             </TableCell>
+
             <TableCell>${project.budget.toLocaleString()}</TableCell>
           </TableRow>
         ))}

@@ -1,46 +1,35 @@
-import React from 'react';
-import Link from 'next/link';
 
-const modules = [
-  {
-    title: 'Gestión de Proyectos',
-    description: 'Administra el ciclo de vida completo de proyectos SAP',
-    href: '/dashboard/projects',
-  },
-  {
-    title: 'Plan de Facturación',
-    description: 'Gestiona planes de facturación y seguimiento de pagos',
-    href: '/dashboard/billing',
-  },
-  {
-    title: 'Métricas',
-    description: 'Visualiza KPIs y métricas importantes del negocio',
-    href: '/dashboard/metrics',
-  },
-  {
-    title: 'Consultores',
-    description: 'Gestiona la disponibilidad y asignación de consultores',
-    href: '/dashboard/consultants',
-  },
-];
+import { Footer } from '@/layouts/footer';
 
-export default function Dashboard() {
+
+const DashboardPage = () => {
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Panel de Control</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {modules.map((module) => (
-          <Link
-            key={module.href}
-            href={module.href}
-            className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
-          >
-            <h2 className="text-xl font-semibold text-blue-700">{module.title}</h2>
-            <p className="mt-2 text-gray-600">{module.description}</p>
-          </Link>
-        ))}
+    <div className="flex flex-col gap-y-4">
+      <h1 className="title">Inicio</h1>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="card col-span-1 md:col-span-2 lg:col-span-4">
+          <div className="card-header">
+            <p className="card-title">Overview</p>
+          </div>
+          <div className="card-body p-0">
+            
+          </div>
+        </div>
+
+        <div className="card col-span-1 md:col-span-2 lg:col-span-3">
+          <div className="card-header">
+            <p className="card-title">Proyectos vendidos</p>
+          </div>
+          <div className="card-body h-[300px] overflow-auto p-0">
+          </div>
+        </div>
       </div>
+
+      <Footer />
     </div>
   );
-}
+};
+
+export default DashboardPage;

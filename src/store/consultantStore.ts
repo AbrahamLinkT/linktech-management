@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { Consultant } from 'src/types/consultant';
-import { consultantApi } from 'src/services/api';
+
+import { Consultant } from '@/types/consultant';
+import { consultantApi } from '@/services/api';
+
 
 interface ConsultantState {
   consultants: Consultant[];

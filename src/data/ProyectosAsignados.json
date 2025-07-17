@@ -1,0 +1,17 @@
+{
+    "ProyectosAsignados": [
+        {
+            "id_usuario": "1",
+            "ordenes_internas": [
+                "OI4555",
+                "OI1234"
+            ]
+        },
+        {
+            "id_usuario": "2",
+            "ordenes_internas": [
+                "OI9999"
+            ]
+        }
+    ]
+}
