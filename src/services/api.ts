@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { Project } from 'src/types/project';
+import { Consultant } from 'src/types/consultant';
+import { BillingPlan } from 'src/types/billing';
 
 const api = axios.create({
   baseURL: '/api',
@@ -10,6 +13,7 @@ const api = axios.create({
 
 // Puedes reemplazar 'unknown' por un tipo Project si lo tienes definido
 export const projectApi = {
+
   getAll: () => api.get('/projects'),
   getById: (id: string) => api.get(`/projects/${id}`),
   create: (data: Record<string, unknown>) => api.post('/projects', data),
@@ -20,9 +24,9 @@ export const projectApi = {
 
 // Puedes reemplazar 'unknown' por un tipo BillingPlan si lo tienes definido
 export const billingApi = {
-  getPlan: (projectId: string) => api.get(`/billing/plan/${projectId}`),
-  createPlan: (data: Record<string, unknown>) => api.post('/billing/plan', data),
-  updatePlan: (id: string, data: Record<string, unknown>) => api.put(`/billing/plan/${id}`, data),
+  getPlan: (projectId: string) => api.get<BillingPlan>(`/billing/plan/${projectId}`),
+  createPlan: (data: Partial<BillingPlan>) => api.post<BillingPlan>('/billing/plan', data),
+  updatePlan: (id: string, data: Partial<BillingPlan>) => api.put<BillingPlan>(`/billing/plan/${id}`, data),
 };
 
 
@@ -32,6 +36,7 @@ export const consultantApi = {
   getAvailable: () => api.get('/consultants/available'),
   getById: (id: string) => api.get(`/consultants/${id}`),
   update: (id: string, data: Record<string, unknown>) => api.put(`/consultants/${id}`, data),
+
 };
 
 export const metricsApi = {
