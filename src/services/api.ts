@@ -1,6 +1,4 @@
 import axios from 'axios';
-import { Project } from '@/types/project';
-import { Consultant } from '@/types/consultant';
 import { BillingPlan } from '@/types/billing';
 
 const api = axios.create({
