@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { Project } from 'src/types/project';
-import { Consultant } from 'src/types/consultant';
-import { BillingPlan } from 'src/types/billing';
+import { Project } from '@/types/project';
+import { Consultant } from '@/types/consultant';
+import { BillingPlan } from '@/types/billing';
 
 const api = axios.create({
   baseURL: '/api',
