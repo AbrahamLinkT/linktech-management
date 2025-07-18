@@ -1,9 +1,9 @@
 import Asignados from "@/data/ProyectosAsignados.json";
 import Projects from "@/data/Projects.json";
 import horasData from "@/data/HorasAsignadas.json";
-import { Table_1 } from "../tables/table";
-import { ContentDialog } from "./modals";
-import { CalendarioHoras } from "../ui/calender";
+import { Table_1 } from "@/components/tables/table";
+import { ContentDialog } from "@/components/modal/modals";
+import { CalendarioHoras } from "@/components/ui/calender";
 
 // Tipado de estructura de JSON
 type RegistroHoras = {

@@ -1,5 +1,5 @@
-import { ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, UserCheck, UserPlus, Users } from "lucide-react";
-
+import { ChartColumn, Home, NotepadText, Settings, UserCheck, UserPlus, Users } from "lucide-react";
+/* Package, PackagePlus, */
 export const navbarLinks = [
     {
         title: "Dashboard",
@@ -47,18 +47,14 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Proyectos",
+        title: "Clientes",
         links: [
             {
-                label: "Proyectos en curso",
-                icon: Package,
-                path: "/products",
+                label: "Clientes",
+                icon: Users,
+                path: "/dashboard/client",
             },
-            {
-                label: "Nuevo proyecto",
-                icon: PackagePlus,
-                path: "/new-product",
-            },
+
         ],
     },
     {
@@ -72,6 +68,41 @@ export const navbarLinks = [
         ],
     },
 ];
+
+
+
+
+
+/* datos del personal asignado por proyecto y su estatus */
+export const workersAssigentdInTheProject: WorkerAssignment[] = [];
+
+export const assignedHoursAndDates: AssignedHours[] = [];
+
+export interface Project {
+    id: string;
+    titulo: string;
+    nombre: string;
+    ordenInterna: string;
+    cliente: string;
+    departamento: string;
+    descripcion: string;
+    responsable: string;
+    estatus: string;
+    fechaIn: string;
+    fechaFn: string;
+}
+export interface WorkerAssignment {
+    id: string;
+    ordenInterna: string;
+    id_consultor: string;
+}
+export interface AssignedHours {
+    id: string;
+    workerAssignmentId: string;
+    fecha: string;
+    horas: number;
+}
+
 
 export const overviewData = [
     {
@@ -123,37 +154,3 @@ export const overviewData = [
         total: 2500,
     },
 ];
-
-
-
-/* datos del personal asignado por proyecto y su estatus */
-export const workersAssigentdInTheProject: WorkerAssignment[] = [];
-
-export const assignedHoursAndDates: AssignedHours[] = [];
-
-export interface Project {
-    id: string;
-    titulo: string;
-    nombre: string;
-    ordenInterna: string;
-    cliente: string;
-    departamento: string;
-    descripcion: string;
-    responsable: string;
-    estatus: string;
-    fechaIn: string;
-    fechaFn: string;
-}
-export interface WorkerAssignment {
-    id: string;
-    ordenInterna: string;
-    id_consultor: string;
-}
-export interface AssignedHours {
-    id: string;
-    workerAssignmentId: string;
-    fecha: string;
-    horas: number;
-}
-
-
