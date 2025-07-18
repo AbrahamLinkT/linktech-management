@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { Project, ProjectStatus } from '@/types/project';
+
+import { Project } from '@/types/project';
 import { projectApi } from '@/services/api';
+
 
 interface ProjectState {
   projects: Project[];
@@ -21,7 +23,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const response = await projectApi.getAll();
       set({ projects: response.data, loading: false });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch projects', loading: false });
     }
   },
@@ -30,7 +32,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       await projectApi.create(project);
       const response = await projectApi.getAll();
       set({ projects: response.data });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to create project' });
     }
   },
@@ -39,7 +41,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       await projectApi.update(id, project);
       const response = await projectApi.getAll();
       set({ projects: response.data });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update project' });
     }
   },
@@ -48,7 +50,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       await projectApi.delete(id);
       const response = await projectApi.getAll();
       set({ projects: response.data });
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete project' });
     }
   },

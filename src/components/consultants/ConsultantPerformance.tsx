@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, Title, AreaChart } from "@tremor/react";
-import { useConsultantStore } from "src/store/consultantStore";
+import { useConsultantStore } from "@/store/consultantStore";
 
 export default function ConsultantPerformance() {
   const { consultants } = useConsultantStore();
