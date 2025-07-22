@@ -49,7 +49,7 @@ export default function Client() {
                         Body={
                             <Table_2
                                 headers={["Nombre Corto", "Razon social", "Email", "telefono", "Direccion", "Contacto", "cargo"]}
-                                EventOnclick={onclick => togglePanel2()}
+                                EventOnclick={() => togglePanel2()}
                                 rows={Clientes.map((p) => [p.nombre_corto, p.razon_social, p.detalles.email, p.detalles.telefono, p.detalles.direccion, p.detalles.contacto, p.detalles.cargo])}
                             />
                         }
