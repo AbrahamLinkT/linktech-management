@@ -44,6 +44,16 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/dashboard/cargabilidad",
             },
+           {
+               label: "Departamento",
+               icon: Users,
+               path: "/dashboard/departamento",
+           },
+          {
+              label: "Esquema de contratación",
+              icon: UserCheck,
+              path: "/dashboard/esquema-contratacion",
+          },
         ],
     },
     {
