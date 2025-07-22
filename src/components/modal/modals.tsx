@@ -32,11 +32,11 @@ export function ContentDialog(
 
 }
 /* panel lateral */
-export function PanelLateral({ Open, close, content, title }: { title: string, content?: React.ReactNode, Open: boolean, close: () => void }) {
+export function PanelLateral({ Open, close, content, title, width = "w-1/4", }: { title: string, content?: React.ReactNode, Open: boolean, close: () => void, width?: string }) {
     return (
         <div
             className={`fixed top-[64px] right-0 h-[calc(100vh-64px)] bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-20 
-                ${Open ? 'translate-x-0 w-1/4' : 'translate-x-full w-1/4'}`}
+                ${Open ? `translate-x-0 ${width}` : `translate-x-full ${width}`}`}
         >
             <div className="h-full flex flex-col border-l">
                 {/*Encabezado*/}

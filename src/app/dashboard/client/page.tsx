@@ -49,7 +49,7 @@ export default function Client() {
                         Body={
                             <Table_2
                                 headers={["Nombre Corto", "Razon social", "Email", "telefono", "Direccion", "Contacto", "cargo"]}
-                                EventOnclick={onclick => togglePanel2()}
+                                EventOnclick={() => togglePanel2()}
                                 rows={Clientes.map((p) => [p.nombre_corto, p.razon_social, p.detalles.email, p.detalles.telefono, p.detalles.direccion, p.detalles.contacto, p.detalles.cargo])}
                             />
                         }
@@ -66,7 +66,6 @@ export default function Client() {
                     <div >
                         <form action="">
                             {/* seccion de informacion del cliente */}
-
                             <fieldset className="border border-gray-400 rounded-xl p-4 mb-1">
                                 <legend className="text-lg font-semibold px-2 ml-2 mt-4">
                                     Datos del cliente

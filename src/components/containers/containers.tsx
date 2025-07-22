@@ -35,3 +35,13 @@ export function ContentTable({ header, Body }: { header?: React.ReactNode, Body:
 }
 
 
+export function ContentTrasition({ IspanelOpen, body, panel }: { IspanelOpen?: () => void, body?: React.ReactNode, panel?: React.ReactNode }) {
+    return (
+        <div className="relative flex">
+            <div className={`transition-all duration-300 ${IspanelOpen ? 'w-[calc(100%-25%)] pr-4' : 'w-full pr-4'}`}>
+                {body}
+            </div>
+            {panel}
+        </div>
+    )
+}
