@@ -50,7 +50,7 @@ export const navbarLinks = [
                path: "/dashboard/departamento",
            },
           {
-              label: "Esquema de contratación",
+              label: "Esquema contractual",
               icon: UserCheck,
               path: "/dashboard/esquema-contratacion",
           },
