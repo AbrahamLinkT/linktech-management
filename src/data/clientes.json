@@ -1,0 +1,182 @@
+[
+    {
+        "id": 1,
+        "nombre_corto": "Innova",
+        "razon_social": "Innova Tech Solutions S.A. de C.V.",
+        "detalles": {
+            "email": "contacto@innova.com",
+            "telefono": "+52 55 1234 5678",
+            "direccion": "Av. Reforma 100, CDMX, México",
+            "contacto": "María López",
+            "cargo": "Gerente de TI"
+        }
+    },
+    {
+        "id": 2,
+        "nombre_corto": "EcoBuild",
+        "razon_social": "EcoBuild Constructora S.A.",
+        "detalles": {
+            "email": "info@ecobuild.com.mx",
+            "telefono": "+52 442 987 6543",
+            "direccion": "Blvd. Bernardo Quintana 4500, Querétaro, QRO",
+            "contacto": "Carlos Pérez",
+            "cargo": "Director de Proyectos"
+        }
+    },
+    {
+        "id": 3,
+        "nombre_corto": "AgroMX",
+        "razon_social": "AgroMX Exportaciones y Servicios",
+        "detalles": {
+            "email": "ventas@agromx.com",
+            "telefono": "+52 33 1111 2222",
+            "direccion": "Av. Patria 345, Guadalajara, JAL",
+            "contacto": "Luisa Ramírez",
+            "cargo": "Encargada de Operaciones"
+        }
+    },
+    {
+        "id": 4,
+        "nombre_corto": "Solaris",
+        "razon_social": "Solaris Energía Renovable S. de R.L.",
+        "detalles": {
+            "email": "soporte@solaris.com",
+            "telefono": "+52 444 876 5432",
+            "direccion": "Calle Hidalgo 234, San Luis Potosí, SLP",
+            "contacto": "Iván Torres",
+            "cargo": "Coordinador Técnico"
+        }
+    },
+    {
+        "id": 5,
+        "nombre_corto": "VitaCorp",
+        "razon_social": "VitaCorp Productos Naturales",
+        "detalles": {
+            "email": "administracion@vitacorp.mx",
+            "telefono": "+52 81 2233 4455",
+            "direccion": "Av. Constitución 1200, Monterrey, NL",
+            "contacto": "Andrea Gómez",
+            "cargo": "Jefa de Compras"
+        }
+    },
+    {
+        "id": 6,
+        "nombre_corto": "NeuroSoft",
+        "razon_social": "NeuroSoft Soluciones Inteligentes",
+        "detalles": {
+            "email": "soporte@neurosoft.com",
+            "telefono": "+52 55 1122 3344",
+            "direccion": "Av. Insurgentes Sur 300, CDMX",
+            "contacto": "Roberto Díaz",
+            "cargo": "CTO"
+        }
+    },
+    {
+        "id": 7,
+        "nombre_corto": "Constructiva",
+        "razon_social": "Constructiva SA de CV",
+        "detalles": {
+            "email": "contacto@constructiva.mx",
+            "telefono": "+52 222 998 1122",
+            "direccion": "Calle 14 Sur 125, Puebla, PUE",
+            "contacto": "Elena Ruiz",
+            "cargo": "Supervisora de Obras"
+        }
+    },
+    {
+        "id": 8,
+        "nombre_corto": "LogiTrack",
+        "razon_social": "LogiTrack Logística Integral",
+        "detalles": {
+            "email": "logistica@logitrack.com",
+            "telefono": "+52 33 4455 6677",
+            "direccion": "Calzada Independencia 1010, GDL",
+            "contacto": "Mario Sánchez",
+            "cargo": "Gerente de Operaciones"
+        }
+    },
+    {
+        "id": 9,
+        "nombre_corto": "Biotek",
+        "razon_social": "Biotek Laboratorios",
+        "detalles": {
+            "email": "info@bioteklab.com",
+            "telefono": "+52 55 9988 7766",
+            "direccion": "Calle Laboratorio 45, Naucalpan, EDOMEX",
+            "contacto": "Claudia Ortega",
+            "cargo": "Jefa de Calidad"
+        }
+    },
+    {
+        "id": 10,
+        "nombre_corto": "EnerSol",
+        "razon_social": "EnerSol Energías Limpias",
+        "detalles": {
+            "email": "ventas@enersol.mx",
+            "telefono": "+52 477 8899 0001",
+            "direccion": "Blvd. Aeropuerto 500, León, GTO",
+            "contacto": "Jorge Medina",
+            "cargo": "Director Comercial"
+        }
+    },
+    {
+        "id": 11,
+        "nombre_corto": "CyberWare",
+        "razon_social": "CyberWare Ciberseguridad SA",
+        "detalles": {
+            "email": "contacto@cyberware.com",
+            "telefono": "+52 55 7654 1234",
+            "direccion": "Calle Seguridad 18, CDMX",
+            "contacto": "Erika Beltrán",
+            "cargo": "Analista de Riesgos"
+        }
+    },
+    {
+        "id": 12,
+        "nombre_corto": "AquaTec",
+        "razon_social": "AquaTec Purificación y Bombeo",
+        "detalles": {
+            "email": "info@aquatec.com.mx",
+            "telefono": "+52 662 8899 4411",
+            "direccion": "Prolongación Reforma 700, Hermosillo, SON",
+            "contacto": "Gerardo Castillo",
+            "cargo": "Coordinador Regional"
+        }
+    },
+    {
+        "id": 13,
+        "nombre_corto": "RedCom",
+        "razon_social": "RedCom Comunicaciones",
+        "detalles": {
+            "email": "soporte@redcom.com",
+            "telefono": "+52 686 7744 5522",
+            "direccion": "Av. México 125, Mexicali, BC",
+            "contacto": "Laura Figueroa",
+            "cargo": "Responsable de Atención"
+        }
+    },
+    {
+        "id": 14,
+        "nombre_corto": "Farmed",
+        "razon_social": "Farmed Distribuciones Médicas",
+        "detalles": {
+            "email": "ventas@farmed.com.mx",
+            "telefono": "+52 228 3344 1122",
+            "direccion": "Av. Ruiz Cortines 321, Xalapa, VER",
+            "contacto": "Juan Ramos",
+            "cargo": "Gerente General"
+        }
+    },
+    {
+        "id": 15,
+        "nombre_corto": "Tecnovía",
+        "razon_social": "Tecnovía Infraestructura Vial",
+        "detalles": {
+            "email": "proyectos@tecnovia.mx",
+            "telefono": "+52 55 7788 9933",
+            "direccion": "Circuito Interior 150, CDMX",
+            "contacto": "Paola Herrera",
+            "cargo": "Jefa de Ingeniería"
+        }
+    }
+]
