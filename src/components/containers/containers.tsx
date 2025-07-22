@@ -26,7 +26,8 @@ export function ContentTable({ header, Body }: { header?: React.ReactNode, Body:
     return (
         <>
             {header}
-            <div className="relative max-h-[550px] min-h-[100px] w-full overflow-y-auto rounded-none [scrollbar-width:thin">
+            <div className="relative max-h-[550px] min-h-[100px] w-full overflow-x-auto overflow-y-auto rounded-none [scrollbar-width:thin]">
+
                 {Body}
             </div>
         </>
