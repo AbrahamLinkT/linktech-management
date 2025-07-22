@@ -2,49 +2,48 @@
 import React, { useState } from "react";
 import { ContentBody, ContentTable } from "@/components/containers/containers";
 
-interface Esquema {
-  nombreCorto: string;
-  descripcion: string;
-  numeroHoras: number;
+interface HorasContrato {
+  esquema: string;
+  horas: number;
 }
 
-const esquemasIniciales: Esquema[] = [
-  { nombreCorto: "Honorarios", descripcion: "Pago por servicios profesionales", numeroHoras: 40 },
-  { nombreCorto: "Asimilados", descripcion: "Pago bajo régimen de asimilados", numeroHoras: 30 },
+const horasIniciales: HorasContrato[] = [
+  { esquema: "Honorarios", horas: 160 },
+  { esquema: "Asimilados", horas: 120 },
 ];
 
-export default function EsquemaContratacionPage() {
-  const [esquemas, setEsquemas] = useState<Esquema[]>(esquemasIniciales);
-  const [form, setForm] = useState<Esquema>({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
+export default function HorasContratoPage() {
+  const [horasContrato, setHorasContrato] = useState<HorasContrato[]>(horasIniciales);
+  const [form, setForm] = useState<HorasContrato>({ esquema: "", horas: 0 });
   const [editIdx, setEditIdx] = useState<number | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: name === "numeroHoras" ? Number(value) : value });
+    setForm({ ...form, [name]: name === "horas" ? Number(value) : value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.nombreCorto && form.descripcion && form.numeroHoras > 0) {
+    if (form.esquema && form.horas > 0) {
       if (editIdx !== null) {
-        const nuevos = [...esquemas];
+        const nuevos = [...horasContrato];
         nuevos[editIdx] = { ...form };
-        setEsquemas(nuevos);
+        setHorasContrato(nuevos);
         setEditIdx(null);
       } else {
-        setEsquemas([...esquemas, { ...form }]);
+        setHorasContrato([...horasContrato, { ...form }]);
       }
-      setForm({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
+      setForm({ esquema: "", horas: 0 });
     }
   };
 
   const handleEdit = (idx: number) => {
-    setForm(esquemas[idx]);
+    setForm(horasContrato[idx]);
     setEditIdx(idx);
   };
 
   return (
-    <ContentBody title="Esquema contractual">
+    <ContentBody title="Horas por contrato">
       <ContentTable
         header={null}
         Body={
@@ -52,18 +51,16 @@ export default function EsquemaContratacionPage() {
             <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow mb-8">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Nombre corto</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Descripción</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Número de horas</th>
+                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Esquema</th>
+                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Horas</th>
                   <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {esquemas.map((esq, idx) => (
+                {horasContrato.map((hc, idx) => (
                   <tr key={idx}>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.nombreCorto}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.descripcion}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.numeroHoras}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{hc.esquema}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{hc.horas}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         type="button"
@@ -78,34 +75,23 @@ export default function EsquemaContratacionPage() {
               </tbody>
             </table>
             <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg shadow p-6 flex flex-col md:flex-row gap-6 items-center justify-center">
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Nombre corto</label>
+              <div className="flex flex-col w-full md:w-1/3">
+                <label className="mb-2 text-sm font-semibold text-gray-700">Esquema</label>
                 <input
                   type="text"
-                  name="nombreCorto"
-                  value={form.nombreCorto}
+                  name="esquema"
+                  value={form.esquema}
                   onChange={handleChange}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                   required
                 />
               </div>
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Descripción</label>
-                <input
-                  type="text"
-                  name="descripcion"
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-                  required
-                />
-              </div>
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Número de horas</label>
+              <div className="flex flex-col w-full md:w-1/3">
+                <label className="mb-2 text-sm font-semibold text-gray-700">Horas</label>
                 <input
                   type="number"
-                  name="numeroHoras"
-                  value={form.numeroHoras}
+                  name="horas"
+                  value={form.horas}
                   onChange={handleChange}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                   required

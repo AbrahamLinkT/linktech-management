@@ -2,49 +2,48 @@
 import React, { useState } from "react";
 import { ContentBody, ContentTable } from "@/components/containers/containers";
 
-interface Esquema {
+interface Especialidad {
   nombreCorto: string;
-  descripcion: string;
-  numeroHoras: number;
+  detalle: string;
+  nivel: string;
 }
 
-const esquemasIniciales: Esquema[] = [
-  { nombreCorto: "Honorarios", descripcion: "Pago por servicios profesionales", numeroHoras: 40 },
-  { nombreCorto: "Asimilados", descripcion: "Pago bajo régimen de asimilados", numeroHoras: 30 },
+const especialidadesIniciales: Especialidad[] = [
+  { nombreCorto: "SD", detalle: "Software Developer", nivel: "Senior" },
+  { nombreCorto: "QA", detalle: "Quality Assurance", nivel: "Junior" },
 ];
 
-export default function EsquemaContratacionPage() {
-  const [esquemas, setEsquemas] = useState<Esquema[]>(esquemasIniciales);
-  const [form, setForm] = useState<Esquema>({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
+export default function EspecialidadesPage() {
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>(especialidadesIniciales);
+  const [form, setForm] = useState<Especialidad>({ nombreCorto: "", detalle: "", nivel: "" });
   const [editIdx, setEditIdx] = useState<number | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: name === "numeroHoras" ? Number(value) : value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.nombreCorto && form.descripcion && form.numeroHoras > 0) {
+    if (form.nombreCorto && form.detalle && form.nivel) {
       if (editIdx !== null) {
-        const nuevos = [...esquemas];
+        const nuevos = [...especialidades];
         nuevos[editIdx] = { ...form };
-        setEsquemas(nuevos);
+        setEspecialidades(nuevos);
         setEditIdx(null);
       } else {
-        setEsquemas([...esquemas, { ...form }]);
+        setEspecialidades([...especialidades, { ...form }]);
       }
-      setForm({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
+      setForm({ nombreCorto: "", detalle: "", nivel: "" });
     }
   };
 
   const handleEdit = (idx: number) => {
-    setForm(esquemas[idx]);
+    setForm(especialidades[idx]);
     setEditIdx(idx);
   };
 
   return (
-    <ContentBody title="Esquema contractual">
+    <ContentBody title="Especialidades">
       <ContentTable
         header={null}
         Body={
@@ -53,17 +52,17 @@ export default function EsquemaContratacionPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Nombre corto</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Descripción</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Número de horas</th>
+                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Detalle</th>
+                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Nivel</th>
                   <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {esquemas.map((esq, idx) => (
+                {especialidades.map((esp, idx) => (
                   <tr key={idx}>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.nombreCorto}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.descripcion}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.numeroHoras}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esp.nombreCorto}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esp.detalle}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esp.nivel}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         type="button"
@@ -90,27 +89,32 @@ export default function EsquemaContratacionPage() {
                 />
               </div>
               <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Descripción</label>
+                <label className="mb-2 text-sm font-semibold text-gray-700">Detalle</label>
                 <input
                   type="text"
-                  name="descripcion"
-                  value={form.descripcion}
+                  name="detalle"
+                  value={form.detalle}
                   onChange={handleChange}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                   required
                 />
               </div>
               <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Número de horas</label>
-                <input
-                  type="number"
-                  name="numeroHoras"
-                  value={form.numeroHoras}
+                <label className="mb-2 text-sm font-semibold text-gray-700">Nivel</label>
+                <select
+                  name="nivel"
+                  value={form.nivel}
                   onChange={handleChange}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                   required
-                  min={1}
-                />
+                >
+                  <option value="" disabled>Selecciona nivel</option>
+                  <option value="Junior">Junior</option>
+                  <option value="Mid">Mid</option>
+                  <option value="Senior">Senior</option>
+                  <option value="Funcional">Funcional</option>
+                  <option value="Consultor">Consultor</option>
+                </select>
               </div>
               <div className="flex items-center h-full w-full md:w-auto">
                 <button

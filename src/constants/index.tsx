@@ -54,6 +54,11 @@ export const navbarLinks = [
               icon: UserCheck,
               path: "/dashboard/esquema-contratacion",
           },
+          {
+              label: "Especialidades",
+              icon: UserCheck,
+              path: "/dashboard/especialidades",
+          },
         ],
     },
     {
