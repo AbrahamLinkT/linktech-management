@@ -1,167 +1,145 @@
-"use client"
+"use client";
 
-import { ContentBody } from "@/components/containers/containers"
+import { ContentBody } from "@/components/containers/containers";
 
 export default function NewWorker() {
     const stylesInput = `
-  w-full border border-gray-600 rounded px-3 py-2 
-  hover:border-blue-600 
-  focus:border-blue-500 
-  focus:ring-2 focus:ring-blue-300 
-  focus:outline-none
-`;
+        w-full border border-gray-600 rounded px-3 py-2 
+        hover:border-blue-600 
+        focus:border-blue-500 
+        focus:ring-2 focus:ring-blue-300 
+        focus:outline-none
+    `;
+
     return (
         <ContentBody title="Nuevo trabajador">
-            <div className="m-8">
-                <h1 className="text-2xl font-bold mb-6">Alta de Usuario</h1>
-                <div className=" ml-4 mr-4">
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Nombre */}
-                        <div>
-                            <label htmlFor="nombre" className="block font-medium mb-1 ">
-                                Nombre
-                            </label>
-                            <input
-                                type="text"
-                                id="nombre"
-                                name="nombre"
-                                className={stylesInput}
-                            />
-                        </div>
+            <div className="m-1">
+                <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Usuario</h2>
+                <form className="space-y-10 ml-4 mr-4">
 
-                        {/* Correo electrónico */}
-                        <div>
-                            <label htmlFor="correo" className="block font-medium mb-1 ">
-                                Correo electrónico
-                            </label>
-                            <input
-                                type="email"
-                                id="correo"
-                                name="correo"
-                                className={stylesInput}
-                            />
-                        </div>
+                    {/* Sección: Datos personales */}
+                    <fieldset className="border border-gray-400 rounded-xl p-4" >
+                        <legend className="text-lg font-semibold px-2 ml-2 mt-4 bg-white">
+                            Datos personales
+                        </legend>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label htmlFor="nombre" className="block font-medium mb-1">
+                                    Nombre
+                                </label>
+                                <input type="text" id="nombre" name="nombre" className={stylesInput} />
+                            </div>
 
-                        {/* Nivel */}
-                        <div>
-                            <label htmlFor="nivel" className="block font-medium mb-1">
-                                Nivel
-                            </label>
-                            <input
-                                type="text"
-                                id="nivel"
-                                name="nivel"
-                                className={stylesInput}
-                            />
+                            <div>
+                                <label htmlFor="correo" className="block font-medium mb-1">
+                                    Correo electrónico
+                                </label>
+                                <input type="email" id="correo" name="correo" className={stylesInput} />
+                            </div>
+                            <div>
+                                <label htmlFor="correo" className="block font-medium mb-1">
+                                    Numero telefonico
+                                </label>
+                                <input type="number" id="number" name="number" placeholder="+528334652691" className={stylesInput} />
+                            </div>
+                            <div>
+                                <label htmlFor="status" className="block font-medium mb-1">Status</label>
+                                <div className="flex items-center gap-4">
+                                    <select name="status" id="status" className={stylesInput}>
+                                        <option value="">Seleccione su opción</option>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="col-span-2">
+                                <label htmlFor="departamento" className="block font-medium mb-1">
+                                    Ubicacion
+                                </label>
+                                <input type="text" className={stylesInput} />
+                            </div>
                         </div>
+                    </fieldset>
+                    {/* Sección: Información laboral */}
+                    <fieldset className="border border-gray-400 rounded-xl p-4">
+                        <legend className="text-lg font-semibold px-2 ml-2 mt-4">Información laboral</legend>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label htmlFor="nivel" className="block font-medium mb-1">
+                                    Nivel
+                                </label>
+                                <select name="nivel" id="nivel" className={stylesInput}>
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="jr">Junior</option>
+                                    <option value="sn">Senior</option>
+                                </select>
+                            </div>
 
-                        {/* Tipo de contrato */}
-                        <div>
-                            <label htmlFor="contrato" className="block font-medium mb-1">
-                                Tipo de contrato
-                            </label>
-                            <select
-                                id="contrato"
-                                name="contrato"
-                                className={stylesInput}
-                            >
-                                <option value="">Selecciona una opción</option>
-                                <option value="indefinido">Indefinido</option>
-                                <option value="temporal">Temporal</option>
-                                <option value="prácticas">Prácticas</option>
-                            </select>
-                        </div>
+                            <div>
+                                <label htmlFor="contrato" className="block font-medium mb-1">
+                                    Tipo de contrato
+                                </label>
+                                <select name="contrato" id="contrato" className={stylesInput}>
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="indefinido">Indefinido</option>
+                                    <option value="temporal">Temporal</option>
+                                    <option value="prácticas">Prácticas</option>
+                                </select>
+                            </div>
 
-                        {/* Descripción */}
-                        <div className="md:col-span-2">
-                            <label htmlFor="descripcion" className="block font-medium mb-1">
-                                Descripción
-                            </label>
-                            <textarea
-                                id="descripcion"
-                                name="descripcion"
-                                rows={3}
-                                className="w-full border border-gray-600 rounded px-3 py-2 max-h-[70px] min-h-[50px]  hover:border-blue-600  focus:border-blue-500 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-                            />
-                        </div>
+                            <div>
+                                <label htmlFor="esquema" className="block font-medium mb-1">
+                                    Esquema
+                                </label>
+                                <select name="esquema" id="esquema" className={stylesInput}>
+                                    <option value="">Selecciona la opción</option>
+                                    <option value="asimilado">Asimilado</option>
+                                    <option value="indeterminado">Indeterminado</option>
+                                    <option value="proveedor_PF">Proveedor PF</option>
+                                    <option value="proveedor_PM">Proveedor PM</option>
+                                </select>
+                            </div>
 
-                        {/* Tiempo */}
-                        <div>
-                            <label htmlFor="tiempo" className="block font-medium mb-1">
-                                Tiempo
-                            </label>
-                            <input
-                                type="text"
-                                id="tiempo"
-                                name="tiempo"
-                                className={stylesInput}
-                            />
-                        </div>
+                            <div>
+                                <label htmlFor="departamento" className="block font-medium mb-1">
+                                    Departamento
+                                </label>
+                                <select name="departamento" id="departamento" className={stylesInput}>
+                                    <option value="">Selecciona la opción</option>
+                                    <option value="delivery">Delivery</option>
+                                    <option value="cobranza">Cobranza</option>
+                                    <option value="rh">RH</option>
+                                    <option value="programador">Programador</option>
+                                </select>
+                            </div>
 
-                        {/* Especialidad */}
-                        <div>
-                            <label htmlFor="especialidad" className="block font-medium mb-1">
-                                Especialidad
-                            </label>
-                            <input
-                                type="text"
-                                id="especialidad"
-                                name="especialidad"
-                                className={stylesInput}
-                            />
-                        </div>
 
-                        {/* Niveles */}
-                        <div>
-                            <label htmlFor="niveles" className="block font-medium mb-1">
-                                Niveles
-                            </label>
-                            <input
-                                type="text"
-                                id="niveles"
-                                name="niveles"
-                                className={stylesInput}
-                            />
+                            <div className="md:col-span-2">
+                                <label htmlFor="descripcion" className="block font-medium mb-1">
+                                    Descripción
+                                </label>
+                                <textarea
+                                    id="descripcion"
+                                    name="descripcion"
+                                    rows={3}
+                                    className="w-full h-[70px] resize-none border border-gray-600 rounded px-3 py-2 
+                                                 hover:border-blue-600 focus:border-blue-500 
+                                                 focus:ring-2 focus:ring-blue-300 focus:outline-none"                                />
+                            </div>
                         </div>
+                    </fieldset>
 
-                        {/* Departamento */}
-                        <div>
-                            <label htmlFor="departamento" className="block font-medium mb-1">
-                                Departamento
-                            </label>
-                            <input
-                                type="text"
-                                id="departamento"
-                                name="departamento"
-                                className={stylesInput}
-                            />
-                        </div>
-
-                        {/* Disponibilidad de carga */}
-                        <div className="md:col-span-1">
-                            <label htmlFor="disponibilidad" className="block font-medium mb-1">
-                                Disponibilidad de carga
-                            </label>
-                            <input
-                                type="text"
-                                id="disponibilidad"
-                                name="disponibilidad"
-                                className={stylesInput}
-                            />
-                        </div>
-
-                        {/* Botón */}
-                        <div className="md:col-span-2 flex justify-end">
-                            <button
-                                type="submit"
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
-                            >
-                                Guardar
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    {/* Botón de guardar */}
+                    <div className="flex justify-end">
+                        <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
+                        >
+                            Guardar
+                        </button>
+                    </div>
+                </form>
             </div>
         </ContentBody>
-    )
+    );
 }

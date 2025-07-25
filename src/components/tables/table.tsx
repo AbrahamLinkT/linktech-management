@@ -41,3 +41,42 @@ export function Table_1({ headers, rows, EventOnclick }: { headers: string[], ro
     )
 }
 
+export function Table_2({ headers, rows, EventOnclick, }: { headers: string[]; rows: (string | React.ReactNode)[][]; EventOnclick?: (row: (React.ReactNode | string)[]) => void; }) {
+    return (
+        <div className="w-full ">
+            <table className="min-w-[1000px] w-full table-auto border-collapse">
+                <thead className="table-header sticky top-0 ">
+                    <tr>
+                        {headers.map((header, index) => (
+                            <th
+                                key={index}
+                                className="table-head "
+                            >
+                                {header}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((row, rowIndex) => (
+                        <tr
+                            key={rowIndex}
+                            className="hover:bg-gray-100 cursor-pointer"
+                            onClick={() => EventOnclick?.(row)}
+                        >
+                            {row.map((cell, colIndex) => (
+                                <td
+                                    key={colIndex}
+                                    className={`px-4 py-2 border-b ${colIndex === row.length - 1 ? "text-center" : "text-left"
+                                        }`}
+                                >
+                                    {cell}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}

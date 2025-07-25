@@ -1,0 +1,47 @@
+[
+    {
+        "id": 101,
+        "cliente_id": 1,
+        "nombre": "Rediseño Web"
+    },
+    {
+        "id": 102,
+        "cliente_id": 1,
+        "nombre": "App Móvil"
+    },
+    {
+        "id": 201,
+        "cliente_id": 2,
+        "nombre": "Planta Industrial Querétaro"
+    },
+    {
+        "id": 301,
+        "cliente_id": 3,
+        "nombre": "Sistema ERP"
+    },
+    {
+        "id": 302,
+        "cliente_id": 3,
+        "nombre": "Consultoría Logística"
+    },
+    {
+        "id": 401,
+        "cliente_id": 4,
+        "nombre": "Instalación Paneles SLP"
+    },
+    {
+        "id": 402,
+        "cliente_id": 4,
+        "nombre": "Mantenimiento Preventivo"
+    },
+    {
+        "id": 501,
+        "cliente_id": 5,
+        "nombre": "Ecommerce"
+    },
+    {
+        "id": 502,
+        "cliente_id": 5,
+        "nombre": "Sistema de Inventario"
+    }
+]

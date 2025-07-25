@@ -1,12 +1,12 @@
 'use client';
-import staf from "@/data/staff.json"
-import { Btn_data, Btn_list } from "../buttons/buttons";
 import { useRef, useState } from "react";
-import { SearchWorkers } from "../filters/filters";
-import { DialogBase } from "../modal/modals";
-import { Table_1 } from "../tables/table";
-import { ContentBody, ContentTable } from "../containers/containers";
-import { LogicaSwtich } from "../modal/logica";
+import staf from "@/data/staff.json"
+import { LogicaSwtich } from "@/components/modal/logica";
+import { ContentBody, ContentTable } from "@/components/containers/containers";
+import { Btn_data, Btn_list } from "@/components/buttons/buttons";
+import { SearchWorkers } from "@/components/filters/filters";
+import { DialogBase } from "@/components/modal/modals";
+import { Table_1 } from "@/components/tables/table";
 export default function DataTable() {
   // referencia al elemento del dialogo 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -41,23 +41,23 @@ export default function DataTable() {
             <Table_1
               headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Tiempo", "Estatus", ""]}
               rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.tiempo, p.estatus,
-                <>
-                  <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
-                  {menuOpenId === p.id && (
-                    <Btn_list
-                      items={[
-                        {
-                          text: "Horas",
-                          onClick: () => handleOption("horas", p.id),
-                        },
-                        {
-                          text: "Proyectos",
-                          onClick: () => handleOption("proyectos", p.id),
-                        },
-                      ]}
-                    />
-                  )}
-                </>
+              <>
+                <Btn_data text="..." Onclick={() => toggleMenu(p.id)} />
+                {menuOpenId === p.id && (
+                  <Btn_list
+                    items={[
+                      {
+                        text: "Horas",
+                        onClick: () => handleOption("horas", p.id),
+                      },
+                      {
+                        text: "Proyectos",
+                        onClick: () => handleOption("proyectos", p.id),
+                      },
+                    ]}
+                  />
+                )}
+              </>
               ])}
             />
           }
