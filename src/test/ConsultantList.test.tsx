@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import ConsultantList from '../components/consultants/ConsultantList';
 import { useConsultantStore } from '../store/consultantStore';

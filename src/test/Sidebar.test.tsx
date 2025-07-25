@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import Sidebar from '../components/dashboard/Sidebar';
 import { usePathname } from 'next/navigation';
