@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { isWeekend } from "date-fns";
@@ -92,12 +92,27 @@ export function CalendarioHoras({ registros }: { registros: Registro[] }) {
     );
 }
 
+interface OrdenInterna {
+    OI: string;
+    titulo: string;
+    nombre: string;
+    fechaIn: string;
+    fechaFn: string;
+}
+
+interface Calendario2Props {
+    idUsuario: string | null;
+    ordenesInternas: OrdenInterna[];
+    Table_info: React.ReactNode
+}
 // CALENDARIO 2
-export default function Calendario2() {
+export default function Calendario2({ idUsuario, ordenesInternas, Table_info }: Calendario2Props) {
     const [range, setRange] = useState<DateRange | undefined>();
     const [horas, setHoras] = useState("0");
     const [edith, setEdith] = useState(false);
-
+    const [ordenInternaOI, setOrdenInternaOI] = useState<string>(
+        ordenesInternas.length > 0 ? ordenesInternas[0].OI : ""
+    );
     const handleClick = () => {
         setEdith(!edith);
     };
@@ -133,6 +148,12 @@ export default function Calendario2() {
 
     return (
         <>
+            <div hidden>
+                <p className="text-sm text-blue-500 mb-2">
+                    ID del usuario: <strong>{idUsuario}</strong>
+                </p>
+            </div>
+
             {/* Calendario */}
             <div>
                 <DayPicker
@@ -148,17 +169,20 @@ export default function Calendario2() {
             </div>
             {/* Botón editar (solo se muestra si no está en modo edición) */}
             {!edith && (
-                <div className="flex justify-end mt-1.5">
-                    <button
-                        className="flex items-center gap-1 cursor-pointer border rounded px-2 py-1 bg-gray-100 text-sky-400 hover:bg-sky-500 hover:text-white"
-                        onClick={handleClick}
-                    >
-                        <span className="ml-1.5">Editar</span>
-                        <Pencil />
-                    </button>
-                </div>
-
+                <>
+                    <div className="flex justify-end mt-1.5 mb-3">
+                        <button
+                            className="flex items-center gap-1 cursor-pointer border rounded px-2 py-1 bg-gray-100 text-sky-400 hover:bg-sky-500 hover:text-white"
+                            onClick={handleClick}
+                        >
+                            <span className="ml-1.5">Editar</span>
+                            <Pencil />
+                        </button>
+                    </div>
+                    {Table_info}
+                </>
             )}
+
             {/* Contenido editable solo si edith es true */}
             {edith && (
                 <>
@@ -229,7 +253,23 @@ export default function Calendario2() {
                             )}
                         </ul>
                     </div>
-
+                    {/* Selector de orden interna */}
+                    <div>
+                        <select
+                            className="w-full rounded border px-3 py-2 bg-white text-blue-600 font-semibold"
+                            value={ordenInternaOI}
+                            onChange={(e) => setOrdenInternaOI(e.target.value)}
+                        >
+                            <option value="" disabled>
+                                Selecciona Orden Interna
+                            </option>
+                            {ordenesInternas.map((orden) => (
+                                <option key={orden.OI} value={orden.OI}>
+                                    {orden.OI} - {orden.titulo}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     {/* Botones */}
                     <div className="mt-6 flex justify-end gap-3">
                         <button
