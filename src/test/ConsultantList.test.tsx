@@ -7,9 +7,10 @@ jest.mock('../store/consultantStore', () => ({
   useConsultantStore: jest.fn()
 }));
 
+
 const mockConsultants = [
-  { nombre: 'Juan', especialidad: 'SAP', disponibilidad: 'Disponible' },
-  { nombre: 'Ana', especialidad: 'ABAP', disponibilidad: 'No disponible' },
+  { name: 'Juan', specialization: ['SAP'], disponibilidad: 'Disponible' },
+  { name: 'Ana', specialization: ['ABAP'], disponibilidad: 'No disponible' },
 ];
 
 
