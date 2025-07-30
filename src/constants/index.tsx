@@ -69,12 +69,16 @@ export const navbarLinks = [
                 icon: Users,
                 path: "/dashboard/client",
             },
-
         ],
     },
     {
         title: "Configuracion",
         links: [
+            {
+                label: "Roles",
+                icon: Settings,
+                path: "/settings/roles",
+            },
             {
                 label: "Configuracion",
                 icon: Settings,
