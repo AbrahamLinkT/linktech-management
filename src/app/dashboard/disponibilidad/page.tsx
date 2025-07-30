@@ -3,19 +3,52 @@
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
 import { SearchWorkers } from "@/components/filters/filters";
 import { PanelLateral } from "@/components/modal/modals";
-import { Table_1, Table_3 } from "@/components/tables/table";
-import Calendario2 from "@/components/ui/calender";
 import { useState } from "react";
 import staf from "@/data/staff.json";
+import { Calendario, EditorDeHoras } from "@/components/ui/calender";
+import { Table_1, Table_3 } from "@/components/tables/table";
 import oi from "@/data/OI_Staff.json"
+import { Pencil } from "lucide-react";
+import { parseISO } from "date-fns";
+
 export default function Disponibilidad() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
+    const [edith, setEdith] = useState(false);
+    const [diasSeleccionadosStr, setDiasSeleccionadosStr] = useState<string[]>([]);
 
+    // Convierte a Date[] para lo que necesites
+    const diasSeleccionados = diasSeleccionadosStr.map((d) => parseISO(d));
     const togglePanel = () => {
         setIsPanelOpen(!isPanelOpen);
+        setEdith(false);
+        setDiasSeleccionadosStr([]); // Limpia también al cerrar el panel
+
     };
 
+    const handleClick = () => {
+        setEdith(!edith);
+    }
+    // Función para limpiar y cerrar edición (cancelar)
+    const handleCancelarEdicion = () => {
+        setEdith(false);
+        setDiasSeleccionadosStr([]);
+    };
+    // Función para guardar y limpiar selección (guardado)
+    const handleGuardarEdicion = (
+        horasPorDia: { [key: string]: number },
+        ordenInternaOI: string
+    ) => {
+        console.log("Guardar horas:", horasPorDia);
+        console.log("Orden Interna:", ordenInternaOI);
+
+        setEdith(false);
+        setDiasSeleccionadosStr([]); // limpia días seleccionados al guardar
+    };
+
+    const ordenesInternas = selectedWorkerId
+        ? oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
+        : [];
     return (
         <ContentTrasition
             IspanelOpen={isPanelOpen ? togglePanel : undefined}
@@ -31,6 +64,7 @@ export default function Disponibilidad() {
                                     const id = staf.staff[index].id;
                                     setSelectedWorkerId(id);
                                     setIsPanelOpen(true);
+                                    setEdith(false);
                                 }}
                             />
 
@@ -46,26 +80,52 @@ export default function Disponibilidad() {
                     content={
                         <div>
                             <p>El id del trabajador es: <strong>{selectedWorkerId}</strong></p>
-                            <Calendario2
-                                idUsuario={selectedWorkerId}
-                                ordenesInternas={
-                                    selectedWorkerId
-                                        ? oi.find((user) => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
-                                        : []
-                                }
-                                Table_info={selectedWorkerId && oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas?.length ? (
-                                    <Table_1
-                                        headers={["OI", "Empresa", "Fechas"]}
-                                        rows={oi.find(user => user.id_usuario === selectedWorkerId)!.ordenes_internas.map((orden) => [
-                                            orden.OI,
-                                            orden.titulo,
-                                            `${orden.fechaIn} - ${orden.fechaFn}`
-                                        ])}
-                                    />
-                                ) : (
-                                    <p>No hay órdenes internas para este trabajador.</p>
-                                )}
+                            <Calendario
+                                modoEdicion={true}
+                                finesSeleccionables={false}
+                                diasSeleccionados={diasSeleccionadosStr}
+                                setDiasSeleccionados={setDiasSeleccionadosStr}
                             />
+                            {!edith && (
+                                <>
+                                    {selectedWorkerId && oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas?.length ? (
+                                        <>
+                                            <div className="flex justify-end mt-1.5 mb-3">
+                                                <button
+                                                    className="flex items-center gap-1 cursor-pointer border rounded px-2 py-1 bg-gray-100 text-sky-400 hover:bg-sky-500 hover:text-white"
+                                                    onClick={handleClick}
+                                                >
+                                                    <span className="ml-1.5">Editar</span>
+                                                    <Pencil />
+                                                </button>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <Table_1
+                                                    headers={["OI", "Empresa", "Fechas"]}
+                                                    rows={oi.find(user => user.id_usuario === selectedWorkerId)!.ordenes_internas.map((orden) => [
+                                                        orden.OI,
+                                                        orden.titulo,
+                                                        `${orden.fechaIn} - ${orden.fechaFn}`
+                                                    ])}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p>No hay órdenes internas para este trabajador.</p>
+                                    )}
+                                </>
+                            )}
+
+                            {edith && (
+                                <EditorDeHoras
+                                    dias={diasSeleccionados}
+                                    ordenesInternas={ordenesInternas}
+                                    onGuardar={handleGuardarEdicion}
+                                    onCancelar={handleCancelarEdicion}
+                                />
+                            )}
+
                         </div>
                     }
                 />

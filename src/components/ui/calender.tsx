@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { isWeekend } from "date-fns";
+import { getWeek, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import {
     startOfMonth,
@@ -14,7 +13,7 @@ import {
     format,
     isSameMonth,
 } from "date-fns";
-import { Pencil } from "lucide-react";
+
 
 type Registro = {
     fecha: string;
@@ -92,201 +91,263 @@ export function CalendarioHoras({ registros }: { registros: Registro[] }) {
     );
 }
 
-interface OrdenInterna {
+
+type CalendarioProps = {
+    renderDia?: (fecha: Date) => React.ReactNode;
+    modoEdicion?: boolean;
+    finesSeleccionables?: boolean;
+    diasSeleccionados: string[]; // array de fechas en formato "yyyy-MM-dd"
+    setDiasSeleccionados: (dias: string[]) => void;
+};
+
+export function Calendario({
+    renderDia,
+    modoEdicion = false,
+    finesSeleccionables = false,
+    diasSeleccionados,
+    setDiasSeleccionados,
+}: CalendarioProps) {
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const startDate = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
+    const endDate = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
+
+    const toggleDiaSeleccionado = (fecha: Date) => {
+        if (!modoEdicion) return; // Si no está en modo edición, no hacer nada
+
+        const fechaStr = format(fecha, "yyyy-MM-dd");
+        if (diasSeleccionados.includes(fechaStr)) {
+            setDiasSeleccionados(diasSeleccionados.filter((f) => f !== fechaStr));
+        } else {
+            setDiasSeleccionados([...diasSeleccionados, fechaStr]);
+        }
+    };
+
+    const rows: JSX.Element[] = [];
+    let day = startDate;
+
+    while (day <= endDate) {
+        const weekDays: JSX.Element[] = [];
+        const weekNumber = getWeek(day, { weekStartsOn: 0 });
+
+        weekDays.push(
+            <div
+                key={`week-${weekNumber}`}
+                className="border h-16 text-[10px] text-center font-semibold flex items-center justify-center bg-gray-200"
+            >
+                {weekNumber}
+            </div>
+        );
+
+        for (let i = 0; i < 7; i++) {
+            const diaActual = new Date(day); // copia independiente
+            const dayStr = format(diaActual, "yyyy-MM-dd");
+            const isWeekend = diaActual.getDay() === 0 || diaActual.getDay() === 6;
+            const isCurrentDay = isToday(diaActual);
+            const estaSeleccionado = diasSeleccionados.includes(dayStr);
+            const puedeSeleccionarDia = modoEdicion && (!isWeekend || finesSeleccionables);
+
+            const baseClass = isSameMonth(diaActual, currentDate)
+                ? isWeekend
+                    ? "bg-blue-200 text-black"
+                    : "bg-white"
+                : "bg-gray-50 text-gray-400";
+
+            const todayClass = isCurrentDay
+                ? "border-2 border-blue-600 font-bold text-blue-700 bg-blue-100"
+                : "";
+
+            const claseSeleccionado = estaSeleccionado ? "bg-green-300 border-green-500" : "";
+            const hoverClass = modoEdicion ? "hover:bg-green-100 cursor-pointer" : "";
+
+            weekDays.push(
+                <div
+                    key={dayStr}
+                    onClick={() => puedeSeleccionarDia && toggleDiaSeleccionado(diaActual)}
+                    className={`border p-1 h-16 text-xs text-center flex flex-col items-center justify-start transition-all
+            ${baseClass} ${todayClass} ${claseSeleccionado} ${hoverClass}`}
+                    style={{ userSelect: "none" }}
+                >
+                    <div className="font-semibold">{format(diaActual, "d")}</div>
+                    <div className="text-[10px] mt-1 leading-tight">{renderDia?.(diaActual)}</div>
+                </div>
+            );
+
+            day = addDays(day, 1);
+        }
+
+        rows.push(
+            <div key={`row-${weekNumber}`} className="grid grid-cols-8">
+                {weekDays}
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full border rounded-lg shadow-sm overflow-hidden bg-white">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 text-sm">
+                <button
+                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                    className="text-black hover:text-blue-600"
+                >
+                    ← Anterior
+                </button>
+                <h2 className="text-base font-bold">
+                    {format(currentDate, "MMMM yyyy", { locale: es }).toUpperCase()}
+                </h2>
+                <button
+                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                    className="text-black hover:text-blue-600"
+                >
+                    Siguiente →
+                </button>
+            </div>
+
+            <div className="grid grid-cols-8 text-center text-xs font-medium text-gray-600 border-b">
+                <div className="bg-gray-200 py-1 text-[10px] font-semibold">Sem</div>
+                {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day) => (
+                    <div key={day} className="py-1">
+                        {day}
+                    </div>
+                ))}
+            </div>
+
+            <div className="divide-y divide-gray-300">{rows}</div>
+        </div>
+    );
+}
+
+/* componenete de edicion de horas */
+// components/EditorDeHoras.tsx
+
+interface Orden {
     OI: string;
     titulo: string;
-    nombre: string;
-    fechaIn: string;
-    fechaFn: string;
 }
 
-interface Calendario2Props {
-    idUsuario: string | null;
-    ordenesInternas: OrdenInterna[];
-    Table_info: React.ReactNode
+interface EditorDeHorasProps {
+    dias: Date[];
+    ordenesInternas: Orden[];
+    onGuardar: (horasPorDia: { [key: string]: number }, ordenInternaOI: string) => void;
+    onCancelar: () => void;
 }
-// CALENDARIO 2
-export default function Calendario2({ idUsuario, ordenesInternas, Table_info }: Calendario2Props) {
-    const [range, setRange] = useState<DateRange | undefined>();
-    const [horas, setHoras] = useState("0");
-    const [edith, setEdith] = useState(false);
-    const [ordenInternaOI, setOrdenInternaOI] = useState<string>(
-        ordenesInternas.length > 0 ? ordenesInternas[0].OI : ""
+
+export function EditorDeHoras({ dias, ordenesInternas, onGuardar, onCancelar }: EditorDeHorasProps) {
+    const [horas, setHoras] = useState("8");
+    const [horasPorDia, setHorasPorDia] = useState<{ [key: string]: number }>(() =>
+        Object.fromEntries(dias.map((f) => [f.toISOString().split("T")[0], 8]))
     );
-    const handleClick = () => {
-        setEdith(!edith);
-    };
-
-    const [horasPorDia, setHorasPorDia] = useState<Record<string, number>>({});
-
-    const diasHabiles = range?.from && range.to
-        ? Array.from(
-            { length: (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24) + 1 },
-            (_, i) => {
-                const date = new Date(range.from!.getTime());
-                date.setDate(date.getDate() + i);
-                return date;
-            }
-        ).filter((date) => !isWeekend(date))
-        : [];
+    const [ordenInternaOI, setOrdenInternaOI] = useState("");
 
     const aplicarHorasATodos = () => {
-        const nuevasHoras: Record<string, number> = {};
-        diasHabiles.forEach((dia) => {
-            const clave = dia.toISOString().split("T")[0];
-            nuevasHoras[clave] = Math.min(8, parseInt(horas) || 0);
-        });
-        setHorasPorDia(nuevasHoras);
+        const num = parseInt(horas) || 0;
+        const nuevas = Object.fromEntries(dias.map((f) => [f.toISOString().split("T")[0], num]));
+        setHorasPorDia(nuevas);
     };
 
-    const actualizarHorasIndividual = (fecha: string, valor: number) => {
-        setHorasPorDia((prev) => ({
-            ...prev,
-            [fecha]: Math.min(8, Math.max(0, valor)),
-        }));
+    const actualizarHorasIndividual = (clave: string, valor: number) => {
+        setHorasPorDia((prev) => ({ ...prev, [clave]: valor }));
     };
 
     return (
         <>
-            <div hidden>
-                <p className="text-sm text-blue-500 mb-2">
-                    ID del usuario: <strong>{idUsuario}</strong>
-                </p>
+            {/* Input de horas con botón "Aplicar a todos" */}
+            <div className="mt-4 w-full">
+                <label className="block mb-2 font-semibold">Horas</label>
+                <div className="flex gap-2">
+                    <input
+                        type="number"
+                        className="w-full rounded border px-3 py-2"
+                        value={horas}
+                        min={0}
+                        max={8}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (+val <= 8) setHoras(val);
+                        }}
+                    />
+                    <button
+                        className="rounded bg-sky-500 px-4 py-2 text-white hover:bg-sky-600"
+                        onClick={aplicarHorasATodos}
+                    >
+                        Aplicar
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Máximo 8 horas por día</p>
             </div>
-
-            {/* Calendario */}
+            {/* Selector de orden interna */}
             <div>
-                <DayPicker
-                    mode="range"
-                    selected={range}
-                    onSelect={setRange}
-                    disabled={isWeekend}
-                    showOutsideDays
-                    showWeekNumber
-                    className="border rounded-md p-2"
-                    locale={es}
+                <select
+                    className="w-full rounded border px-3 py-2 bg-white text-blue-600 font-semibold"
+                    value={ordenInternaOI}
+                    onChange={(e) => setOrdenInternaOI(e.target.value)}
+                >
+                    <option value="" disabled>
+                        Selecciona Orden Interna
+                    </option>
+                    {ordenesInternas.map((orden) => (
+                        <option key={orden.OI} value={orden.OI}>
+                            {orden.OI} - {orden.titulo}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            {/* Total de horas y lista */}
+            <div className="flex items-center justify-between mt-4">
+                <h3 className="font-semibold">Total de horas:</h3>
+                <input
+                    type="text"
+                    readOnly
+                    value={Object.values(horasPorDia).reduce((acc, curr) => acc + curr, 0)}
+                    className="w-20 text-center border rounded px-2 py-1 bg-white"
                 />
             </div>
-            {/* Botón editar (solo se muestra si no está en modo edición) */}
-            {!edith && (
-                <>
-                    <div className="flex justify-end mt-1.5 mb-3">
-                        <button
-                            className="flex items-center gap-1 cursor-pointer border rounded px-2 py-1 bg-gray-100 text-sky-400 hover:bg-sky-500 hover:text-white"
-                            onClick={handleClick}
-                        >
-                            <span className="ml-1.5">Editar</span>
-                            <Pencil />
-                        </button>
-                    </div>
-                    {Table_info}
-                </>
-            )}
 
-            {/* Contenido editable solo si edith es true */}
-            {edith && (
-                <>
-                    {/* Input de horas con botón "Aplicar a todos" */}
-                    <div className="mt-4 w-full">
-                        <label className="block mb-2 font-semibold">Horas</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                className="w-full rounded border px-3 py-2"
-                                value={horas}
-                                min={0}
-                                max={8}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (+val <= 8) setHoras(val);
-                                }}
-                            />
-                            <button
-                                className="rounded bg-sky-500 px-4 py-2 text-white hover:bg-sky-600"
-                                onClick={aplicarHorasATodos}
-                            >
-                                Aplicar
-                            </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Máximo 8 horas por día</p>
-                    </div>
+            <div className="mt-1.5 bg-gray-100 rounded p-4 min-h-[200px] border border-gray-300">
+                <h3 className="font-semibold mb-2">Días seleccionados:</h3>
+                <ul className="max-h-78 overflow-y-auto border p-2 rounded text-sm bg-white flex flex-col gap-2">
+                    {dias.length === 0 ? (
+                        <li className="text-gray-400">Ninguno</li>
+                    ) : (
+                        dias.map((fecha, i) => {
+                            const clave = fecha.toISOString().split("T")[0];
+                            const valor = horasPorDia[clave] ?? 0;
 
-                    {/* Total de horas y lista */}
-                    <div className="flex items-center justify-between mt-4">
-                        <h3 className="font-semibold">Total de horas:</h3>
-                        <input
-                            type="text"
-                            readOnly
-                            value={Object.values(horasPorDia).reduce((acc, curr) => acc + curr, 0)}
-                            className="w-20 text-center border rounded px-2 py-1 bg-white"
-                        />
-                    </div>
+                            return (
+                                <li key={i} className="flex justify-between items-center">
+                                    <span>{format(fecha, "EEEE dd MMMM yyyy", { locale: es })}</span>
+                                    <input
+                                        type="number"
+                                        value={valor}
+                                        min={0}
+                                        max={8}
+                                        onChange={(e) => {
+                                            const num = parseInt(e.target.value) || 0;
+                                            actualizarHorasIndividual(clave, num);
+                                        }}
+                                        className="w-16 text-center border rounded px-1 py-0.5"
+                                    />
+                                </li>
+                            );
+                        })
+                    )}
+                </ul>
+            </div>
 
-                    <div className="mt-1.5 bg-gray-100 rounded p-4 min-h-[200px] border border-gray-300">
-                        <h3 className="font-semibold mb-2">Días hábiles seleccionados:</h3>
-                        <ul className="max-h-78 overflow-y-auto border p-2 rounded text-sm bg-white flex flex-col gap-2">
-                            {diasHabiles.length === 0 ? (
-                                <li className="text-gray-400">Ninguno</li>
-                            ) : (
-                                diasHabiles.map((fecha, i) => {
-                                    const clave = fecha.toISOString().split("T")[0];
-                                    const valor = horasPorDia[clave] ?? 0;
 
-                                    return (
-                                        <li key={i} className="flex justify-between items-center">
-                                            <span>{format(fecha, "EEEE dd MMMM yyyy", { locale: es })}</span>
-                                            <input
-                                                type="number"
-                                                value={valor}
-                                                min={0}
-                                                max={8}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    const num = val === "" ? 0 : parseInt(val);
-                                                    actualizarHorasIndividual(clave, num);
-                                                }}
-                                                className="w-16 text-center border rounded px-1 py-0.5"
-                                            />
-                                        </li>
-                                    );
-                                })
-                            )}
-                        </ul>
-                    </div>
-                    {/* Selector de orden interna */}
-                    <div>
-                        <select
-                            className="w-full rounded border px-3 py-2 bg-white text-blue-600 font-semibold"
-                            value={ordenInternaOI}
-                            onChange={(e) => setOrdenInternaOI(e.target.value)}
-                        >
-                            <option value="" disabled>
-                                Selecciona Orden Interna
-                            </option>
-                            {ordenesInternas.map((orden) => (
-                                <option key={orden.OI} value={orden.OI}>
-                                    {orden.OI} - {orden.titulo}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    {/* Botones */}
-                    <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            className="rounded bg-sky-500 px-4 py-2 text-white hover:bg-sky-600"
-                            onClick={() => console.log("Guardar", { diasHabiles, horasPorDia })}
-                        >
-                            Guardar
-                        </button>
-                        <button
-                            className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-                            onClick={() => setEdith(false)}
-                        >
-                            Cancelar
-                        </button>
-                    </div>
-                </>
-            )}
+
+            {/* Botones */}
+            <div className="mt-6 flex justify-end gap-3">
+                <button
+                    className="rounded bg-sky-500 px-4 py-2 text-white hover:bg-sky-600"
+                    onClick={() => onGuardar(horasPorDia, ordenInternaOI)}
+                >
+                    Guardar
+                </button>
+                <button className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400" onClick={onCancelar}>
+                    Cancelar
+                </button>
+            </div>
         </>
     );
 }

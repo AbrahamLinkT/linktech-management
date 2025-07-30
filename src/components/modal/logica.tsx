@@ -5,7 +5,7 @@ import { Table_1 } from "@/components/tables/table";
 import { ContentDialog } from "@/components/modal/modals";
 import { CalendarioHoras } from "@/components/ui/calender";
 
-// Tipado de estructura de JSON
+
 type RegistroHoras = {
     consultor?: string;
     trabajador?: string;
@@ -13,18 +13,18 @@ type RegistroHoras = {
     dias: string[];
 };
 
-type UsuarioHoras = {
-    [userId: string]: RegistroHoras[];
+type Trabajadores = {
+    [userId: string]: RegistroHoras[] | undefined;
 };
 
-type OrdenInternaObj = {
-    [ordenInterna: string]: UsuarioHoras[];
+type EntradaHoras = {
+    OI: string;
+    trabajadores: Trabajadores;
 };
 
-type HorasAsignadasType = {
-    OI: OrdenInternaObj[];
-};
+type HorasAsignadasType = EntradaHoras[];
 
+// ✅ Asignamos directamente como arreglo
 const HorasAsignadas: HorasAsignadasType = horasData;
 
 export function LogicaSwtich({ id, n }: { id: string | null; n: string | null }) {
@@ -71,8 +71,7 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                                     "40",
                                 ])}
                                 EventOnclick={(row) => {
-                                    const ordenInterna =
-                                        typeof row[0] === "string" ? row[0] : "";
+                                    const ordenInterna = typeof row[0] === "string" ? row[0] : "";
                                     handleClick(ordenInterna);
                                 }}
                             />
@@ -81,25 +80,23 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         )}
                     </ContentDialog>
                 );
+
             case "horas":
                 const registrosPorFecha: { fecha: string; horas: number; orden: string }[] = [];
 
-                HorasAsignadas.OI.forEach((ordenObj) => {
-                    Object.entries(ordenObj).forEach(([orden, registrosArray]) => {
-                        const registros = registrosArray[0]; // { [id]: [ { horas: {fecha: cantidad} } ] }
-                        const usuarioHoras = registros[id!];
-                        if (usuarioHoras) {
-                            usuarioHoras.forEach((registro) => {
-                                Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
-                                    registrosPorFecha.push({
-                                        fecha,
-                                        horas: cantidad,
-                                        orden
-                                    });
+                HorasAsignadas.forEach((entrada) => {
+                    const usuarioHoras = entrada.trabajadores[id!];
+                    if (usuarioHoras) {
+                        usuarioHoras.forEach((registro) => {
+                            Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
+                                registrosPorFecha.push({
+                                    fecha,
+                                    horas: cantidad,
+                                    orden: entrada.OI,
                                 });
                             });
-                        }
-                    });
+                        });
+                    }
                 });
 
                 registrosPorFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -112,9 +109,6 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         <CalendarioHoras registros={registrosPorFecha} />
                     </ContentDialog>
                 );
-
-
-
 
             default:
                 return null;
