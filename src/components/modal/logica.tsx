@@ -14,13 +14,14 @@ type RegistroHoras = {
 };
 
 type UsuarioHoras = {
-    [userId: string]: RegistroHoras[];
+    [userId: string]: RegistroHoras[] | undefined;
 };
+
 
 
 type HorasAsignadasType = Array<{
     OI: string;
-    trabajadores: UsuarioHoras;
+    trabajadores: UsuarioHoras | undefined;
 }>;
 
 const HorasAsignadas: HorasAsignadasType = horasData;
@@ -84,8 +85,9 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                 const registrosPorFecha: { fecha: string; horas: number; orden: string }[] = [];
 
                 HorasAsignadas.forEach(({ OI, trabajadores }) => {
+                    if (!trabajadores) return;
                     const usuarioHoras = trabajadores[id!];
-                    if (usuarioHoras) {
+                    if (usuarioHoras && Array.isArray(usuarioHoras)) {
                         usuarioHoras.forEach((registro) => {
                             Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
                                 registrosPorFecha.push({
