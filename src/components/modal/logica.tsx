@@ -17,13 +17,11 @@ type UsuarioHoras = {
     [userId: string]: RegistroHoras[];
 };
 
-type OrdenInternaObj = {
-    [ordenInterna: string]: UsuarioHoras[];
-};
 
-type HorasAsignadasType = {
-    OI: OrdenInternaObj[];
-};
+type HorasAsignadasType = Array<{
+    OI: string;
+    trabajadores: UsuarioHoras;
+}>;
 
 const HorasAsignadas: HorasAsignadasType = horasData;
 
@@ -81,25 +79,23 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         )}
                     </ContentDialog>
                 );
-            case "horas":
+
+            case "horas": {
                 const registrosPorFecha: { fecha: string; horas: number; orden: string }[] = [];
 
-                HorasAsignadas.OI.forEach((ordenObj) => {
-                    Object.entries(ordenObj).forEach(([orden, registrosArray]) => {
-                        const registros = registrosArray[0]; // { [id]: [ { horas: {fecha: cantidad} } ] }
-                        const usuarioHoras = registros[id!];
-                        if (usuarioHoras) {
-                            usuarioHoras.forEach((registro) => {
-                                Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
-                                    registrosPorFecha.push({
-                                        fecha,
-                                        horas: cantidad,
-                                        orden
-                                    });
+                HorasAsignadas.forEach(({ OI, trabajadores }) => {
+                    const usuarioHoras = trabajadores[id!];
+                    if (usuarioHoras) {
+                        usuarioHoras.forEach((registro) => {
+                            Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
+                                registrosPorFecha.push({
+                                    fecha,
+                                    horas: cantidad,
+                                    orden: OI
                                 });
                             });
-                        }
-                    });
+                        });
+                    }
                 });
 
                 registrosPorFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -112,6 +108,7 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         <CalendarioHoras registros={registrosPorFecha} />
                     </ContentDialog>
                 );
+            }
 
 
 
