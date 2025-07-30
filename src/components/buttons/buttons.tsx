@@ -22,7 +22,7 @@ export function ButtonSave() {
 }
 
 // btn reutilizable
-export function Btn_data({ text, Onclick, styles, text_color, hover_color }: { text: string, Onclick: () => void, styles?: string, text_color?: string, hover_color?: string }) {
+export function Btn_data({ text, Onclick, styles, text_color, hover_color }: { text: string, Onclick?: () => void, styles?: string, text_color?: string, hover_color?: string }) {
     const stylesDefault = text_color?.trim()
         ? `absolute top-4 right-4 text-xl font-bold ${text_color} hover:${hover_color}`
         : "absolute top-4 right-4 text-xl font-bold text-gray-500 hover:text-red-500";

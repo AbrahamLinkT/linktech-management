@@ -30,7 +30,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
       )}
     >
       <div className="flex gap-x-3 p-3">
-        <Image src={logoLight} alt="Logo" className="dark:hidden" width={40} height={40} priority />
+        <Image src={logoLight} alt="Logo" className="dark:hidden" priority />
         <Image src={logoDark} alt="Logo" className="hidden dark:block" width={40} height={40} priority />
         {!collapsed && (
           <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">

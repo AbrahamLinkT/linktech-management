@@ -1,9 +1,9 @@
 import Asignados from "@/data/ProyectosAsignados.json";
 import Projects from "@/data/Projects.json";
 import horasData from "@/data/HorasAsignadas.json";
-import { Table_1 } from "../tables/table";
-import { ContentDialog } from "./modals";
-import { CalendarioHoras } from "../ui/calender";
+import { Table_1 } from "@/components/tables/table";
+import { ContentDialog } from "@/components/modal/modals";
+import { CalendarioHoras } from "@/components/ui/calender";
 
 // Tipado de estructura de JSON
 type RegistroHoras = {
@@ -14,16 +14,15 @@ type RegistroHoras = {
 };
 
 type UsuarioHoras = {
-    [userId: string]: RegistroHoras[];
+    [userId: string]: RegistroHoras[] | undefined;
 };
 
-type OrdenInternaObj = {
-    [ordenInterna: string]: UsuarioHoras[];
-};
 
-type HorasAsignadasType = {
-    OI: OrdenInternaObj[];
-};
+
+type HorasAsignadasType = Array<{
+    OI: string;
+    trabajadores: UsuarioHoras | undefined;
+}>;
 
 const HorasAsignadas: HorasAsignadasType = horasData;
 
@@ -81,25 +80,24 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         )}
                     </ContentDialog>
                 );
-            case "horas":
+
+            case "horas": {
                 const registrosPorFecha: { fecha: string; horas: number; orden: string }[] = [];
 
-                HorasAsignadas.OI.forEach((ordenObj) => {
-                    Object.entries(ordenObj).forEach(([orden, registrosArray]) => {
-                        const registros = registrosArray[0]; // { [id]: [ { horas: {fecha: cantidad} } ] }
-                        const usuarioHoras = registros[id!];
-                        if (usuarioHoras) {
-                            usuarioHoras.forEach((registro) => {
-                                Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
-                                    registrosPorFecha.push({
-                                        fecha,
-                                        horas: cantidad,
-                                        orden
-                                    });
+                HorasAsignadas.forEach(({ OI, trabajadores }) => {
+                    if (!trabajadores) return;
+                    const usuarioHoras = trabajadores[id!];
+                    if (usuarioHoras && Array.isArray(usuarioHoras)) {
+                        usuarioHoras.forEach((registro) => {
+                            Object.entries(registro.horas).forEach(([fecha, cantidad]) => {
+                                registrosPorFecha.push({
+                                    fecha,
+                                    horas: cantidad,
+                                    orden: OI
                                 });
                             });
-                        }
-                    });
+                        });
+                    }
                 });
 
                 registrosPorFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -112,6 +110,7 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
                         <CalendarioHoras registros={registrosPorFecha} />
                     </ContentDialog>
                 );
+            }
 
 
 
