@@ -1,5 +1,11 @@
 "use client";
+/* 
 
+se dejara de utilizar solo eliminar despeus la vista 
+
+
+
+*/
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
 import { SearchWorkers } from "@/components/filters/filters";
 import { PanelLateral } from "@/components/modal/modals";
@@ -10,6 +16,9 @@ import { Table_1, Table_3 } from "@/components/tables/table";
 import oi from "@/data/OI_Staff.json"
 import { Pencil } from "lucide-react";
 import { parseISO } from "date-fns";
+import { Btn_data } from "@/components/buttons/buttons";
+
+import { useRouter } from "next/navigation"; // si usas App Router
 
 export default function Disponibilidad() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -25,7 +34,6 @@ export default function Disponibilidad() {
         setDiasSeleccionadosStr([]); // Limpia también al cerrar el panel
 
     };
-
     const handleClick = () => {
         setEdith(!edith);
     }
@@ -49,13 +57,26 @@ export default function Disponibilidad() {
     const ordenesInternas = selectedWorkerId
         ? oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
         : [];
+    const router = useRouter()
+
+    const handleClickRoute = () => {
+        router.push("/dashboard/new_worker")
+    }
     return (
         <ContentTrasition
             IspanelOpen={isPanelOpen ? togglePanel : undefined}
             body={
                 <ContentBody title="Disponibilidad de trabajadores">
                     <ContentTable
-                        header={<SearchWorkers />}
+                        header={
+                            <div className="flex">
+                                <SearchWorkers />
+                                <Btn_data
+                                    text={"Nuevo Trabajador"} styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
+                                    Onclick={handleClickRoute}
+                                />
+                            </div>
+                        }
                         Body={
                             <Table_3
                                 headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Status"]}

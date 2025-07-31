@@ -1,7 +1,9 @@
 "use client";
 
+import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
-
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 export default function NewWorker() {
     const stylesInput = `
         w-full border border-gray-600 rounded px-3 py-2 
@@ -10,9 +12,20 @@ export default function NewWorker() {
         focus:ring-2 focus:ring-blue-300 
         focus:outline-none
     `;
-
+    const router = useRouter()
+    const handleClickRoute = () => {
+        router.push("/dashboard/workers")
+    }
     return (
-        <ContentBody title="Nuevo trabajador">
+        <ContentBody title="Nuevo trabajador"
+            btnReg={
+                <Btn_data
+                    icon={<ArrowLeft />}
+                    text={"Regresar"}
+                    styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
+                    Onclick={handleClickRoute}
+                />
+            }>
             <div className="m-1">
                 <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Usuario</h2>
                 <form className="space-y-10 ml-4 mr-4">

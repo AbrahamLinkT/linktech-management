@@ -1,3 +1,5 @@
+import React from "react";
+
 // components/buttons/buttons.tsx
 export default function ButtonFilterWork({ showFilters, toggleFilters }: { showFilters: boolean; toggleFilters: () => void }) {
     return (
@@ -22,13 +24,24 @@ export function ButtonSave() {
 }
 
 // btn reutilizable
-export function Btn_data({ text, Onclick, styles, text_color, hover_color }: { text: string, Onclick?: () => void, styles?: string, text_color?: string, hover_color?: string }) {
+export function Btn_data({ text, icon, Onclick, styles, text_color, hover_color }: { text: string, icon?: React.ReactNode, Onclick?: () => void, styles?: string, text_color?: string, hover_color?: string }) {
     const stylesDefault = text_color?.trim()
         ? `absolute top-4 right-4 text-xl font-bold ${text_color} hover:${hover_color}`
         : "absolute top-4 right-4 text-xl font-bold text-gray-500 hover:text-red-500";
 
     return (
-        <button onClick={Onclick} className={styles?.trim() ? styles : stylesDefault}>{text}</button>
+        <button onClick={Onclick} className={styles?.trim() ? styles : stylesDefault}>
+            {icon ? (
+                <div className="flex gap-1.5">
+                    {icon}
+                    {text}
+                </div>
+            ) :
+                <>
+                    {text}
+                </>
+            }
+        </button>
     )
 }
 

@@ -1,4 +1,4 @@
-import { ChartColumn, Home, NotepadText, Settings, UserCheck, UserPlus, Users } from "lucide-react";
+import { ChartColumn, Home, NotepadText, Settings, UserCheck, Users } from "lucide-react";
 /* Package, PackagePlus, */
 export const navbarLinks = [
     {
@@ -12,7 +12,7 @@ export const navbarLinks = [
             {
                 label: "Analisis",
                 icon: ChartColumn,
-                path: "/dashboard/project",
+                path: "",
             },
             {
                 label: "Proyectos",
@@ -29,36 +29,36 @@ export const navbarLinks = [
                 icon: Users,
                 path: "/dashboard/workers",
             },
-            {
+            /* {
                 label: "Nuevo trabajador",
                 icon: UserPlus,
                 path: "/dashboard/new_worker",
-            },
-            {
+            }, */
+            /* {
                 label: "Disponibilidad",
                 icon: UserCheck,
                 path: "/dashboard/disponibilidad",
-            },
+            }, */
             {
                 label: "Cargabilidad ",
                 icon: UserCheck,
                 path: "/dashboard/cargabilidad",
             },
-           {
-               label: "Departamento",
-               icon: Users,
-               path: "/dashboard/departamento",
-           },
-          {
-              label: "Esquema contractual",
-              icon: UserCheck,
-              path: "/dashboard/esquema-contratacion",
-          },
-          {
-              label: "Especialidades",
-              icon: UserCheck,
-              path: "/dashboard/especialidades",
-          },
+            {
+                label: "Departamento",
+                icon: Users,
+                path: "/dashboard/departamento",
+            },
+            {
+                label: "Esquema contractual",
+                icon: UserCheck,
+                path: "/dashboard/esquema-contratacion",
+            },
+            {
+                label: "Especialidades",
+                icon: UserCheck,
+                path: "/dashboard/especialidades",
+            },
         ],
     },
     {
