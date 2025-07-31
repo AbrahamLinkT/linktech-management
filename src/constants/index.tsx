@@ -59,6 +59,11 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/dashboard/especialidades",
             },
+            {
+                label: "Asuetos",
+                icon: UserCheck,
+                path: "/dashboard/asuetos",
+            },
         ],
     },
     {
@@ -78,6 +83,11 @@ export const navbarLinks = [
                 label: "Roles",
                 icon: Settings,
                 path: "/settings/roles",
+            },
+            {
+                label: "Permisos",
+                icon: Settings,
+                path: "/settings/permisos",
             },
             {
                 label: "Configuracion",

@@ -1,5 +1,14 @@
 "use client";
 import React, { useState } from "react";
+interface UserRole {
+  email: string;
+  rol: string;
+}
+const initialUsers: UserRole[] = [
+  { email: "admin@empresa.com", rol: "Administrador" },
+  { email: "consultor@empresa.com", rol: "Consultor" },
+  { email: "cliente@empresa.com", rol: "Cliente" },
+];
 import { Pencil, Check, X, Plus } from "lucide-react";
 
 interface Role {
@@ -16,6 +25,26 @@ const initialRoles: Role[] = [
 export default function RoleTable() {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
   const [form, setForm] = useState<Role>({ nombre: "", descripcion: "" });
+  // Tabla de usuarios y roles
+  const [users, setUsers] = useState<UserRole[]>(initialUsers);
+  const [editUserIdx, setEditUserIdx] = useState<number | null>(null);
+  const [editUserRole, setEditUserRole] = useState<string>("");
+
+  const startEditUser = (idx: number) => {
+    setEditUserIdx(idx);
+    setEditUserRole(users[idx].rol);
+  };
+
+  const saveUserRole = (idx: number) => {
+    const updated = [...users];
+    updated[idx].rol = editUserRole;
+    setUsers(updated);
+    setEditUserIdx(null);
+  };
+
+  const cancelUserEdit = () => {
+    setEditUserIdx(null);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -54,7 +83,58 @@ export default function RoleTable() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-8">
+    <div className="bg-white rounded-lg shadow p-8 flex flex-col gap-12">
+      {/* Tabla de gestión de roles por correo */}
+      <div>
+        <h2 className="text-xl font-bold mb-4">Gestión de roles por cuenta</h2>
+        <table className="w-full border-separate border-spacing-y-2 mb-10">
+          <thead>
+            <tr>
+              <th className="text-left border-b-2 border-gray-200 pb-3 text-lg font-semibold w-2/5">Correo</th>
+              <th className="text-left border-b-2 border-gray-200 pb-3 text-lg font-semibold w-2/5">Rol</th>
+              <th className="text-left border-b-2 border-gray-200 pb-3 text-lg font-semibold w-1/5">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user, idx) => (
+              <tr key={user.email} className="bg-gray-50 hover:bg-gray-100 transition">
+                <td className="p-3 align-top text-base font-medium">{user.email}</td>
+                <td className="p-3 align-top text-base">
+                  {editUserIdx === idx ? (
+                    <select
+                      value={editUserRole}
+                      onChange={e => setEditUserRole(e.target.value)}
+                      className="border rounded px-3 py-2 w-full text-base focus:ring-2 focus:ring-blue-200"
+                    >
+                      {roles.map(r => (
+                        <option key={r.nombre} value={r.nombre}>{r.nombre}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    user.rol
+                  )}
+                </td>
+                <td className="p-3 align-top">
+                  {editUserIdx === idx ? (
+                    <div className="flex gap-2">
+                      <button type="button" title="Guardar" className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1" onClick={() => saveUserRole(idx)}>
+                        <Check size={18} /> Guardar
+                      </button>
+                      <button type="button" title="Cancelar" className="bg-gray-400 text-white px-3 py-2 rounded hover:bg-gray-500 flex items-center gap-1" onClick={cancelUserEdit}>
+                        <X size={18} /> Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" title="Editar" className="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 flex items-center gap-1" onClick={() => startEditUser(idx)}>
+                      <Pencil size={18} /> Editar
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <table className="w-full border-separate border-spacing-y-2 mb-10">
         <thead>
           <tr>
