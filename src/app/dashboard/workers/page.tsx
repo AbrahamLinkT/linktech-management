@@ -37,16 +37,16 @@ export default function Workers() {
         setDiasSeleccionadosStr([]);
     };
     // Función para guardar y limpiar selección (guardado)
-    const handleGuardarEdicion = (
-        horasPorDia: { [key: string]: number },
-        ordenInternaOI: string
-    ) => {
-        console.log("Guardar horas:", horasPorDia);
-        console.log("Orden Interna:", ordenInternaOI);
-
-        setEdith(false);
-        setDiasSeleccionadosStr([]); // limpia días seleccionados al guardar
-    };
+    /*  const handleGuardarEdicion = (
+         horasPorDia: { [key: string]: number },
+         ordenInternaOI: string
+     ) => {
+         console.log("Guardar horas:", horasPorDia);
+         console.log("Orden Interna:", ordenInternaOI);
+ 
+         setEdith(false);
+         setDiasSeleccionadosStr([]); // limpia días seleccionados al guardar
+     }; */
 
     const ordenesInternas = selectedWorkerId
         ? oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
@@ -136,7 +136,7 @@ export default function Workers() {
                                 <EditorDeHoras
                                     dias={diasSeleccionados}
                                     ordenesInternas={ordenesInternas}
-                                    onGuardar={handleGuardarEdicion}
+                                    onGuardar={() => { }} // solucionar error 
                                     onCancelar={handleCancelarEdicion}
                                 />
                             )}

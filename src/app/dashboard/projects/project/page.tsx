@@ -3,59 +3,78 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Edit, NotebookTabsIcon } from "lucide-react";
+import { ArrowLeft, Edit, NotebookTabsIcon, UserPlus } from "lucide-react";
 /* Importacion de componenetes propios */
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
 import { PanelLateral } from "@/components/modal/modals";
-import { Calendario } from "@/components/ui/calender";
+import { Calendario, EditorDeHoras } from "@/components/ui/calender";
 import { Btn_data } from "@/components/buttons/buttons";
 import { Table_1, Table_3 } from "@/components/tables/table";
 /* impórtaciones de jsons */
 import Projects from "@/data/Projects.json";
 import staff from "@/data/staff.json"
 import oi from "@/data/OI_Staff.json"
+import { parseISO } from "date-fns";
+
 export default function Project() {
     // estados
-    const [isEdith, setIsEdith] = useState(false)
-    const [isOpenPanel, setIsPanelOpen] = useState(false)
-    const [isWorker, setWorker] = useState<string | null>(null)
-    const [diasSeleccionados, setDiasSeleccionados] = useState<string[]>([])
-    const [selectWorker, setSelectWorker] = useState<string[]>([])
-    const searchParams = useSearchParams();
+    const [isEdith, setIsEdith] = useState(false);
+    const [isWorker, setWorker] = useState<string | null>(null);
+    const [diasSeleccionados, setDiasSeleccionados] = useState<string[]>([]);
+    const [selectWorker, setSelectWorker] = useState<string[]>([]);
+    const [tempSelectWorker, setTempSelectWorker] = useState<string[]>([]);
+    const [activePanel, setActivePanel] = useState<"none" | "details" | "editHours">("none");
+    const [diasPorTrabajador, setDiasPorTrabajador] = useState<{ [id: string]: string[] }>({}); // guardar los días seleccionados por trabajador
 
+    const transforDays = diasSeleccionados.map((d) => parseISO(d))
+
+
+    const searchParams = useSearchParams();
     const id = searchParams.get("id");
-    const route = useRouter()
-    const Proyecto = Projects.proyectos.find((p) => p.id == id)
+    const route = useRouter();
+    const Proyecto = Projects.proyectos.find((p) => p.id == id);
+
     if (!Proyecto) {
         return <div className="p-6 text-red-600">Proyecto no encontrado</div>;
     }
 
-    /* eventos */
     const handleClick = () => {
-        route.push("/dashboard/projects/")
-    }
+        route.push("/dashboard/projects/");
+    };
+    // Maneja el cambio de estado para editar o agregar trabajadores
     const handleClickEdith = () => {
+        const editing = !isEdith;
+        setIsEdith(editing);
+        if (editing) {
+            setTempSelectWorker([...selectWorker]);
+            setActivePanel("none"); // Asegúrate de cerrar cualquier otro panel al entrar
+        } else {
+            setTempSelectWorker([]);
+            setActivePanel("none"); // <--- Aquí cierras el panel si estaba abierto
+        }
+    };
 
-        setIsEdith(!isEdith)
-        if (isOpenPanel) {
-            setIsPanelOpen(!isOpenPanel)
-        }
-    }
     const handleClickSave = () => {
-        if (isOpenPanel) {
-            setIsPanelOpen(!isOpenPanel)
-        }
-        if (isEdith) {
-            setIsEdith(!isEdith)
-        }
-    }
-    const togglePanel = () => {
-        setIsPanelOpen(!isOpenPanel)
-    }
+        setSelectWorker([...tempSelectWorker]);
+        setIsEdith(false);
+        setTempSelectWorker([]);
+    };
+
+    // Maneja la edición de horas
+    const handleEditHours = (index: number) => {
+        const workerId = selectWorker[index];
+        const worker = staff.staff.find(p => p.id === workerId);
+        console.log("Editar horas de:", worker?.consultor, workerId);
+        setWorker(workerId);
+        setDiasSeleccionados(diasPorTrabajador[workerId] || []);
+        setActivePanel("editHours");
+    };
+
+
     return (
         <>
             <ContentTrasition
-                IspanelOpen={isOpenPanel ? togglePanel : undefined}
+                IspanelOpen={activePanel !== "none" ? () => setActivePanel("none") : undefined}
                 body={
                     <>
                         <ContentBody
@@ -153,35 +172,51 @@ export default function Project() {
                                             worker.consultor,
                                             worker.especialidad,
                                             worker.nivel,
-                                            "Tiempo", // Ajustar según necesidad
+                                            worker.tiempo,
                                             worker.estatus,
                                             worker.esquema,
-                                            "Horas" // Ajustar según necesidad
+                                            "Horas"
                                         ] : [];
                                     })}
+                                    EventOnclick={activePanel === "editHours" ? handleEditHours : undefined}
+
                                 />
                                 <div className="flex justify-end pr-1 pt-2.5">
-                                    <Btn_data
-                                        text={isEdith ? "Cancelar" : "Editar"}
-                                        icon={isEdith ? "" : <Edit />}
-                                        styles={`
-                                mb-2 whitespace-nowrap rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium
-                                ${isEdith
-                                                ? 'bg-red-500 text-white hover:bg-red-400 hover:text-white'
-                                                : 'bg-transparent hover:bg-blue-400 hover:text-white'
-                                            }
-                                `}
-                                        Onclick={handleClickEdith}
-                                    />
-                                    {
-                                        isEdith && (
-                                            <Btn_data
-                                                text={"Guardar"}
-                                                styles={"mb-2 whitespace-nowrap rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium bg-blue-500 text-white ml-3 hover:bg-blue-400 hover:text-white"}
-                                                Onclick={handleClickSave}
-                                            />
-                                        )
-                                    }
+                                    {/* Mostrar botón de editar solo si no estás en modo agregar */}
+                                    {!isEdith && (
+                                        <Btn_data
+                                            text={activePanel === "editHours" ? "Salir de edición" : "Horas"}
+                                            icon={activePanel === "editHours" ? "" : <Edit />}
+                                            styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium ml-3 bg-transparent hover:bg-blue-400 hover:text-white"
+                                            Onclick={() => {
+                                                setActivePanel(activePanel === "editHours" ? "none" : "editHours");
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* Mostrar botón de agregar solo si no estás en modo edición de horas */}
+                                    {activePanel !== "editHours" && (
+                                        <Btn_data
+                                            text={isEdith ? "Cancelar" : "Agregar"}
+                                            icon={isEdith ? "" : <UserPlus />}
+                                            styles={`
+        mb-2 whitespace-nowrap rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium ml-3
+        ${isEdith
+                                                    ? "bg-red-500 text-white hover:bg-red-400 hover:text-white"
+                                                    : "bg-transparent hover:bg-blue-400 hover:text-white"}
+      `}
+                                            Onclick={handleClickEdith}
+                                        />
+                                    )}
+
+                                    {/* Mostrar botón guardar solo si estás en modo agregar */}
+                                    {isEdith && (
+                                        <Btn_data
+                                            text={"Guardar"}
+                                            styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium bg-blue-500 text-white ml-3 hover:bg-blue-400 hover:text-white"
+                                            Onclick={handleClickSave}
+                                        />
+                                    )}
                                 </div>
 
 
@@ -189,84 +224,125 @@ export default function Project() {
                         </ContentBody>
                         <ContentTable
                             Body={
-                                <>
-                                    {/* Esto solo se cargara cuando le den edith mientras la informacion no se solicita */}
-                                    {isEdith && (
-                                        <Table_1
-                                            headers={["Seleccion", "Consultor", "Especialidad", "Nivel", "Estatus", "Esquema", "Disponibilidad"]}
-                                            rows={staff.staff.map((p) => [
+                                isEdith && (
+                                    <Table_1
+                                        headers={["Seleccion", "Consultor", "Especialidad", "Nivel", "Estatus", "Esquema", "Disponibilidad"]}
+                                        rows={staff.staff
+                                            .filter((p) => !selectWorker.includes(p.id))
+                                            .map((p) => [
                                                 <input
+                                                    key={p.id}
                                                     type="checkbox"
-                                                    key={`checkbox-${p.id}`}
-                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                    /* logica de la seleccion */
+                                                    checked={tempSelectWorker.includes(p.id)}
                                                     onChange={(e) => {
                                                         if (e.target.checked) {
-                                                            setSelectWorker([...selectWorker, p.id])
+                                                            setTempSelectWorker([...tempSelectWorker, p.id]);
                                                         } else {
-                                                            setSelectWorker(selectWorker.filter(id => id !== p.id))
+                                                            setTempSelectWorker(tempSelectWorker.filter(id => id !== p.id));
                                                         }
                                                     }}
+                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                 />,
-                                                , p.consultor, p.especialidad, p.nivel, p.estatus, p.esquema,
+                                                p.consultor, p.especialidad, p.nivel, p.estatus, p.esquema,
                                                 <Btn_data
                                                     key={p.id}
                                                     styles="text-black"
                                                     text="Detalles"
                                                     icon={<NotebookTabsIcon />}
-                                                    Onclick={
-                                                        () => {
-                                                            setWorker(p.id)
-                                                            setIsPanelOpen(true)
-                                                        }
-                                                    }
-                                                />
-                                            ]
-                                            )
-                                            }
-                                        />
-                                    )}
-                                </>
+                                                    Onclick={() => {
+                                                        setWorker(p.id);
+                                                        setActivePanel("details");
+                                                    }}
 
+                                                />
+                                            ])}
+                                    />
+                                )
                             }
                         />
                     </>
                 }
                 panel={
-                    <PanelLateral
-                        title="Disponibilidad"
-                        Open={isOpenPanel}
-                        close={togglePanel}
-                        content={
-                            <>
-                                <div>
-                                    <Calendario
-                                        modoEdicion={false}
-                                        finesSeleccionables={false}
-                                        diasSeleccionados={diasSeleccionados}
-                                        setDiasSeleccionados={setDiasSeleccionados}
-                                    />
-                                    {
-                                        isWorker && oi.find(user => user.id_usuario == isWorker)?.ordenes_internas?.length ? (
-                                            <>
-                                                <div className="mt-4">
-                                                    <Table_1
-                                                        headers={["OI", "Empresa", "Fechas"]}
-                                                        rows={oi.find(user => user.id_usuario == isWorker)!.ordenes_internas.map((orden) => [
-                                                            orden.OI, orden.titulo, `${orden.fechaIn} - ${orden.fechaFn}`
-                                                        ])}
-                                                    />
-                                                </div>
-                                            </>
-                                        ) :
-                                            (
-                                                <p>no tiene ningun proyecto asignado</p>
-                                            )
+                    <>
+                        {
+                            activePanel === "details" && (
+                                <PanelLateral
+                                    title="Disponibilidad"
+                                    Open={true}
+                                    close={() => setActivePanel("none")}
+                                    content={
+                                        <>
+                                            <div>
+                                                <Calendario
+                                                    modoEdicion={false}
+                                                    finesSeleccionables={false}
+                                                    diasSeleccionados={[]} // se actualiza con los días seleccionados que tiene el trabajador
+                                                    setDiasSeleccionados={() => { }}
+                                                />
+                                                {
+                                                    isWorker && oi.find(user => user.id_usuario == isWorker)?.ordenes_internas?.length ? (
+                                                        <>
+                                                            <div className="mt-4">
+                                                                <Table_1
+                                                                    headers={["OI", "Empresa", "Fechas"]}
+                                                                    rows={oi.find(user => user.id_usuario == isWorker)!.ordenes_internas.map((orden) => [
+                                                                        orden.OI, orden.titulo, `${orden.fechaIn} - ${orden.fechaFn}`
+                                                                    ])}
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    ) :
+                                                        (
+                                                            <p>no tiene ningun proyecto asignado</p>
+                                                        )
+                                                }
+                                            </div>
+                                        </>
                                     }
-                                </div>
-                            </>
+                                />
+                            )
                         }
-                    />
+                        {
+                            activePanel === "editHours" && (
+                                <PanelLateral
+                                    title="Edición de horas"
+                                    Open={true}
+                                    close={() => {
+                                        if (isWorker) {
+                                            setDiasPorTrabajador(prev => ({
+                                                ...prev,
+                                                [isWorker]: diasSeleccionados,
+                                            }));
+                                        }
+                                        setDiasSeleccionados([]);
+                                        setActivePanel("none");
+                                    }}
+                                    content={
+                                        <>
+                                            <p>Trabajador:<strong> {isWorker}</strong></p>
+                                            <Calendario
+                                                modoEdicion={true}
+                                                finesSeleccionables={false}
+                                                diasSeleccionados={diasSeleccionados}
+                                                setDiasSeleccionados={setDiasSeleccionados}
+                                            />
+                                            <EditorDeHoras
+                                                dias={transforDays}
+                                                oiFijo={Proyecto.ordenInterna}
+                                                onCancelar={() => setActivePanel("none")}
+                                                onGuardar={(oi) => {
+                                                    console.log("Seleccionado:", oi);
+                                                }}
+                                            />
+
+                                        </>
+                                    }
+                                />
+                            )
+
+                        }
+                    </>
+
                 }
             />
 

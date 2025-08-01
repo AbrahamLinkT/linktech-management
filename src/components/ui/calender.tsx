@@ -227,17 +227,19 @@ interface Orden {
 
 interface EditorDeHorasProps {
     dias: Date[];
-    ordenesInternas: Orden[];
-    onGuardar: (horasPorDia: { [key: string]: number }, ordenInternaOI: string) => void;
+    ordenesInternas?: Orden[]; // ← opcional ahora
+    oiFijo?: string; // ← nuevo: si está definido, no se muestra el select
+    onGuardar: (horasPorDia: { [key: string]: number }, ordenInternaOI?: string) => void;
     onCancelar: () => void;
 }
 
-export function EditorDeHoras({ dias, ordenesInternas, onGuardar, onCancelar }: EditorDeHorasProps) {
+export function EditorDeHoras({ dias, ordenesInternas, oiFijo, onGuardar, onCancelar }: EditorDeHorasProps) {
+
     const [horas, setHoras] = useState("8");
     const [horasPorDia, setHorasPorDia] = useState<{ [key: string]: number }>(() =>
         Object.fromEntries(dias.map((f) => [f.toISOString().split("T")[0], 8]))
     );
-    const [ordenInternaOI, setOrdenInternaOI] = useState("");
+    const [ordenInternaOI, setOrdenInternaOI] = useState(oiFijo || "");
 
     const aplicarHorasATodos = () => {
         const num = parseInt(horas) || 0;
@@ -276,22 +278,35 @@ export function EditorDeHoras({ dias, ordenesInternas, onGuardar, onCancelar }: 
                 <p className="text-xs text-gray-500 mt-1">Máximo 8 horas por día</p>
             </div>
             {/* Selector de orden interna */}
-            <div>
-                <select
-                    className="w-full rounded border px-3 py-2 bg-white text-blue-600 font-semibold"
-                    value={ordenInternaOI}
-                    onChange={(e) => setOrdenInternaOI(e.target.value)}
-                >
-                    <option value="" disabled>
-                        Selecciona Orden Interna
-                    </option>
-                    {ordenesInternas.map((orden) => (
-                        <option key={orden.OI} value={orden.OI}>
-                            {orden.OI} - {orden.titulo}
+            {!oiFijo && ordenesInternas && (
+                <div className="mt-4">
+                    <label className="block mb-2 font-semibold">Orden Interna</label>
+                    <select
+                        className="w-full rounded border px-3 py-2 bg-white text-blue-600 font-semibold"
+                        value={ordenInternaOI}
+                        onChange={(e) => setOrdenInternaOI(e.target.value)}
+                    >
+                        <option value="" disabled>
+                            Selecciona Orden Interna
                         </option>
-                    ))}
-                </select>
-            </div>
+                        {ordenesInternas.map((orden) => (
+                            <option key={orden.OI} value={orden.OI}>
+                                {orden.OI} - {orden.titulo}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {oiFijo && (
+                <div className="mt-4">
+                    <label className="block mb-2 font-semibold">Orden Interna</label>
+                    <div className="p-2 bg-gray-100 rounded border font-semibold text-blue-700">
+                        {oiFijo}
+                    </div>
+                </div>
+            )}
+
             {/* Total de horas y lista */}
             <div className="flex items-center justify-between mt-4">
                 <h3 className="font-semibold">Total de horas:</h3>
