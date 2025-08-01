@@ -96,7 +96,7 @@ export default function Workers() {
                         <div>
                             <p>El id del trabajador es: <strong>{selectedWorkerId}</strong></p>
                             <Calendario
-                                modoEdicion={true}
+                                modoEdicion={edith}
                                 finesSeleccionables={false}
                                 diasSeleccionados={diasSeleccionadosStr}
                                 setDiasSeleccionados={setDiasSeleccionadosStr}

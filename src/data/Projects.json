@@ -2,6 +2,7 @@
   "proyectos": [
     {
       "id": "1",
+      "imagen": null,
       "titulo": "Copa mex",
       "nombre": "Sistema de Gestión",
       "ordenInterna": "OI4555",
@@ -15,6 +16,7 @@
     },
     {
       "id": "2",
+      "imagen": null,
       "titulo": "Copa mundial",
       "nombre": "Sistema de Gestión",
       "ordenInterna": "OI4554",
@@ -25,9 +27,10 @@
       "estatus": "pendiente",
       "fechaIn": "2025/08/23",
       "fechaFn": "2025/12/23"
-    },
+    },    
     {
       "id": "3",
+      "imagen": null,
       "titulo": "Nhubex",
       "nombre": "Sistema de Gestión",
       "ordenInterna": "OI4553",
@@ -41,6 +44,7 @@
     },
     {
       "id": "4",
+      "imagen": null,
       "titulo": "Nissan",
       "nombre": "Sistema de Gestión",
       "ordenInterna": "OI4552",

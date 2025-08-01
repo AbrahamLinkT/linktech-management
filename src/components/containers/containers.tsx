@@ -3,7 +3,7 @@ import React from "react"
 // contenedores
 export function ContentBody({ children, title, subtitle, contentSubtitleComponent, ContentBtn, btnReg }: { title?: string, btnReg?: React.ReactNode, children?: React.ReactNode, subtitle?: string, contentSubtitleComponent?: React.ReactNode, ContentBtn?: React.ReactNode }) {
     const contentTitle = <h2 className="mb-8 text-2xl font-bold">{title}</h2>
-    const ContentSubtitle = <h2 className="mb-8 text-2xl font-bold">{subtitle}</h2>
+    const ContentSubtitle = <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 pl-3 pt-2">{subtitle}</h2>
     return (
         <div className="p-1">
             {btnReg ? (
@@ -33,7 +33,7 @@ export function ContentTable({ header, Body }: { header?: React.ReactNode, Body:
     return (
         <>
             {header}
-            <div className="relative max-h-[550px] min-h-[100px] w-full overflow-x-auto overflow-y-auto rounded-none [scrollbar-width:thin]">
+            <div className="p-1 py-1 relative max-h-[550px] min-h-[100px] w-full overflow-x-auto overflow-y-auto rounded-none [scrollbar-width:thin]">
 
                 {Body}
             </div>

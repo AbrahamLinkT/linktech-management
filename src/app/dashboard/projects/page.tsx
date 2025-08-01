@@ -24,7 +24,7 @@ export default function Projects() {
   };
   const handleConfirm = () => {
     setShowModal(false);
-    router.push(`/dashboard/project?id=${isProyect}`);
+    router.push(`/dashboard/projects/project?id=${isProyect}`);
   };
 
   const handleCancel = () => {

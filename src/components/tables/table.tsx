@@ -1,9 +1,9 @@
 import React from "react";
 
 // componente para tablas 
-export function Table_1({ headers, rows, EventOnclick }: {
+export function Table_1({ headers, hoverActive = false, rows, EventOnclick }: {
     headers: string[], rows: (string | React.ReactNode)[][],
-    EventOnclick?: (row: (React.ReactNode | string)[]) => void
+    EventOnclick?: (row: (React.ReactNode | string)[]) => void, hoverActive?: boolean
 }) {
     return (
         <div className="overflow-auto">
@@ -22,7 +22,12 @@ export function Table_1({ headers, rows, EventOnclick }: {
                         rows.map((row, index) => (
                             <tr
                                 key={index}
-                                className="table-row hover:bg-gray-100 cursor-pointer"
+                                className={
+                                    `${hoverActive ?
+                                        "table-row hover:bg-gray-100 cursor-pointer" :
+                                        "table-row hover:bg-gray-100 "
+                                    }`
+                                }
                                 onClick={() => EventOnclick?.(row)}
                             >
                                 {
