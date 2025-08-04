@@ -8,15 +8,18 @@ import { PanelLateral } from '@/components/modal/modals';
 import { Calendario } from '../ui/calender';
 
 export default function CargabilidadComponent() {
-
-    // estado para calendario, creo
-    const [selectedAction, setSelectedAction] = useState<string | null>(null);
-
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [selectedConsultor, setSelectedConsultor] = useState<string | null>(null);
     const router = useRouter();
 
+    const handleMostrar = (consultor: string) => {
+        setSelectedConsultor(consultor);
+        setIsPanelOpen(true);
+    };
+
     const togglePanel = () => {
-        setIsPanelOpen(!isPanelOpen);
+        setIsPanelOpen(false);
+        setSelectedConsultor(null);
     };
 
     return (
@@ -51,12 +54,13 @@ export default function CargabilidadComponent() {
                                     p.estatus,
                                     <button
                                         key={p.consultor}
-                                        onClick={togglePanel}
-                                        className="text-blue-500 hover:text-blue-700"
+                                        onClick={() => handleMostrar(p.consultor)}
+                                        className={`text-blue-500 hover:text-blue-700 ${selectedConsultor === p.consultor && isPanelOpen ? 'font-bold underline' : ''}`}
                                     >
-                                        {isPanelOpen ? "Ocultar" : "Mostrar"}
+                                        {selectedConsultor === p.consultor && isPanelOpen ? "Ocultar" : "Mostrar"}
                                     </button>
                                 ])}
+                                rowActiveIndex={isPanelOpen && selectedConsultor ? staf.staff.findIndex(p => p.consultor === selectedConsultor) : undefined}
                             />
                         }
                     />

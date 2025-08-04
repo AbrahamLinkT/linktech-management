@@ -3,7 +3,8 @@
 import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
 import { SearchWorkers } from "@/components/filters/filters";
-import ConfirmModal, { PanelLateral } from "@/components/modal/modals";
+import { PanelLateral } from "@/components/modal/modals";
+import ConfirmModal from "@/components/ConfirmModal";
 import { Table_3 } from "@/components/tables/table";
 
 import Proj from "@/data/Projects.json";

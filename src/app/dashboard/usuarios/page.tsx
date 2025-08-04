@@ -1,6 +1,5 @@
 "use client";
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import user from '@/data/usuarios.json';
 import { SearchWorkers } from '@/components/filters/filters';
 import { Table_1 } from '@/components/tables/table';
@@ -9,9 +8,7 @@ import { PanelLateral } from '@/components/modal/modals';
 
 
 export default function UsersComponent() {
-
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const router = useRouter();
 
     const togglePanel = () => {
         setIsPanelOpen(!isPanelOpen);
