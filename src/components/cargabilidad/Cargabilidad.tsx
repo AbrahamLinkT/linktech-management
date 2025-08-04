@@ -5,8 +5,13 @@ import { SearchWorkers } from '@/components/filters/filters';
 import { Table_1 } from '@/components/tables/table';
 import { ContentBody, ContentTable } from '@/components/containers/containers';
 import { PanelLateral } from '@/components/modal/modals';
+import { Calendario } from '../ui/calender';
 
 export default function CargabilidadComponent() {
+
+    // estado para calendario, creo
+    const [selectedAction, setSelectedAction] = useState<string | null>(null);
+
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const router = useRouter();
 
@@ -61,6 +66,13 @@ export default function CargabilidadComponent() {
                 title='Informacion de horas y proyectos'
                 Open={isPanelOpen}
                 close={togglePanel}
+                content={<Calendario
+                            modoEdicion={false}
+                            finesSeleccionables={false}
+                            diasSeleccionados={[]}
+                            setDiasSeleccionados={() => {}}
+                        />
+                }
             />
         </div>
     );

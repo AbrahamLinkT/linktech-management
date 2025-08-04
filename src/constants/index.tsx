@@ -64,6 +64,11 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/dashboard/asuetos",
             },
+            {
+                label: "Usuarios",
+                icon: Users,
+                path: "/dashboard/usuarios",
+            },
         ],
     },
     {
