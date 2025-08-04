@@ -54,7 +54,7 @@ export default function Workers() {
     const router = useRouter()
 
     const handleClickRoute = () => {
-        router.push("/dashboard/new_worker")
+        router.push("/dashboard/workers/new_worker")
     }
     return (
         <ContentTrasition
