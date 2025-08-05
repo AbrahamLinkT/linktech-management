@@ -1,3 +1,4 @@
+import { CardResumProps } from "@/constants"
 import React from "react"
 
 // contenedores
@@ -51,4 +52,28 @@ export function ContentTrasition({ IspanelOpen, body, panel }: { IspanelOpen?: (
             {panel}
         </div>
     )
+}
+
+
+export function CardResum({ titulo, valor, porcentaje, icono, color }: CardResumProps) {
+    const bgColor = `bg-${color}-500/20 dark:bg-${color}-600/20`;
+    const textColor = `text-${color}-500 dark:text-${color}-600`;
+    const borderColor = `border-${color}-500 dark:border-${color}-600`;
+
+    return (
+        <div className="card">
+            <div className="card-header">
+                <div className={`w-fit rounded-lg p-2 transition-colors ${bgColor} ${textColor}`}>
+                    {icono}
+                </div>
+                <p className="card-title">{titulo}</p>
+            </div>
+            <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
+                <p className="text-3xl font-bold text-slate-900 dark:text-slate-50">{valor}</p>
+                <span className={`flex w-fit items-center gap-x-2 rounded-full border px-2 py-1 font-medium ${textColor} ${borderColor}`}>
+                    {parseFloat(porcentaje) >= 0 ? "↑" : "↓"} {porcentaje}
+                </span>
+            </div>
+        </div>
+    );
 }
