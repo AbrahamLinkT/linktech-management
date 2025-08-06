@@ -1,25 +1,88 @@
 "use client";
 
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
-import { SearchWorkers } from "@/components/filters/filters";
 import { PanelLateral } from "@/components/modal/modals";
-import { useState } from "react";
+import React, { useState } from "react";
 import staf from "@/data/staff.json";
+
+// Definir el tipo para los datos de staff
+interface StaffItem {
+    id: string;
+    consultor: string;
+    especialidad: string;
+    nivel: string;
+    departamento: string;
+    esquema: string;
+    tiempo: string;
+    estatus: string;
+}
 import { Calendario, EditorDeHoras } from "@/components/ui/calender";
 import { Table_1, Table_3 } from "@/components/tables/table";
 import oi from "@/data/OI_Staff.json"
-import { Pencil } from "lucide-react";
+import { Pencil, Search } from "lucide-react";
 import { parseISO } from "date-fns";
 import { Btn_data } from "@/components/buttons/buttons";
 
 import { useRouter } from "next/navigation"; // si usas App Router
 
-
 export default function Workers() {
+    // Estado para paginación
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    // Estado para el texto de búsqueda
+    const [search, setSearch] = useState("");
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
     const [edith, setEdith] = useState(false);
     const [diasSeleccionadosStr, setDiasSeleccionadosStr] = useState<string[]>([]);
+
+    // Columnas y filtros de columnas
+    const columnas = [
+        { key: "consultor", label: "Consultor" },
+        { key: "especialidad", label: "Especialidad" },
+        { key: "departamento", label: "Departamento" },
+        { key: "esquema", label: "Esquema" },
+        { key: "estatus", label: "Status" },
+    ];
+    const [visibleCols, setVisibleCols] = useState<string[]>(columnas.map(c => c.key));
+    const [showColFilters, setShowColFilters] = useState(false);
+
+    // Función auxiliar para acceso seguro a propiedades
+    const getStaffValue = <T extends keyof StaffItem>(item: StaffItem, key: T): string => {
+        return item[key];
+    };
+
+    const handleColToggle = (key: string) => {
+        setVisibleCols(prev =>
+            prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+        );
+    };
+
+    const FiltroColumnas = () => (
+        <div style={{
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            padding: "0.5rem 1rem 0.5rem 1rem",
+            marginBottom: "1rem",
+            background: "#fafbfc",
+            display: "inline-block"
+        }}>
+            <div style={{ fontWeight: "bold", marginBottom: "0.5rem", fontSize: "0.95rem" }}>Mostrar columnas:</div>
+            <div style={{ display: "flex", gap: "1rem" }}>
+                {columnas.map(col => (
+                    <label key={col.key} style={{ display: "flex", alignItems: "center", fontSize: "0.95rem" }}>
+                        <input
+                            type="checkbox"
+                            checked={visibleCols.includes(col.key)}
+                            onChange={() => handleColToggle(col.key)}
+                            style={{ marginRight: "0.3em" }}
+                        />
+                        {col.label}
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
 
     // Convierte a Date[] para lo que necesites
     const diasSeleccionados = diasSeleccionadosStr.map((d) => parseISO(d));
@@ -56,6 +119,34 @@ export default function Workers() {
     const handleClickRoute = () => {
         router.push("/dashboard/workers/new_worker")
     }
+    // Función auxiliar para acceso seguro a propiedades
+
+    // Filtrar trabajadores según el texto de búsqueda y columnas visibles
+    const filteredStaff = (staf.staff as StaffItem[]).filter((p) => {
+        if (!search.trim()) return true;
+        // Buscar en las columnas visibles
+        return columnas
+            .filter(col => visibleCols.includes(col.key))
+            .some(col => getStaffValue(p, col.key as keyof StaffItem).toLowerCase().includes(search.toLowerCase()));
+    });
+
+    // Calcular paginación
+    const total = filteredStaff.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const startIdx = (page - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, total);
+    const paginatedStaff = filteredStaff.slice(startIdx, endIdx);
+
+    // Cambiar de página y evitar salir de rango
+    const goToPage = (newPage: number) => {
+        if (newPage < 1 || newPage > totalPages) return;
+        setPage(newPage);
+    };
+
+    // Resetear a la primera página si cambia el filtro o búsqueda
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    React.useEffect(() => { setPage(1); }, [search, visibleCols.join(","), total]);
+
     return (
         <ContentTrasition
             IspanelOpen={isPanelOpen ? togglePanel : undefined}
@@ -63,26 +154,84 @@ export default function Workers() {
                 <ContentBody title="Trabajadores">
                     <ContentTable
                         header={
-                            <div className="flex">
-                                <SearchWorkers />
-                                <Btn_data
-                                    text={"Nuevo Trabajador"} styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
-                                    Onclick={handleClickRoute}
-                                />
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "space-between" }}>
+                                <form
+                                    onSubmit={e => { e.preventDefault(); }}
+                                    style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}
+                                >
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar trabajador..."
+                                        value={search}
+                                        onChange={e => setSearch(e.target.value)}
+                                        className="rounded-lg border border-gray-400 bg-white px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                        style={{ minWidth: 180 }}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="rounded-lg border border-gray-400 bg-gray-100 px-3 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white flex items-center"
+                                        tabIndex={-1}
+                                    >
+                                        <Search size={18} className="mr-1" />
+                                        Buscar
+                                    </button>
+                                </form>
+                                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowColFilters(v => !v)}
+                                        className={
+                                            `mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white` +
+                                            (showColFilters ? ' bg-blue-100 text-blue-700' : '')
+                                        }
+                                    >
+                                        Filtrar columnas
+                                    </button>
+                                    <Btn_data
+                                        text={"Nuevo Trabajador"} styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
+                                        Onclick={handleClickRoute}
+                                    />
+                                    {showColFilters && <FiltroColumnas />}
+                                </div>
                             </div>
                         }
                         Body={
-                            <Table_3
-                                headers={["Consultor", "Especialidad", "Departamento", "Esquema", "Status"]}
-                                rows={staf.staff.map((p) => [p.consultor, p.especialidad, p.departamento, p.esquema, p.estatus])}
-                                EventOnclick={(index) => {
-                                    const id = staf.staff[index].id;
-                                    setSelectedWorkerId(id);
-                                    setIsPanelOpen(true);
-                                    setEdith(false);
-                                }}
-                            />
-
+                            <>
+                                <Table_3
+                                    headers={columnas.filter(col => visibleCols.includes(col.key)).map(col => col.label)}
+                                    rows={paginatedStaff.map((p) =>
+                                        columnas
+                                            .filter(col => visibleCols.includes(col.key))
+                                            .map(col => getStaffValue(p, col.key as keyof StaffItem))
+                                    )}
+                                    EventOnclick={(index) => {
+                                        const id = paginatedStaff[index].id;
+                                        setSelectedWorkerId(id);
+                                        setIsPanelOpen(true);
+                                        setEdith(false);
+                                    }}
+                                />
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+                                    <span className="text-sm text-gray-600">
+                                        Mostrando {total === 0 ? 0 : startIdx + 1}-{endIdx} de {total}
+                                    </span>
+                                    <div style={{ display: "flex", gap: 8 }}>
+                                        <button
+                                            type="button"
+                                            className="rounded border border-gray-300 px-3 py-1 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50"
+                                            onClick={() => goToPage(page - 1)}
+                                            disabled={page === 1}
+                                        >Anterior</button>
+                                        <span className="text-sm px-2">{page} / {totalPages}</span>
+                                        <button
+                                            type="button"
+                                            className="rounded border border-gray-300 px-3 py-1 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50"
+                                            onClick={() => goToPage(page + 1)}
+                                            disabled={page === totalPages}
+                                        >Siguiente</button>
+                                    </div>
+                                </div>
+                            </>
                         }
                     />
                 </ContentBody>
