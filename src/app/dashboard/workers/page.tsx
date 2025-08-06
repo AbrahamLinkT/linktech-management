@@ -205,11 +205,22 @@ export default function Workers() {
                                             .map(col => getStaffValue(p, col.key as keyof StaffItem))
                                     )}
                                     EventOnclick={(index) => {
-                                        const id = paginatedStaff[index].id;
-                                        setSelectedWorkerId(id);
-                                        setIsPanelOpen(true);
-                                        setEdith(false);
+                                        if (index === -1) {
+                                            setSelectedWorkerId(null);
+                                            setIsPanelOpen(false);
+                                            setEdith(false);
+                                            setDiasSeleccionadosStr([]);
+                                        } else {
+                                            const id = paginatedStaff[index].id;
+                                            setSelectedWorkerId(id);
+                                            setIsPanelOpen(true);
+                                            setEdith(false);
+                                        }
                                     }}
+
+
+                                    sortable={true}
+                                    selectable={true}
                                 />
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
                                     <span className="text-sm text-gray-600">
