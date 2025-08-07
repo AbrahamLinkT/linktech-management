@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // componente para tablas 
 export function Table_1({ headers, hoverActive = false, rows, EventOnclick, rowActiveIndex }: {
@@ -96,6 +96,7 @@ interface TableProps {
     EventOnclick?: (index: number) => void;
     selectable?: boolean;
     sortable?: boolean;
+    clearSelection?: boolean;
 }
 
 export function Table_3({
@@ -104,15 +105,22 @@ export function Table_3({
     EventOnclick,
     selectable = true, // por defecto activado
     sortable = false,
+    clearSelection
 }: TableProps) {
     const [columnWidths, setColumnWidths] = useState<number[]>(
         new Array(headers.length).fill(150)
     );
-    const [selectedCell, setSelectedCell] = useState<number | null>(null); // solo fila seleccionada
+    const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [sortConfig, setSortConfig] = useState<{
         columnIndex: number | null;
         direction: "asc" | "desc";
     }>({ columnIndex: null, direction: "asc" });
+
+    useEffect(() => {
+        if (clearSelection) {
+            setSelectedCell(null)
+        }
+    }, [clearSelection])
 
     const startResize = (index: number, e: React.MouseEvent) => {
         e.preventDefault();
