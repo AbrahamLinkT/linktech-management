@@ -7,7 +7,7 @@ import { PanelLateral } from "@/components/modal/modals";
 import ConfirmModal from "@/components/ConfirmModal";
 import { Table_3 } from "@/components/tables/table";
 import Modal from "@/components/Modal";
-import { Edit, Archive, Trash2 } from "lucide-react";
+import { Edit, Archive, Trash2, Eye } from "lucide-react";
 
 import Proj from "@/data/Projects.json";
 import { useState } from "react";
@@ -180,6 +180,13 @@ export default function Projects() {
                         handleClick("eliminar")
                       }}>
                         <Trash2 size={18} />
+                      </button>
+                      <button className="p-1 rounded hover:bg-yellow-100" title="Archivar" onClick={() => {
+                        const id = p.id;
+                        setIsProyect(id)
+                        handleClick("archivar")
+                      }}>
+                        <Eye size={18} />
                       </button>
                     </div>,])}
                     selectable={false}
