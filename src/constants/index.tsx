@@ -26,7 +26,7 @@ export const navbarLinks = [
         title: "Trabajadores",
         links: [
             {
-                label: "Workers",
+                label: "Trabajadores",
                 icon: Users,
                 path: "/dashboard/workers",
             },

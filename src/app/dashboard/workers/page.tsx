@@ -4,6 +4,9 @@ import { ContentBody, ContentTable, ContentTrasition } from "@/components/contai
 import { PanelLateral } from "@/components/modal/modals";
 import React, { useState } from "react";
 import staf from "@/data/staff.json";
+import Modal from "@/components/Modal";
+import { Edit, Archive, Trash2 } from "lucide-react";
+import NewWorker from "./new_worker/page";
 
 // Definir el tipo para los datos de staff
 interface StaffItem {
@@ -26,6 +29,7 @@ import { Btn_data } from "@/components/buttons/buttons";
 import { useRouter } from "next/navigation"; // si usas App Router
 
 export default function Workers() {
+    const [isModalOpen, setIsModalOpen] = useState(false);/*ESTE SE USA PARA EL MODAL POP UP */
     // Estado para paginación
     const [page, setPage] = useState(1);
     const pageSize = 10;
@@ -35,6 +39,8 @@ export default function Workers() {
     const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
     const [edith, setEdith] = useState(false);
     const [diasSeleccionadosStr, setDiasSeleccionadosStr] = useState<string[]>([]);
+
+    const toggleModal = () => {setIsModalOpen(!isModalOpen)} //ABRIR Y CERRAR MODAL POP UP
 
     // Columnas y filtros de columnas
     const columnas = [
@@ -147,7 +153,31 @@ export default function Workers() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     React.useEffect(() => { setPage(1); }, [search, visibleCols.join(","), total]);
 
+    const stylesInput = `
+            w-full border border-gray-600 rounded px-3 py-1
+            hover:border-blue-600 
+            focus:border-blue-500 
+            focus:ring-2 focus:ring-blue-300 
+            focus:outline-none
+        `;
     return (
+        <>
+        <Modal
+              isOpen={isModalOpen}
+              onConfirm={toggleModal}
+              onCancel={toggleModal}
+              body={
+                <>
+                    <NewWorker 
+
+                    />
+                </>
+        
+              }
+              >
+        
+            </Modal>
+            
         <ContentTrasition
             IspanelOpen={isPanelOpen ? togglePanel : undefined}
             body={
@@ -189,7 +219,7 @@ export default function Workers() {
                                     </button>
                                     <Btn_data
                                         text={"Nuevo Trabajador"} styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
-                                        Onclick={handleClickRoute}
+                                        Onclick={toggleModal}
                                     />
                                     {showColFilters && <FiltroColumnas />}
                                 </div>
@@ -305,7 +335,7 @@ export default function Workers() {
                     }
                 />
             }
-        />
+        /></>
     );
 }
 

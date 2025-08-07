@@ -18,13 +18,13 @@ export default function NewWorker() {
     }
     return (
         <ContentBody title="Nuevo trabajador"
-            btnReg={
-                <Btn_data
+            btnReg={""
+                /*<Btn_data
                     icon={<ArrowLeft />}
                     text={"Regresar"}
                     styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
                     Onclick={handleClickRoute}
-                />
+                />*/
             }>
             <div className="m-1">
                 <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Usuario</h2>
@@ -142,7 +142,7 @@ export default function NewWorker() {
                         </div>
                     </fieldset>
 
-                    {/* Botón de guardar */}
+                    {/* Botón de guardar 
                     <div className="flex justify-end">
                         <button
                             type="submit"
@@ -150,7 +150,7 @@ export default function NewWorker() {
                         >
                             Guardar
                         </button>
-                    </div>
+                    </div>*/}
                 </form>
             </div>
         </ContentBody>
