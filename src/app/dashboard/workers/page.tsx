@@ -5,7 +5,7 @@ import { PanelLateral } from "@/components/modal/modals";
 import React, { useState } from "react";
 import staf from "@/data/staff.json";
 import Modal from "@/components/Modal";
-import { Edit, Archive, Trash2 } from "lucide-react";
+// import { Edit, Archive, Trash2 } from "lucide-react";
 import NewWorker from "./new_worker/page";
 
 // Definir el tipo para los datos de staff
@@ -21,12 +21,12 @@ interface StaffItem {
 }
 import { Calendario, EditorDeHoras } from "@/components/ui/calender";
 import { Table_1, Table_3 } from "@/components/tables/table";
-import oi from "@/data/OI_Staff.json"
+import oi from "@/data/OI_Staff.json";
 import { Pencil, Search } from "lucide-react";
 import { parseISO } from "date-fns";
 import { Btn_data } from "@/components/buttons/buttons";
 
-import { useRouter } from "next/navigation"; // si usas App Router
+// import { useRouter } from "next/navigation"; // si usas App Router
 
 export default function Workers() {
     const [isModalOpen, setIsModalOpen] = useState(false);/*ESTE SE USA PARA EL MODAL POP UP */
@@ -117,24 +117,38 @@ export default function Workers() {
          setDiasSeleccionadosStr([]); // limpia días seleccionados al guardar
      }; */
 
-    const ordenesInternas = selectedWorkerId
-        ? oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
-        : [];
-    const router = useRouter()
+// Definir el tipo para los datos de OI_Staff
+interface OrdenInterna {
+    OI: string;
+    titulo: string;
+    fechaIn: string;
+    fechaFn: string;
+}
 
-    const handleClickRoute = () => {
-        router.push("/dashboard/workers/new_worker")
-    }
+interface OIStaffItem {
+    id_usuario: string;
+    ordenes_internas: OrdenInterna[];
+}
+
+const ordenesInternas: OrdenInterna[] = selectedWorkerId
+    ? (oi as OIStaffItem[]).find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []
+    : [];
+    // const router = useRouter()
+
+    // const handleClickRoute = () => {
+    //     router.push("/dashboard/workers/new_worker")
+    // }
     // Función auxiliar para acceso seguro a propiedades
 
     // Filtrar trabajadores según el texto de búsqueda y columnas visibles
-    const filteredStaff = (staf.staff as StaffItem[]).filter((p) => {
-        if (!search.trim()) return true;
-        // Buscar en las columnas visibles
-        return columnas
-            .filter(col => visibleCols.includes(col.key))
-            .some(col => getStaffValue(p, col.key as keyof StaffItem).toLowerCase().includes(search.toLowerCase()));
-    });
+    const filteredStaff = (Array.isArray(staf.staff) ? staf.staff : [])
+        .filter((p: StaffItem) => {
+            if (!search.trim()) return true;
+            // Buscar en las columnas visibles
+            return columnas
+                .filter(col => visibleCols.includes(col.key))
+                .some(col => getStaffValue(p, col.key as keyof StaffItem).toLowerCase().includes(search.toLowerCase()));
+        });
 
     // Calcular paginación
     const total = filteredStaff.length;
@@ -153,13 +167,13 @@ export default function Workers() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     React.useEffect(() => { setPage(1); }, [search, visibleCols.join(","), total]);
 
-    const stylesInput = `
-            w-full border border-gray-600 rounded px-3 py-1
-            hover:border-blue-600 
-            focus:border-blue-500 
-            focus:ring-2 focus:ring-blue-300 
-            focus:outline-none
-        `;
+    // const stylesInput = `
+    //         w-full border border-gray-600 rounded px-3 py-1
+    //         hover:border-blue-600 
+    //         focus:border-blue-500 
+    //         focus:ring-2 focus:ring-blue-300 
+    //         focus:outline-none
+    //     `;
     return (
         <>
         <Modal
@@ -241,7 +255,7 @@ export default function Workers() {
                                             setEdith(false);
                                             setDiasSeleccionadosStr([]);
                                         } else {
-                                            const id = paginatedStaff[index].id;
+                                            const id = paginatedStaff[index]?.id ?? null;
                                             setSelectedWorkerId(id);
                                             setIsPanelOpen(true);
                                             setEdith(false);
@@ -293,7 +307,7 @@ export default function Workers() {
                             />
                             {!edith && (
                                 <>
-                                    {selectedWorkerId && oi.find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas?.length ? (
+                                    {selectedWorkerId && (oi as OIStaffItem[]).find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas?.length ? (
                                         <>
                                             <div className="flex justify-end mt-1.5 mb-3">
                                                 <button
@@ -308,7 +322,7 @@ export default function Workers() {
                                             <div className="mt-4">
                                                 <Table_1
                                                     headers={["OI", "Empresa", "Fechas"]}
-                                                    rows={oi.find(user => user.id_usuario === selectedWorkerId)!.ordenes_internas.map((orden) => [
+                                                    rows={((oi as OIStaffItem[]).find(user => user.id_usuario === selectedWorkerId)?.ordenes_internas ?? []).map((orden) => [
                                                         orden.OI,
                                                         orden.titulo,
                                                         `${orden.fechaIn} - ${orden.fechaFn}`

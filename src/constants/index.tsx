@@ -20,6 +20,16 @@ export const navbarLinks = [
                 icon: NotepadText,
                 path: "/dashboard/projects",
             },
+            {
+                label: "Proyección",
+                icon: ChartColumn,
+                path: "/dashboard/proyeccion",
+            },
+            {
+                label: "Tabla",
+                icon: NotepadText,
+                path: "/dashboard/tabla",
+            },
         ],
     },
     {
@@ -30,16 +40,6 @@ export const navbarLinks = [
                 icon: Users,
                 path: "/dashboard/workers",
             },
-            /* {
-                label: "Nuevo trabajador",
-                icon: UserPlus,
-                path: "/dashboard/new_worker",
-            }, */
-            /* {
-                label: "Disponibilidad",
-                icon: UserCheck,
-                path: "/dashboard/disponibilidad",
-            }, */
             {
                 label: "Cargabilidad ",
                 icon: UserCheck,

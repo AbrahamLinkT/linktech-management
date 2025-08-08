@@ -1,9 +1,9 @@
 "use client";
 
-import { Btn_data } from "@/components/buttons/buttons";
+// import { Btn_data } from "@/components/buttons/buttons"; // Eliminado: no usado
 import { ContentBody } from "@/components/containers/containers";
-import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react"; // Eliminado: no usado
+// import { useRouter } from "next/navigation"; // Eliminado: no usado
 export default function NewWorker() {
     const stylesInput = `
         w-full border border-gray-600 rounded px-3 py-2 
@@ -12,10 +12,10 @@ export default function NewWorker() {
         focus:ring-2 focus:ring-blue-300 
         focus:outline-none
     `;
-    const router = useRouter()
-    const handleClickRoute = () => {
-        router.push("/dashboard/workers")
-    }
+    // const router = useRouter() // Eliminado: no usado
+    // const handleClickRoute = () => {
+    //     router.push("/dashboard/workers")
+    // } // Eliminado: no usado
     return (
         <ContentBody title="Nuevo trabajador"
             btnReg={""

@@ -1,11 +1,13 @@
-import { AlertTriangle } from "lucide-react";
+// import { AlertTriangle } from "lucide-react"; // Eliminado: no usado
 import { motion } from "framer-motion";
+import React from "react";
+
 
 interface ModalProps {
     isOpen: boolean;
     onConfirm: () => void;
     onCancel: () => void;
-    body?: any;
+    body?: React.ReactNode;
 }
 
 export default function Modal({
