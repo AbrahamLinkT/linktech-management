@@ -20,13 +20,8 @@ export default function Projects() {
   const [showModal, setShowModal] = useState(false);/*ESTE SE USA PARA EL PANEL LATERAL */
   const [warningMessage, setWarningMessage] = useState(""); /*ESTE WARNINGMESSAGE SE UTILIZA PARA DIFERENCIAR ENTRE ARCHIVAR O BORRAR EN LA ETIQUETA */
 
-<<<<<<< HEAD
   const router = useRouter()
 
-=======
-  // const router = useRouter() // Eliminado: variable no usada
-  
->>>>>>> 968b2b2 (feat: update dependencies and add new features)
   const togglePanel = () => {
     setIstPanelOpen(!isPanelOpen)
   }
@@ -217,7 +212,6 @@ export default function Projects() {
             title="Creacion de nuevo proyecto"
             content={
               <>
-<<<<<<< HEAD
                 <div>
                   <form action="">
                     {/* seccion de informacion del cliente */}
@@ -238,40 +232,7 @@ export default function Projects() {
                           <label htmlFor="proyecto" className="block font-medium mb-1">Proyecto</label>
                           <input type="text" className={stylesInput} name="proyecto" id="proyecto" />
                         </div>
-=======
-                <Table_3
-                  headers={["Orden Interna", "Empresa", "Cliente", "Descripcion", "Fechas", "Estatus", "Responsable","Acciones"]}
-                  rows={Proj.proyectos.map((p) => [p.ordenInterna, p.titulo, p.cliente, p.descripcion, `${p.fechaIn} - ${p.fechaFn}`, p.estatus, p.responsable,
-                  <div className="flex gap-2 justify-center" key={p.id}>
-                    <button className="p-1 rounded hover:bg-blue-100" title="Editar" onClick={() => {
-                      toggleModal();
-                    }}>
-                      <Edit size={18} />
-                    </button>
-                    <button className="p-1 rounded hover:bg-yellow-100" title="Archivar" onClick={() => {
-                      // const id = p.id;
-                      // setIsProyect(id)
-                      handleClick("archivar")
-                    }}>
-                      <Archive size={18} />
-                    </button>
-                    <button className="p-1 rounded hover:bg-red-100" title="Borrar" onClick={() => {
-                      // const id = p.id;
-                      // setIsProyect(id)
-                      handleClick("eliminar")
-                    }}>
-                      <Trash2 size={18} />
-                    </button>
-                  </div>,])}
-                />
-                <ConfirmModal
-                  isOpen={showModal}
-                  onConfirm={handleConfirm}
-                  onCancel={handleCancel}
-                  message={`¿Seguro que quieres ${warningMessage} este proyecto?`}
-                />
-              </>
->>>>>>> 968b2b2 (feat: update dependencies and add new features)
+(feat: update dependencies and add new features)
 
                         {/* Cliente como opción */}
                         <div>
