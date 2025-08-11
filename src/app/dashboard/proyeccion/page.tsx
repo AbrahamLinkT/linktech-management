@@ -1,165 +1,290 @@
 "use client";
 
-import { Table_3 } from "@/components/tables/table";
 import React, { useState } from "react";
-import { Search } from "lucide-react";
+import {
+  MaterialReactTable,
+  MRT_RowSelectionState,
+} from "material-react-table";
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Tooltip } from "@mui/material";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+// import horasAsignadasData from '../../data/HorasAsignadas.json';
 
+// 1. Define la interfaz para los datos
+type ProyeccionRow = {
+  id: number;
+  consultor: string;
+  departamento: string;
+  tipoEmpleado: string;
+  esquema: string;
+  tiempo: string;
+  modulo: string;
+  nivel: string;
+  ubicacion: string;
+  sinInfo: string;
+  estatusContratacion: string;
+  ordenInterna: string;
+  proyecto: string;
+  facturable: string;
+  responsable: string;
+  // fecha: string;
+};
 
-
-const headers = [
-    "Consultor", "Departamento", "Tipo de Empleado", "Esquema", "Tiempo", "Módulo", "Nivel", "Ubicación", "sin info", "Estatus contratación", "Orden Interna Linkplace / Ticket DC", "Proyecto Linkplace", "Facturable", "Responsable de proyecto", "17-feb-25"
+const initialData: ProyeccionRow[] = [
+  {
+    id: 1,
+    consultor: "BLANCO PEREZ HECTOR ALEJANDRO",
+    departamento: "",
+    tipoEmpleado: "",
+    esquema: "",
+    tiempo: "",
+    modulo: "",
+    nivel: "",
+    ubicacion: "",
+    sinInfo: "",
+    estatusContratacion: "",
+    ordenInterna: "IC202502",
+    proyecto: "PV - SV - Doal - Cash Flow",
+    facturable: "Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "",
+  },
+  {
+    id: 2,
+    consultor: "GOMEZ MARTINEZ YAYOY MONSERRAT",
+    departamento: "Servicios",
+    tipoEmpleado: "Interno",
+    esquema: "Asimilado",
+    tiempo: "FT",
+    modulo: "PM",
+    nivel: "",
+    ubicacion: "MTY",
+    sinInfo: "1",
+    estatusContratacion: "",
+    ordenInterna: "IC202502",
+    proyecto: "PV - SV - Doal - Cash Flow",
+    facturable: "No Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "",
+  },
+  {
+    id: 3,
+    consultor: "HERNANDEZ MACIAS RAFAEL",
+    departamento: "Servicios",
+    tipoEmpleado: "Interno",
+    esquema: "Asimilado",
+    tiempo: "FT",
+    modulo: "FI",
+    nivel: "",
+    ubicacion: "CDMX",
+    sinInfo: "1",
+    estatusContratacion: "",
+    ordenInterna: "IC202502",
+    proyecto: "PV - SV - Doal - Cash Flow",
+    facturable: "Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "",
+  },
+  {
+    id: 4,
+    consultor: "RAMIREZ MORENO JAIME",
+    departamento: "Servicios",
+    tipoEmpleado: "Interno",
+    esquema: "Asimilado",
+    tiempo: "OD",
+    modulo: "FI",
+    nivel: "",
+    ubicacion: "",
+    sinInfo: "1",
+    estatusContratacion: "Baja Proyecto",
+    ordenInterna: "IC202502",
+    proyecto: "PV - SV - Doal - Cash Flow",
+    facturable: "No Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "",
+  },
+  {
+    id: 5,
+    consultor: "BLANCAS VELAZQUEZ ARMANDO",
+    departamento: "Servicios",
+    tipoEmpleado: "Interno",
+    esquema: "Asimilado",
+    tiempo: "FT",
+    modulo: "FICO",
+    nivel: "",
+    ubicacion: "",
+    sinInfo: "1",
+    estatusContratacion: "Delivery",
+    ordenInterna: "NN202205",
+    proyecto: "SV - Galletas Dondé - Implementación S/4 HANA",
+    facturable: "Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "4",
+  },
+  {
+    id: 6,
+    consultor: "GOMEZ MARTINEZ YAYOY MONSERRAT",
+    departamento: "Servicios",
+    tipoEmpleado: "Interno",
+    esquema: "Asimilado",
+    tiempo: "FT",
+    modulo: "PM",
+    nivel: "",
+    ubicacion: "MTY",
+    sinInfo: "1",
+    estatusContratacion: "",
+    ordenInterna: "NN202205",
+    proyecto: "SV - Galletas Dondé - Implementación S/4 HANA",
+    facturable: "Fact",
+    responsable: "Yayoy Gómez",
+    // fecha: "1",
+  },
 ];
 
-const rowsOriginal = [
-    ["BLANCO PEREZ HECTOR ALEJANDRO", "", "", "", "", "", "", "", "", "", "IC202502", "PV - SV - Doal - Cash Flow", "Fact", "Yayoy Gómez", ""],
-    ["GOMEZ MARTINEZ YAYOY MONSERRAT", "Servicios", "Interno", "Asimilado", "FT", "PM", "", "MTY", "1", "", "IC202502", "PV - SV - Doal - Cash Flow", "No Fact", "Yayoy Gómez", ""],
-    ["HERNANDEZ MACIAS RAFAEL", "Servicios", "Interno", "Asimilado", "FT", "FI", "", "CDMX", "1", "", "IC202502", "PV - SV - Doal - Cash Flow", "Fact", "Yayoy Gómez", ""],
-    ["RAMIREZ MORENO JAIME", "Servicios", "Interno", "Asimilado", "OD", "FI", "", "", "1", "Baja Proyecto", "IC202502", "PV - SV - Doal - Cash Flow", "No Fact", "Yayoy Gómez", ""],
-    ["BLANCAS VELAZQUEZ ARMANDO", "Servicios", "Interno", "Asimilado", "FT", "FICO", "", "", "1", "Delivery", "NN202205", "SV - Galletas Dondé - Implementación S/4 HANA", "Fact", "Yayoy Gómez", "4"],
-    ["GOMEZ MARTINEZ YAYOY MONSERRAT", "Servicios", "Interno", "Asimilado", "FT", "PM", "", "MTY", "1", "", "NN202205", "SV - Galletas Dondé - Implementación S/4 HANA", "Fact", "Yayoy Gómez", "1"],
+const columns = [
+  { accessorKey: "consultor", header: "Consultor" },
+  { accessorKey: "departamento", header: "Departamento" },
+  { accessorKey: "tipoEmpleado", header: "Tipo de Empleado" },
+  { accessorKey: "esquema", header: "Esquema" },
+  { accessorKey: "tiempo", header: "Tiempo" },
+  { accessorKey: "modulo", header: "Módulo" },
+  { accessorKey: "nivel", header: "Nivel" },
+  { accessorKey: "ubicacion", header: "Ubicación" },
+  { accessorKey: "sinInfo", header: "sin info" },
+  { accessorKey: "estatusContratacion", header: "Estatus contratación" },
+  { accessorKey: "ordenInterna", header: "Orden Interna Linkplace / Ticket DC" },
+  { accessorKey: "proyecto", header: "Proyecto Linkplace" },
+  { accessorKey: "facturable", header: "Facturable" },
+  { accessorKey: "responsable", header: "Responsable de proyecto" },
 ];
 
-export default function Proyeccion() {
-    // Filtros de columnas
-    const [visibleCols, setVisibleCols] = useState<string[]>(headers);
-    const [showColFilters, setShowColFilters] = useState(false);
-    // Búsqueda
-    const [search, setSearch] = useState("");
-    // Paginación
-    const [page, setPage] = useState(1);
-    const pageSize = 10;
+const ProyeccionTable: React.FC = () => {
+  const [tableData] = useState<ProyeccionRow[]>(initialData);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<ProyeccionRow | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-    // Filtrar filas por búsqueda y columnas visibles
-    const filteredRows = rowsOriginal.filter(row => {
-        if (!search.trim()) return true;
-        // Buscar en las columnas visibles
-        return headers
-            .map((col, idx) => visibleCols.includes(col) ? row[idx] : "")
-            .join(" ")
-            .toLowerCase()
-            .includes(search.toLowerCase());
+  // Estado para las horas asignadas
+  const [horasAsignadasData, setHorasAsignadasData] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/src/data/HorasAsignadas.json')
+      .then((res) => res.json())
+      .then((data) => setHorasAsignadasData(data));
+  }, []);
+
+  // Obtener las horas asignadas para el consultor y proyecto seleccionados
+  const getHorasPorDia = () => {
+    if (!selectedRow) return {};
+    const horasPorDia: Record<string, number> = {};
+    horasAsignadasData.forEach((oi: any) => {
+      Object.values(oi.trabajadores).forEach((trabajadores: any) => {
+        (trabajadores as any[]).forEach((trabajador: any) => {
+          if (
+            (trabajador.consultor?.toLowerCase() === selectedRow.consultor.toLowerCase() || trabajador.trabajador?.toLowerCase() === selectedRow.consultor.toLowerCase())
+          ) {
+            Object.entries(trabajador.horas).forEach(([fecha, horas]: [string, number]) => {
+              horasPorDia[fecha] = horas;
+            });
+          }
+        });
+      });
     });
+    return horasPorDia;
+  };
 
-    // Paginación
-    const total = filteredRows.length;
-    const totalPages = Math.ceil(total / pageSize) || 1;
-    const startIdx = (page - 1) * pageSize;
-    const endIdx = Math.min(startIdx + pageSize, total);
-    const paginatedRows = filteredRows.slice(startIdx, endIdx).map(row =>
-        headers
-            .map((col, idx) => visibleCols.includes(col) ? row[idx] : null)
-            .filter(cell => cell !== null)
-    );
+  return (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" gutterBottom>
+        Proyección
+      </Typography>
 
-    // Cambiar de página y evitar salir de rango
-    const goToPage = (newPage: number) => {
-        if (newPage < 1 || newPage > totalPages) return;
-        setPage(newPage);
-    };
+      <MaterialReactTable<ProyeccionRow>
+        columns={columns}
+        data={tableData}
+        enableColumnResizing
+        enableRowNumbers
+        enablePagination
+        enableColumnFilterModes
+        enableFacetedValues
+        enableFilters
+        enableHiding
+        enableColumnOrdering
+        enableFullScreenToggle
+        enableDensityToggle
+        enableColumnActions
+        muiTableContainerProps={{ sx: { maxHeight: "500px" } }}
+        muiTableBodyRowProps={({ row }) => ({
+          onClick: () => {
+            setSelectedRow(row.original);
+            setOpenModal(true);
+          },
+          style: { cursor: "pointer" },
+        })}
+      />
 
-    // Resetear a la primera página si cambia el filtro o búsqueda
-    // Extraer dependencias a variables para cumplir con lint
-    const visibleColsKey = visibleCols.join(",");
-    React.useEffect(() => { setPage(1); }, [search, visibleColsKey, total]);
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Agenda mensual de horas asignadas</DialogTitle>
+        <DialogContent sx={{ minHeight: 500 }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <StaticDatePicker
+              displayStaticWrapperAs="desktop"
+              value={selectedDate}
+              onChange={setSelectedDate}
+              renderDay={(day, _value, DayComponentProps) => {
+                const horasPorDia = getHorasPorDia();
+                const fechaStr = day.format('YYYY-MM-DD');
+                const horas = horasPorDia[fechaStr];
+                let color = 'inherit';
+                if (horas) {
+                  if (horas >= 8) color = '#1976d2'; // azul fuerte
+                  else if (horas >= 6) color = '#4caf50'; // verde
+                  else if (horas >= 4) color = '#ff9800'; // naranja
+                  else color = '#f44336'; // rojo
+                }
+                return (
+                  <Tooltip title={horas ? `${horas} horas asignadas` : ''} arrow>
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        bgcolor: horas ? color : 'transparent',
+                        color: horas ? '#fff' : 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontWeight: horas ? 'bold' : 'normal',
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      {day.date()}
+                    </Box>
+                  </Tooltip>
+                );
+              }}
+            />
+          </LocalizationProvider>
+          {selectedRow && (
+            <Box mt={2}>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Consultor:</strong> {selectedRow.consultor}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Proyecto:</strong> {selectedRow.proyecto}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenModal(false)} color="inherit">Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
 
-    // Filtro de columnas
-    const FiltroColumnas = () => (
-        <div style={{
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            padding: "0.5rem 1rem 0.5rem 1rem",
-            marginBottom: "1rem",
-            background: "#fafbfc",
-            display: "inline-block"
-        }}>
-            <div style={{ fontWeight: "bold", marginBottom: "0.5rem", fontSize: "0.95rem" }}>Mostrar columnas:</div>
-            <div style={{ display: "flex", gap: "1rem" }}>
-                {headers.map(col => (
-                    <label key={col} style={{ display: "flex", alignItems: "center", fontSize: "0.95rem" }}>
-                        <input
-                            type="checkbox"
-                            checked={visibleCols.includes(col)}
-                            onChange={() => setVisibleCols(prev =>
-                                prev.includes(col) ? prev.filter(k => k !== col) : [...prev, col]
-                            )}
-                            style={{ marginRight: "0.3em" }}
-                        />
-                        {col}
-                    </label>
-                ))}
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="p-8">
-            <h1 className="text-2xl font-bold mb-4">Proyección</h1>
-            <div className="bg-[#f6f8fa] rounded-xl p-4 border border-gray-200">
-                <div className="flex flex-wrap items-center gap-3 mb-2 justify-between">
-                    <div className="flex gap-2 items-center">
-                        <form
-                            onSubmit={e => { e.preventDefault(); }}
-                            className="flex items-center gap-2"
-                        >
-                            <input
-                                type="text"
-                                placeholder="Buscar"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                className="rounded-lg border border-gray-400 bg-white px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                style={{ minWidth: 180 }}
-                            />
-                            <button
-                                type="submit"
-                                className="rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm font-medium flex items-center gap-1 hover:bg-blue-400 hover:text-white"
-                                tabIndex={-1}
-                            >
-                                <Search size={18} className="mr-1" />
-                                Buscar
-                            </button>
-                        </form>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                        <button
-                            type="button"
-                            onClick={() => setShowColFilters(v => !v)}
-                            className={
-                                `rounded-lg border border-gray-400 bg-white px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white` +
-                                (showColFilters ? ' bg-blue-100 text-blue-700' : '')
-                            }
-                        >
-                            Filtrar columnas
-                        </button>
-                        {showColFilters && <FiltroColumnas />}
-                    </div>
-                </div>
-                <Table_3
-                    headers={headers.filter(col => visibleCols.includes(col))}
-                    rows={paginatedRows}
-                    sortable={false}
-                    selectable={false}
-                />
-                <div className="flex items-center justify-between mt-3">
-                    <span className="text-sm text-gray-600">
-                        Mostrando {total === 0 ? 0 : startIdx + 1}-{endIdx} de {total}
-                    </span>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            className="rounded border border-gray-300 px-3 py-1 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50"
-                            onClick={() => goToPage(page - 1)}
-                            disabled={page === 1}
-                        >Anterior</button>
-                        <span className="text-sm px-2">{page} / {totalPages}</span>
-                        <button
-                            type="button"
-                            className="rounded border border-gray-300 px-3 py-1 text-sm font-medium bg-white hover:bg-gray-100 disabled:opacity-50"
-                            onClick={() => goToPage(page + 1)}
-                            disabled={page === totalPages}
-                        >Siguiente</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+export default ProyeccionTable;
