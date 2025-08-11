@@ -11,12 +11,12 @@ import { Edit, Archive, Trash2, Eye } from "lucide-react";
 
 import Proj from "@/data/Projects.json";
 import { useState } from "react";
-// import { useRouter } from "next/navigation"; // Eliminado: importación no usada
+import { useRouter } from "next/navigation"; // Eliminado: importación no usada
 export default function Projects() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);/*ESTE SE USA PARA EL MODAL POP UP */
   const [isPanelOpen, setIstPanelOpen] = useState(false);
-  // const [isProyect, setIsProyect] = useState<string | null>(null) // Eliminado: variable no usada
+  const [isProyect, setIsProyect] = useState<string | null>(null) // Eliminado: variable no usada
   const [showModal, setShowModal] = useState(false);/*ESTE SE USA PARA EL PANEL LATERAL */
   const [warningMessage, setWarningMessage] = useState(""); /*ESTE WARNINGMESSAGE SE UTILIZA PARA DIFERENCIAR ENTRE ARCHIVAR O BORRAR EN LA ETIQUETA */
 
@@ -232,7 +232,7 @@ export default function Projects() {
                           <label htmlFor="proyecto" className="block font-medium mb-1">Proyecto</label>
                           <input type="text" className={stylesInput} name="proyecto" id="proyecto" />
                         </div>
-(feat: update dependencies and add new features)
+                        (feat: update dependencies and add new features)
 
                         {/* Cliente como opción */}
                         <div>
