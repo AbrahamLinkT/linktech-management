@@ -83,7 +83,7 @@ const CustomTable: React.FC = () => {
 
     switch (action) {
       case "nuevo":
-        router.push("/dashboard/workers/new_worker");
+        router.push("/dashboard/tabla/new");
         break;
       case "editar":
         if (selectedIds.length !== 1) {
