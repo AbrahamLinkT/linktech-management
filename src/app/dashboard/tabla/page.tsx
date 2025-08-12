@@ -32,12 +32,23 @@ const CustomTable: React.FC = () => {
   const router = useRouter();
 
   const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
-  const [tableData, setTableData] = useState<Person[]>([
-    { id: 1, firstName: "Luis", lastName: "Hernández", email: "luis@mail.com" },
-    { id: 2, firstName: "Ana", lastName: "Gómez", email: "ana@mail.com" },
-    { id: 3, firstName: "Carlos", lastName: "Pérez", email: "carlos@mail.com" },
-    { id: 4, firstName: "María", lastName: "López", email: "maria@mail.com" },
-  ]);
+  const [tableData, setTableData] = useState<Person[]>(() => {
+    const guardados = JSON.parse(localStorage.getItem("personas") || "[]");
+    const base = [
+      { id: 1, firstName: "Luis", lastName: "Hernández", email: "luis@mail.com" },
+      { id: 2, firstName: "Ana", lastName: "Gómez", email: "ana@mail.com" },
+      { id: 3, firstName: "Carlos", lastName: "Pérez", email: "carlos@mail.com" },
+      { id: 4, firstName: "María", lastName: "López", email: "maria@mail.com" },
+    ];
+
+    // Mezclar datos base + guardados, evitando IDs duplicados
+    const idsBase = new Set(base.map(p => p.id));
+    const filtrados = guardados.filter((p: Person) => !idsBase.has(p.id));
+
+    return [...base, ...filtrados];
+  });
+
+
 
   // Menú
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
