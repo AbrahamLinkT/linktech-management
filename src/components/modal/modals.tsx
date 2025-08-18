@@ -63,3 +63,5 @@ export function PanelLateral({ Open, close, content, title, width = "w-1/4", }: 
         </div>
     );
 }
+
+// Importa ConfirmModal desde components si lo necesitas en este archivo

@@ -12,63 +12,53 @@
     },
     {
       "id": "2",
-      "consultor": "sanchez ",
-      "especialidad": "SD",
-      "nivel": "sr",
-      "departamento": "delivery",
-      "esquema": "Asimilados",
-      "tiempo": "completo",
+      "consultor": "lopez garcia ana",
+      "especialidad": "FI",
+      "nivel": "jr",
+      "departamento": "consultoría",
+      "esquema": "Honorarios",
+      "tiempo": "medio",
       "estatus": "Activo"
     },
     {
       "id": "3",
-      "consultor": "sanchez perez luis",
-      "especialidad": "SD",
+      "consultor": "ramirez torres jose",
+      "especialidad": "MM",
       "nivel": "sr",
-      "departamento": "delivery",
+      "departamento": "soporte",
       "esquema": "Asimilados",
       "tiempo": "completo",
-      "estatus": "Activo"
+      "estatus": "Inactivo"
     },
     {
       "id": "4",
-      "consultor": "sanchez perez luis",
-      "especialidad": "SD",
-      "nivel": "sr",
-      "departamento": "delivery",
-      "esquema": "Asimilados",
+      "consultor": "hernandez flores maria",
+      "especialidad": "PP",
+      "nivel": "ssr",
+      "departamento": "implementación",
+      "esquema": "Honorarios",
       "tiempo": "completo",
       "estatus": "Activo"
     },
     {
       "id": "5",
-      "consultor": "sanchez perez luis",
-      "especialidad": "SD",
-      "nivel": "sr",
-      "departamento": "delivery",
-      "esquema": "Asimilados",
-      "tiempo": "completo",
+      "consultor": "gomez ruiz carlos",
+      "especialidad": "ABAP",
+      "nivel": "jr",
+      "departamento": "desarrollo",
+      "esquema": "Nómina",
+      "tiempo": "medio",
       "estatus": "Activo"
     },
     {
       "id": "6",
-      "consultor": "sanchez perez luis",
-      "especialidad": "SD",
+      "consultor": "morales diaz sofia",
+      "especialidad": "CO",
       "nivel": "sr",
-      "departamento": "delivery",
+      "departamento": "consultoría",
       "esquema": "Asimilados",
       "tiempo": "completo",
-      "estatus": "Activo"
-    },
-    {
-      "id": "7",
-      "consultor": "sanchez perez luis",
-      "especialidad": "SD",
-      "nivel": "sr",
-      "departamento": "delivery",
-      "esquema": "Asimilados",
-      "tiempo": "completo",
-      "estatus": "Activo"
+      "estatus": "Inactivo"
     }
   ]
 }
