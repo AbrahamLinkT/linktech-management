@@ -57,8 +57,10 @@ const CustomTable: React.FC = () => {
   // Modal archivar
   const [openArchiveModal, setOpenArchiveModal] = useState(false);
 
-  const selectedIds = Object.keys(rowSelection).map(Number);
-  // const selectedPerson = tableData.find((p) => p.id === selectedIds[0]);
+  // Obtener los IDs reales seleccionados
+  const selectedIds = Object.keys(rowSelection)
+    .map((key) => tableData[Number(key)]?.id)
+    .filter((id) => id !== undefined);
 
   // Abrir/cerrar menú
   const handleMenuClick = (event: MouseEvent<HTMLButtonElement>) => {
