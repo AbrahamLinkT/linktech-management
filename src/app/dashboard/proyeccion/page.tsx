@@ -1,15 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { MaterialReactTable } from "material-react-table";
 import {
-  MaterialReactTable
-} from "material-react-table";
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Dayjs } from 'dayjs';
-// import horasAsignadasData from '../../data/HorasAsignadas.json';
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
+} from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Dayjs } from "dayjs";
+import AddIcon from "@mui/icons-material/Add";
 
 // 1. Define la interfaz para los datos
 type ProyeccionRow = {
@@ -24,7 +35,7 @@ type ProyeccionRow = {
   ubicacion: string;
   sinInfo: string;
   estatusContratacion: string;
-  ordenInterna: string;
+  ordenInterna: string; // IO
   proyecto: string;
   facturable: string;
   responsable: string;
@@ -32,114 +43,24 @@ type ProyeccionRow = {
 };
 
 const initialData: ProyeccionRow[] = [
-  {
-    id: 1,
-    consultor: "BLANCO PEREZ HECTOR ALEJANDRO",
-    departamento: "",
-    tipoEmpleado: "",
-    esquema: "",
-    tiempo: "",
-    modulo: "",
-    nivel: "",
-    ubicacion: "",
-    sinInfo: "",
-    estatusContratacion: "",
-    ordenInterna: "IC202502",
-    proyecto: "PV - SV - Doal - Cash Flow",
-    facturable: "Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "",
-  },
-  {
-    id: 2,
-    consultor: "GOMEZ MARTINEZ YAYOY MONSERRAT",
-    departamento: "Servicios",
-    tipoEmpleado: "Interno",
-    esquema: "Asimilado",
-    tiempo: "FT",
-    modulo: "PM",
-    nivel: "",
-    ubicacion: "MTY",
-    sinInfo: "1",
-    estatusContratacion: "",
-    ordenInterna: "IC202502",
-    proyecto: "PV - SV - Doal - Cash Flow",
-    facturable: "No Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "",
-  },
-  {
-    id: 3,
-    consultor: "HERNANDEZ MACIAS RAFAEL",
-    departamento: "Servicios",
-    tipoEmpleado: "Interno",
-    esquema: "Asimilado",
-    tiempo: "FT",
-    modulo: "FI",
-    nivel: "",
-    ubicacion: "CDMX",
-    sinInfo: "1",
-    estatusContratacion: "",
-    ordenInterna: "IC202502",
-    proyecto: "PV - SV - Doal - Cash Flow",
-    facturable: "Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "",
-  },
-  {
-    id: 4,
-    consultor: "RAMIREZ MORENO JAIME",
-    departamento: "Servicios",
-    tipoEmpleado: "Interno",
-    esquema: "Asimilado",
-    tiempo: "OD",
-    modulo: "FI",
-    nivel: "",
-    ubicacion: "",
-    sinInfo: "1",
-    estatusContratacion: "Baja Proyecto",
-    ordenInterna: "IC202502",
-    proyecto: "PV - SV - Doal - Cash Flow",
-    facturable: "No Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "",
-  },
-  {
-    id: 5,
-    consultor: "BLANCAS VELAZQUEZ ARMANDO",
-    departamento: "Servicios",
-    tipoEmpleado: "Interno",
-    esquema: "Asimilado",
-    tiempo: "FT",
-    modulo: "FICO",
-    nivel: "",
-    ubicacion: "",
-    sinInfo: "1",
-    estatusContratacion: "Delivery",
-    ordenInterna: "NN202205",
-    proyecto: "SV - Galletas Dondé - Implementación S/4 HANA",
-    facturable: "Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "4",
-  },
-  {
-    id: 6,
-    consultor: "GOMEZ MARTINEZ YAYOY MONSERRAT",
-    departamento: "Servicios",
-    tipoEmpleado: "Interno",
-    esquema: "Asimilado",
-    tiempo: "FT",
-    modulo: "PM",
-    nivel: "",
-    ubicacion: "MTY",
-    sinInfo: "1",
-    estatusContratacion: "",
-    ordenInterna: "NN202205",
-    proyecto: "SV - Galletas Dondé - Implementación S/4 HANA",
-    facturable: "Fact",
-    responsable: "Yayoy Gómez",
-    // fecha: "1",
-  },
+  // Ejemplo opcional (borra si no lo necesitas)
+  // {
+  //   id: 1,
+  //   consultor: "Ana Pérez",
+  //   departamento: "SAP",
+  //   tipoEmpleado: "Interno",
+  //   esquema: "Tiempo completo",
+  //   tiempo: "100%",
+  //   modulo: "FI",
+  //   nivel: "Semi Sr",
+  //   ubicacion: "Monterrey",
+  //   sinInfo: "",
+  //   estatusContratacion: "Activo",
+  //   ordenInterna: "IO-123",
+  //   proyecto: "Implementación FI Norte",
+  //   facturable: "Sí",
+  //   responsable: "Juan López",
+  // },
 ];
 
 const columns = [
@@ -165,15 +86,80 @@ const ProyeccionTable: React.FC = () => {
   const [selectedRow, setSelectedRow] = useState<ProyeccionRow | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
+  // --- NUEVO: estado para IO seleccionada ---
+  const [selectedIO, setSelectedIO] = useState<string>("");
 
+  // IO únicas para poblar el selector
+  const uniqueIOs = useMemo(
+    () => Array.from(new Set(tableData.map((r) => r.ordenInterna).filter(Boolean))),
+    [tableData]
+  );
 
+  // Proyecto derivado de la IO seleccionada
+  const selectedProyecto = useMemo(() => {
+    if (!selectedIO) return "";
+    const row = tableData.find((r) => r.ordenInterna === selectedIO);
+    return row?.proyecto ?? "";
+  }, [selectedIO, tableData]);
 
+  const handleAgregar = () => {
+    // Aquí puedes abrir un modal de creación o navegar a un formulario.
+    // Por ahora, mostramos el modal existente como placeholder:
+    setSelectedRow(null);
+    setOpenModal(true);
+  };
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Proyección
-      </Typography>
+      {/* Encabezado con elementos a la derecha */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h5" sx={{ mr: "auto" }}>
+          Proyección
+        </Typography>
+
+        {/* Controles a la derecha */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="io-select-label">OI</InputLabel>
+            <Select
+              labelId="io-select-label"
+              label="OI"
+              value={selectedIO}
+              onChange={(e) => setSelectedIO(e.target.value)}
+            >
+              {uniqueIOs.length === 0 && (
+                <MenuItem value="" disabled>
+                  Sin OI registradas
+                </MenuItem>
+              )}
+              {uniqueIOs.map((io) => (
+                <MenuItem key={io} value={io}>
+                  {io}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Typography variant="body1" sx={{ minWidth: 240 }}>
+            <strong>Proyecto:</strong>{" "}
+            {selectedIO ? selectedProyecto || "—" : "Selecciona una OI"}
+          </Typography>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAgregar}
+          >
+            Agregar Consultor
+          </Button>
+        </Stack>
+      </Box>
 
       <MaterialReactTable<ProyeccionRow>
         columns={columns}
@@ -221,7 +207,9 @@ const ProyeccionTable: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenModal(false)} color="inherit">Cerrar</Button>
+          <Button onClick={() => setOpenModal(false)} color="inherit">
+            Cerrar
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
