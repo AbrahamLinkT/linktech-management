@@ -21,6 +21,14 @@ export default function EditPropuesta() {
     const params = useParams();
     const idNum = Number(params.id);
 
+
+    type Persona = {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
+
     // Estados para inputs
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
@@ -28,9 +36,9 @@ export default function EditPropuesta() {
 
     useEffect(() => {
         if (!idNum || isNaN(idNum)) return;
-        // Buscar por id exacto, no por índice
-        const dataExistente = JSON.parse(localStorage.getItem("personas") || "[]");
-        let persona = dataExistente.find((p: any) => Number(p.id) === idNum);
+    // Buscar por id exacto, no por índice
+    const dataExistente: Persona[] = JSON.parse(localStorage.getItem("personas") || "[]");
+    let persona = dataExistente.find((p: Persona) => Number(p.id) === idNum);
         if (!persona) {
             // Si no está en localStorage, buscar en los datos base
             const base = [
@@ -57,8 +65,8 @@ export default function EditPropuesta() {
             alert("Todos los campos son obligatorios");
             return;
         }
-        const dataExistente = JSON.parse(localStorage.getItem("personas") || "[]");
-        const nuevosDatos = dataExistente.map((p: any) =>
+        const dataExistente: Persona[] = JSON.parse(localStorage.getItem("personas") || "[]");
+        const nuevosDatos = dataExistente.map((p: Persona) =>
             p.id === idNum
                 ? { ...p, firstName: nombre, lastName: apellido, email: correo }
                 : p

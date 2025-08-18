@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import {
-  MaterialReactTable,
-  MRT_RowSelectionState,
+  MaterialReactTable
 } from "material-react-table";
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Tooltip } from "@mui/material";
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 // import horasAsignadasData from '../../data/HorasAsignadas.json';
 
 // 1. Define la interfaz para los datos
@@ -166,34 +165,9 @@ const ProyeccionTable: React.FC = () => {
   const [selectedRow, setSelectedRow] = useState<ProyeccionRow | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-  // Estado para las horas asignadas
-  const [horasAsignadasData, setHorasAsignadasData] = useState<any[]>([]);
 
-  React.useEffect(() => {
-    fetch('/src/data/HorasAsignadas.json')
-      .then((res) => res.json())
-      .then((data) => setHorasAsignadasData(data));
-  }, []);
 
-  // Obtener las horas asignadas para el consultor y proyecto seleccionados
-  const getHorasPorDia = () => {
-    if (!selectedRow) return {};
-    const horasPorDia: Record<string, number> = {};
-    horasAsignadasData.forEach((oi: any) => {
-      Object.values(oi.trabajadores).forEach((trabajadores: any) => {
-        (trabajadores as any[]).forEach((trabajador: any) => {
-          if (
-            (trabajador.consultor?.toLowerCase() === selectedRow.consultor.toLowerCase() || trabajador.trabajador?.toLowerCase() === selectedRow.consultor.toLowerCase())
-          ) {
-            Object.entries(trabajador.horas).forEach(([fecha, horas]: [string, number]) => {
-              horasPorDia[fecha] = horas;
-            });
-          }
-        });
-      });
-    });
-    return horasPorDia;
-  };
+
 
   return (
     <Box sx={{ p: 2 }}>
@@ -233,39 +207,6 @@ const ProyeccionTable: React.FC = () => {
               displayStaticWrapperAs="desktop"
               value={selectedDate}
               onChange={setSelectedDate}
-              renderDay={(day, _value, DayComponentProps) => {
-                const horasPorDia = getHorasPorDia();
-                const fechaStr = day.format('YYYY-MM-DD');
-                const horas = horasPorDia[fechaStr];
-                let color = 'inherit';
-                if (horas) {
-                  if (horas >= 8) color = '#1976d2'; // azul fuerte
-                  else if (horas >= 6) color = '#4caf50'; // verde
-                  else if (horas >= 4) color = '#ff9800'; // naranja
-                  else color = '#f44336'; // rojo
-                }
-                return (
-                  <Tooltip title={horas ? `${horas} horas asignadas` : ''} arrow>
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        bgcolor: horas ? color : 'transparent',
-                        color: horas ? '#fff' : 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        fontWeight: horas ? 'bold' : 'normal',
-                        transition: 'background 0.2s',
-                      }}
-                    >
-                      {day.date()}
-                    </Box>
-                  </Tooltip>
-                );
-              }}
             />
           </LocalizationProvider>
           {selectedRow && (
