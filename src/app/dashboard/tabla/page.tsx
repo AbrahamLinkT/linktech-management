@@ -40,11 +40,9 @@ const CustomTable: React.FC = () => {
       { id: 3, firstName: "Carlos", lastName: "Pérez", email: "carlos@mail.com" },
       { id: 4, firstName: "María", lastName: "López", email: "maria@mail.com" },
     ];
-
     // Mezclar datos base + guardados, evitando IDs duplicados
     const idsBase = new Set(base.map(p => p.id));
     const filtrados = guardados.filter((p: Person) => !idsBase.has(p.id));
-
     return [...base, ...filtrados];
   });
 
