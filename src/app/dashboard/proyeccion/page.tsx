@@ -357,6 +357,15 @@ const ProyeccionTable: React.FC = () => {
                     },
                   }}
                 />
+                {/* Apartado de próxima fecha libre */}
+                <Box sx={{ minWidth: 180, bgcolor: '#f7f4fa', px: 2, py: 1, borderRadius: 2, ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography sx={{ fontWeight: 500, color: '#444', mr: 1 }}>
+                    Próxima fecha libre:
+                  </Typography>
+                  <Typography sx={{ color: '#3c3842', fontWeight: 400 }}>
+                    25/08/2025
+                  </Typography>
+                </Box>
               </Box>
             </Box>
 
