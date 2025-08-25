@@ -55,6 +55,71 @@
       "estatus": "pendiente",
       "fechaIn": "2025/08/23",
       "fechaFn": "2025/12/23"
+    },{
+      "id": "4",
+      "imagen": null,
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },{
+      "id": "5",
+      "imagen": null,
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },{
+      "id": "6",
+      "imagen": null,
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },{
+      "id": "7",
+      "imagen": null,
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
+    },{
+      "id": "8",
+      "imagen": null,
+      "titulo": "Nissan",
+      "nombre": "Sistema de Gestión",
+      "ordenInterna": "OI4552",
+      "cliente": "juan perez gonzales",
+      "departamento": "finanzas",
+      "descripcion": "Sistema para gestionar tareas internas del equipo.",
+      "responsable": "Juan Pérez",
+      "estatus": "pendiente",
+      "fechaIn": "2025/08/23",
+      "fechaFn": "2025/12/23"
     }
   ]
 }
