@@ -101,72 +101,145 @@ export function DataTable<T extends { id: string }>({
       const selectedRows = table.getSelectedRowModel().rows;
       const selectedCount = selectedRows.length;
 
-      return (
-        <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
-          <Button
-            variant="outlined"
-            startIcon={<DehazeIcon />}
-            onClick={handleMenuOpen}
-          >
-            Selecciona
-          </Button>
-          <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
-            {/* EDITAR */}
-            {actions.edit && (
-              <MenuItem
-                disabled={selectedCount !== 1}
-                onClick={() => {
-                  if (selectedCount === 1) {
-                    setEditRow(selectedRows[0].original);
-                  }
-                  handleMenuClose();
-                }}
+  return (
+    <Box sx={{ p: 2 }}>
+      {/* Encabezado y controles */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <Typography variant="h5" sx={{ mr: "auto" }}>
+          Proyección
+        </Typography>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="oi-select-label">OI</InputLabel>
+            <Select
+              labelId="oi-select-label"
+              label="OI"
+              value={selectedIO}
+              onChange={(e) => setSelectedIO(e.target.value)}
+            >
+              {uniqueIOs.length === 0 && (
+                <MenuItem value="" disabled>
+                  Sin OI registradas
+                </MenuItem>
+              )}
+              {uniqueIOs.map((oi) => (
+                <MenuItem key={oi} value={oi}>
+                  {oi}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Typography variant="body1" sx={{ minWidth: 240 }}>
+            <strong>Proyecto:</strong>{" "}
+            {selectedIO ? selectedProyecto || "—" : "Selecciona una OI"}
+          </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAgregar}
               >
-                Editar
-              </MenuItem>
-            )}
+                Agregar consultor
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500, ml: 2 }}
+                onClick={() => window.location.href = '/dashboard/proyeccion/date'}
+              >
+                Ver proyección
+              </Button>
+            </Box>
+        </Stack>
+      </Box>
 
-            {/* AGREGAR */}
-            {actions.add && (
-              <MenuItem
-                onClick={() => {
-                  setAddModalOpen(true);
-                  handleMenuClose();
-                }}
-              >
-                Agregar
-              </MenuItem>
-            )}
+      {/* Tabla principal */}
+      <MaterialReactTable
+        columns={columns}
+        data={tableData}
+        enableColumnResizing
+        enableRowNumbers
+        enablePagination
+        enableColumnFilterModes
+        enableFacetedValues
+        enableFilters
+        enableHiding
+        enableColumnOrdering
+        enableFullScreenToggle
+        enableDensityToggle
+        enableColumnActions
+        muiTableContainerProps={{ sx: { maxHeight: "500px" } }}
+        // Si luego agregas modal de detalle, descomenta:
+        // muiTableBodyRowProps={({ row }) => ({
+        //   onClick: () => {
+        //     setSelectedRow(row.original);
+        //     setOpenModal(true);
+        //   },
+        //   style: { cursor: "pointer" },
+        // })}
+      />
 
-            {/* ARCHIVAR */}
-            {actions.archive && (
-              <MenuItem
-                onClick={() => {
-                  console.log("Archivar:", selectedRows.map((r) => r.original));
-                  handleMenuClose();
-                }}
+      {/* Modal para agregar consultor */}
+      <Dialog
+        open={openAddModal}
+        onClose={() => setOpenAddModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Agregar Consultor</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, py: 2 }}>
+            {/* Búsqueda por nombre, especialidad y nivel */}
+            {[
+              { label: "Nombre", placeholder: "Buscar por nombre" },
+              { label: "Especialidad", placeholder: "Buscar por especialidad" },
+              { label: "Nivel", placeholder: "Buscar por nivel" },
+            ].map((item) => (
+              <Box
+                key={item.label}
+                sx={{ display: "flex", alignItems: "center", gap: 2 }}
               >
-                Archivar
-              </MenuItem>
-            )}
-
-            {/* ELIMINAR */}
-            {actions.delete && (
-              <MenuItem
-                disabled={selectedCount === 0}
-                onClick={() => {
-                  if (selectedCount > 0) {
-                    const idsToDelete = new Set(selectedRows.map((r) => r.id));
-                    setRows((prev) =>
-                      prev.filter((row) => !idsToDelete.has(row.id))
-                    );
-                  }
-                  handleMenuClose();
-                }}
-              >
-                Eliminar
-              </MenuItem>
-            )}
+                <Box
+                  sx={{
+                    minWidth: 120,
+                    bgcolor: "#f7f4fa",
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    textAlign: "right",
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 500, color: "#444" }}>
+                    {item.label}:
+                  </Typography>
+                </Box>
+                <TextField
+                  placeholder={item.placeholder}
+                  variant="outlined"
+                  size="medium"
+                  fullWidth
+                  sx={{
+                    bgcolor: "#ede9f6",
+                    borderRadius: 8,
+                    ".MuiOutlinedInput-root": {
+                      borderRadius: 8,
+                      height: 56,
+                      fontSize: 22,
+                      color: "#3c3842",
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <Box sx={{ pr: 2 }}>
+                        <IconButton edge="end" sx={{ color: "#3c3842" }}>
+                          <SearchIcon />
+                        </IconButton>
+                      </Box>
+                    ),
+                  }}
+                />
+              </Box>
+            ))}
 
             {/* EXPORTACIONES */}
             {actions.export && (
@@ -202,70 +275,90 @@ export function DataTable<T extends { id: string }>({
                     handleMenuClose();
                   }}
                 >
-                  Exportar Seleccionados
-                </MenuItem>
-              </>
-            )}
-          </Menu>
-        </Box>
-      );
-    },
+                  <Typography sx={{ fontWeight: 500, color: "#444" }}>
+                    Horas por día:
+                  </Typography>
+                </Box>
+                <TextField
+                  type="number"
+                  defaultValue={2}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    bgcolor: "#ede9f6",
+                    borderRadius: 8,
+                    width: 90,
+                    ".MuiOutlinedInput-root": {
+                      borderRadius: 8,
+                      height: 40,
+                      fontSize: 18,
+                      color: "#3c3842",
+                    },
+                  }}
+                />
+                {/* Apartado de próxima fecha libre */}
+                <Box sx={{ minWidth: 180, bgcolor: '#f7f4fa', px: 2, py: 1, borderRadius: 2, ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography sx={{ fontWeight: 500, color: '#444', mr: 1 }}>
+                    Próxima fecha libre:
+                  </Typography>
+                  <Typography sx={{ color: '#3c3842', fontWeight: 400 }}>
+                    25/08/2025
+                  </Typography>
+                </Box>
+                {/* Botón para ver proyección */}
+                <Box sx={{ ml: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
+                    onClick={() => window.location.href = '/dashboard/proyeccion/date'}
+                  >
+                    Ver proyección
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
 
-    // CLICK EN FILA
-    muiTableBodyRowProps: ({ row }) => ({
-      onClick: () => {
-        if (urlRoute) {
-          setRouteModal(true);
-          setId(row.original.id);
-        }
-      },
-      sx: { cursor: "pointer" },
-    }),
-  });
-
-  return (
-    <>
-      <MaterialReactTable table={table} />
-
-      {/* MODAL DE EDICIÓN */}
-      <ModalEdit
-        open={!!editRow}
-        rowData={editRow}
-        onClose={() => setEditRow(null)}
-        onSave={(updated) => {
-          setRows((prev) =>
-            prev.map((row) => (row.id === updated.id ? updated : row))
-          );
-        }}
-      />
-
-      {/* MODAL DE AGREGAR */}
-      <ModalGen
-        open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        onSave={() => setAddModalOpen(false)}
-        title={title_add}
-      >
-        {ModalAdd}
-      </ModalGen>
-
-      {/* MODAL DE REDIRECCIONAMIENTO */}
-      <ModalRoute
-        open={routeModal}
-        onclose={() => {
-          setRouteModal(!routeModal);
-          setId(null);
-        }}
-        onRoute={() => handleConfirmRoute()}
-        title="Redireccionamiento"
-      >
-        <div className="flex flex-col items-center justify-center text-center">
-          <h3>¿Estás seguro?</h3>
-          <p className="text-sm font-bold text-gray-500">
-            Estás a punto de salir de la vista
-          </p>
-        </div>
-      </ModalRoute>
-    </>
+            {/* Resultados de ejemplo */}
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Button variant="contained" color="primary" startIcon={<SearchIcon />}>
+                BUSCAR
+              </Button>
+            </Box>
+            <Box sx={{ mt: 2 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+                <thead>
+                  <tr>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Nombre</th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Especialidad</th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Nivel</th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Departamento</th>
+                    <th style={{ border: "1px solid #aaa", padding: 4, textAlign: "center" }}>Seleccionar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {modalRows.map((row, idx) => (
+                    <tr key={idx}>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.nombre}</td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.especialidad}</td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.nivel}</td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.departamento}</td>
+                      <td style={{ border: "1px solid #aaa", padding: 4, textAlign: "center" }}>
+                        <input type="checkbox" checked={!!selectedModalRows[idx]} onChange={() => handleSelectModalRow(idx)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAgregarSeleccionados}>
+                  Agregar
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 }
