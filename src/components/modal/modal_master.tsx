@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -98,4 +98,28 @@ export function ModalGen({ open, title, onClose, onSave, children, saveText = "G
             </DialogActions>
         </Dialog>
     );
+}
+
+// ---------------- MODAL REDIRECT -------------
+type ModalRoutePops = {
+    open: boolean;
+    title?: string;
+    onclose: () => void
+    onRoute: () => void
+    children: React.ReactNode
+}
+
+export function ModalRoute({ open, title, onclose, onRoute, children }: ModalRoutePops) {
+    return (
+        <>
+            <Dialog open={open} onClose={onclose} maxWidth="sm" fullWidth>
+                {title && <DialogTitle>{title} </DialogTitle>}
+                <DialogContent>{children}</DialogContent>
+                <DialogActions>
+                    <Button onClick={onclose} variant="outlined" color="error">Cancelar</Button>
+                    <Button onClick={onRoute} variant="contained" color="primary">Aceptar</Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    )
 }

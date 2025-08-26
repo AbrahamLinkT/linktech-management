@@ -29,7 +29,7 @@ export default function Client() {
 
     return (
         <ContentBody title="Clientes">
-            <DataTable columns={columns} data={data} ModalAdd={Adduser} />
+            <DataTable urlRoute="/dashboard" title_add="Agregar nuevo cliente" columns={columns} data={data} ModalAdd={<Adduser />} />
         </ContentBody>
     );
 }

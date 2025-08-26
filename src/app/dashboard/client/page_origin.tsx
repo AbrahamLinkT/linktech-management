@@ -1,4 +1,4 @@
-"use client"
+/* "use client"
 
 import { ContentBody, ContentTable } from "@/components/containers/containers"
 import { Table_2 } from "@/components/tables/table"
@@ -57,7 +57,6 @@ export default function Client() {
                 </ContentBody>
             </div>
 
-            {/* Panel lateral */}
             <PanelLateral
                 title="Creacion de nuevo cliente"
                 Open={isPanelOpen}
@@ -65,7 +64,6 @@ export default function Client() {
                 content={
                     <div >
                         <form action="">
-                            {/* seccion de informacion del cliente */}
                             <fieldset className="border border-gray-400 rounded-xl p-4 mb-1">
                                 <legend className="text-lg font-semibold px-2 ml-2 mt-4">
                                     Datos del cliente
@@ -85,7 +83,6 @@ export default function Client() {
                                     </div>
                                 </div>
                             </fieldset>
-                            {/* Secion de nombre de empresa */}
                             <fieldset className="border border-gray-400 rounded-xl p-4 mb-4">
                                 <legend className="text-lg font-semibold px-2 ml-2 mt-4">
                                     Datos de la compañía
@@ -124,25 +121,23 @@ export default function Client() {
                                     </div>
                                 </div>
                             </fieldset>
-                            {/* Botón de guardar */}
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
-                                >
-                                    Registrar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+<div className="flex justify-end">
+    <button
+        type="submit"
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
+    >
+        Registrar
+    </button>
+</div>
+                        </form >
+                    </div >
                 }
             />
-            {/* panel lateral 2 */}
-            <PanelLateral
-                title="Panel lateral 2"
-                Open={isPanelOpen2}
-                close={togglePanel2}
-            />
-        </div>
+<PanelLateral
+    title="Panel lateral 2"
+    Open={isPanelOpen2}
+    close={togglePanel2}
+/>
+        </div >
     )
-}
+} */

@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody, ContentTable, ContentTrasition } from "@/components/containers/containers";
@@ -14,11 +14,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation"; // Eliminado: importación no usada
 export default function Projects_orin() {
 
-    const [isModalOpen, setIsModalOpen] = useState(false);/*ESTE SE USA PARA EL MODAL POP UP */
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPanelOpen, setIstPanelOpen] = useState(false);
     const [isProyect, setIsProyect] = useState<string | null>(null) // Eliminado: variable no usada
-    const [showModal, setShowModal] = useState(false);/*ESTE SE USA PARA EL PANEL LATERAL */
-    const [warningMessage, setWarningMessage] = useState(""); /*ESTE WARNINGMESSAGE SE UTILIZA PARA DIFERENCIAR ENTRE ARCHIVAR O BORRAR EN LA ETIQUETA */
+    const [showModal, setShowModal] = useState(false);
+    const [warningMessage, setWarningMessage] = useState(""); 
 
     const router = useRouter()
 
@@ -61,7 +61,6 @@ export default function Projects_orin() {
                     <>
                         <div>
                             <form action="">
-                                {/* seccion de informacion del cliente */}
                                 <fieldset className="border border-gray-400 rounded-xl p-4 mb-1">
                                     <legend className="text-lg font-semibold px-2 ml-2 mt-4">
                                         Proyecto
@@ -79,8 +78,6 @@ export default function Projects_orin() {
                                             <label htmlFor="proyecto" className="block font-medium mb-1">Proyecto</label>
                                             <input type="text" className={stylesInput} name="proyecto" id="proyecto" />
                                         </div>
-
-                                        {/* Cliente como opción */}
                                         <div>
                                             <label htmlFor="cliente" className="block font-medium mb-1">Cliente</label>
                                             <select id="cliente" name="cliente" className={stylesInput}>
@@ -91,19 +88,16 @@ export default function Projects_orin() {
                                             </select>
                                         </div>
 
-                                        {/* Fecha inicio como calendario */}
                                         <div>
                                             <label htmlFor="fechIn" className="block font-medium mb-1">Fecha Inicio</label>
                                             <input type="date" className={stylesInput} name="fechIn" id="fechIn" />
                                         </div>
 
-                                        {/* Fecha final como calendario */}
                                         <div>
                                             <label htmlFor="fechFn" className="block font-medium mb-1">Fecha Final</label>
                                             <input type="date" className={stylesInput} name="fechFn" id="fechFn" />
                                         </div>
 
-                                        {/* Responsable como opción */}
                                         <div>
                                             <label htmlFor="responsable" className="block font-medium mb-1">Responsable</label>
                                             <select id="responsable" name="responsable" className={stylesInput}>
@@ -204,7 +198,6 @@ export default function Projects_orin() {
                     </ContentBody>
                 }
 
-                /* panel lateral */
                 panel={
                     <PanelLateral
                         Open={isPanelOpen}
@@ -214,7 +207,6 @@ export default function Projects_orin() {
                             <>
                                 <div>
                                     <form action="">
-                                        {/* seccion de informacion del cliente */}
                                         <fieldset className="border border-gray-400 rounded-xl p-4 mb-1">
                                             <legend className="text-lg font-semibold px-2 ml-2 mt-4">
                                                 Proyecto
@@ -234,7 +226,6 @@ export default function Projects_orin() {
                                                 </div>
                                                 (feat: update dependencies and add new features)
 
-                                                {/* Cliente como opción */}
                                                 <div>
                                                     <label htmlFor="cliente" className="block font-medium mb-1">Cliente</label>
                                                     <select id="cliente" name="cliente" className={stylesInput}>
@@ -245,19 +236,16 @@ export default function Projects_orin() {
                                                     </select>
                                                 </div>
 
-                                                {/* Fecha inicio como calendario */}
                                                 <div>
                                                     <label htmlFor="fechIn" className="block font-medium mb-1">Fecha Inicio</label>
                                                     <input type="date" className={stylesInput} name="fechIn" id="fechIn" />
                                                 </div>
 
-                                                {/* Fecha final como calendario */}
                                                 <div>
                                                     <label htmlFor="fechFn" className="block font-medium mb-1">Fecha Final</label>
                                                     <input type="date" className={stylesInput} name="fechFn" id="fechFn" />
                                                 </div>
 
-                                                {/* Responsable como opción */}
                                                 <div>
                                                     <label htmlFor="responsable" className="block font-medium mb-1">Responsable</label>
                                                     <select id="responsable" name="responsable" className={stylesInput}>
@@ -285,7 +273,6 @@ export default function Projects_orin() {
                                             </div>
                                         </fieldset>
 
-                                        {/* Botón de guardar */}
                                         <div className="flex justify-end">
                                             <button
                                                 type="submit"
@@ -303,6 +290,6 @@ export default function Projects_orin() {
                 }
 
             /></>
-        /* final de trasition */
     );
 }
+ */

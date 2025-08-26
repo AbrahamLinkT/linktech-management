@@ -52,7 +52,7 @@ export default function AsuetosPage() {
 
     return (
         <ContentBody title="Asuetos">
-            <DataTable data={data} columns={columns} />
+            <DataTable ModalAdd={<h1>hola</h1>} title_add="Agregar" data={data} columns={columns} />
         </ContentBody>
     );
 }

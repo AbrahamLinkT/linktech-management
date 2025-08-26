@@ -2,11 +2,11 @@
 import { useMemo } from "react";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
-import Proj from "@/data/Projects.json"; // Tu JSON de proyectos
+import Proj from "@/data/Projects.json";
 import { ContentBody } from "@/components/containers/containers";
 
 
-// Definimos el tipo de cada proyecto según tu JSON
+// Definimos el tipo de cada proyecto 
 type Project = {
   id: string;
   ordenInterna: string;
@@ -54,8 +54,13 @@ export default function Projects() {
       title="Proyectos"
     >
       <DataTable<Project>
+        //title_add="Agregar"
+        //ModalAdd={<h1>Agregar</h1>}
+        urlRoute="/dashboard/projects/project?id="
         data={data}      // Datos consumidos del JSON
         columns={columns} // Columnas definidas arriba
+        actions={{ edit: true }}
+
       />
     </ContentBody>
   );
