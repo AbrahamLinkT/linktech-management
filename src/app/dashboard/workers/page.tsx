@@ -40,7 +40,7 @@ export default function Workers() {
         <>
             <ContentBody title="Trabajadores">
                 {/* Aquí renderizas el DataTable */}
-                <DataTable<StaffItem> data={data} columns={columns} ModalAdd={<h1>hola</h1>} title_add="Trabajador" />
+                <DataTable<StaffItem> data={data} columns={columns} ModalAdd={<h1>hola</h1>} title_add="Trabajador" actions={{ edit: true }} />
             </ContentBody>
         </>
     );
