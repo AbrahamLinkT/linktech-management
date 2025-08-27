@@ -33,7 +33,7 @@ export default function AsuetosPage() {
 
     // Columnas para DataTable
     const columns = useMemo<MRT_ColumnDef<Asueto & { id: string }>[]>(() => [
-        { accessorKey: "id", header: "ID", enableEditing: false },
+        //{ accessorKey: "id", header: "ID", enableEditing: false },
         { accessorKey: "empleado", header: "Empleado", size: 200 },
         { accessorKey: "fechaInicio", header: "Fecha inicio", size: 200 },
         { accessorKey: "fechaFin", header: "Fecha fin", size: 170 },
@@ -49,10 +49,16 @@ export default function AsuetosPage() {
         fechaFin: formatDate(a.fechaFin),
         tiempo: a.tiempo === "Completo" ? "Completo" : "Medio día",
     }));
+    const actions = { edit: true, add: true, export: true, delete: true }
 
     return (
         <ContentBody title="Asuetos">
-            <DataTable ModalAdd={<h1>hola</h1>} title_add="Agregar" data={data} columns={columns} />
+            <DataTable
+                data={data}
+                columns={columns}
+                menu={true}
+                actions={actions}
+            />
         </ContentBody>
     );
 }

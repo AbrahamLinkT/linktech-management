@@ -31,10 +31,15 @@ export default function DepartmentTable() {
     ],
     []
   );
-
+  const actions = { edit: true, add: true, export: true, delete: true }
   return (
     <ContentBody title="Departamentos">
-      <DataTable<DepartmentItem> data={data} columns={columns} />
+      <DataTable<DepartmentItem>
+        data={data}
+        columns={columns}
+        menu={true}
+        actions={actions}
+      />
     </ContentBody>
   );
 }

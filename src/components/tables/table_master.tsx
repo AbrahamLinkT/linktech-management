@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
     MaterialReactTable,
     useMaterialReactTable,
@@ -14,9 +14,10 @@ import { useRouter } from "next/navigation";
 
 type ActionsConfig = {
     edit?: boolean;
+    add?: boolean;
     export?: boolean;
     delete?: boolean;
-    view?: boolean;
+    archive?: boolean;
 };
 const csvConfig = mkConfig({
     fieldSeparator: ",",
@@ -27,10 +28,14 @@ const csvConfig = mkConfig({
 type DataTableProps<T extends { id: string }> = {
     data: T[];
     columns: MRT_ColumnDef<T>[];
-    ModalAdd?: React.ReactNode;
     title_add?: string
+    ModalAdd?: React.ReactNode;
+    edit?: React.ReactNode;
+    urlRouteAdd?: string
     urlRoute?: string
+    urlRouteEdit?: string
     actions?: ActionsConfig;
+    menu?: boolean
 
 };
 
@@ -38,8 +43,12 @@ export function DataTable<T extends { id: string }>({
     data,
     columns,
     ModalAdd,
+    edit,
     title_add,
     urlRoute,
+    urlRouteAdd,
+    urlRouteEdit,
+    menu,
     actions = {}, // 👈 si no viene nada, será {}
 
 }: DataTableProps<T>) {
@@ -55,7 +64,6 @@ export function DataTable<T extends { id: string }>({
         const csv = generateCsv(csvConfig)(rowData);
         download(csvConfig)(csv);
     };
-    const canAdd = !!ModalAdd;
     const handleExportData = () => {
         const csv = generateCsv(csvConfig)(rows);
         download(csvConfig)(csv);
@@ -98,7 +106,7 @@ export function DataTable<T extends { id: string }>({
             const selectedRows = table.getSelectedRowModel().rows;
             const selectedCount = selectedRows.length;
 
-            return (
+            return menu && (
                 <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
                     <Button
                         variant="outlined"
@@ -107,16 +115,24 @@ export function DataTable<T extends { id: string }>({
                     >
                         Selecciona
                     </Button>
+
                     <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
                         {/* EDITAR */}
                         {actions?.edit && (
                             <MenuItem
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
-                                    if (selectedCount === 1) {
-                                        setEditRow(selectedRows[0].original);
+                                    if (urlRouteEdit) {
+                                        router.push(`${urlRouteEdit}`)
+                                    } else if (edit) {
+                                        if (selectedCount === 1) {
+                                            setEditRow(selectedRows[0].original);
+                                        }
+                                        handleMenuClose();
+
+                                        //console.log("estas dentro del modal");
                                     }
-                                    handleMenuClose();
+
                                 }}
                             >
                                 Editar
@@ -125,11 +141,16 @@ export function DataTable<T extends { id: string }>({
                         }
 
                         {/* AGREGAR */}
-                        {canAdd && (
+                        {actions?.add && (
                             <MenuItem
                                 onClick={() => {
-                                    setAddModalOpen(true);
-                                    handleMenuClose();
+                                    if (urlRouteAdd) {
+
+                                        router.push(`${urlRouteAdd}`)
+                                    } else if (ModalAdd && title_add) {
+                                        setAddModalOpen(true);
+                                        handleMenuClose();
+                                    }
                                 }}
                             >
                                 Agregar
@@ -137,66 +158,71 @@ export function DataTable<T extends { id: string }>({
                         )}
 
                         {/* ARCHIVAR */}
-                        <MenuItem
-                            onClick={() => {
-                                console.log("Archivar:", selectedRows.map((r) => r.original));
-                                handleMenuClose();
-                            }}
-                        >
-                            Archivar
-                        </MenuItem>
+                        {actions?.archive && (
+                            <MenuItem
+                                onClick={() => {
+                                    console.log("Archivar:", selectedRows.map((r) => r.original));
+                                    handleMenuClose();
+                                }}
+                            >
+                                Archivar
+                            </MenuItem>
+                        )}
 
                         {/* ELIMINAR */}
-                        <MenuItem
-                            disabled={selectedCount === 0}
-                            onClick={() => {
-                                if (selectedCount > 0) {
-                                    const idsToDelete = new Set(selectedRows.map((r) => r.id));
-                                    setRows((prev) =>
-                                        prev.filter((row) => !idsToDelete.has(row.id))
-                                    );
-                                }
-                                handleMenuClose();
-                            }}
-                        >
-                            Eliminar
-                        </MenuItem>
+                        {actions?.delete && (
+                            <MenuItem
+                                disabled={selectedCount === 0}
+                                onClick={() => {
+                                    if (selectedCount > 0) {
+                                        const idsToDelete = new Set(selectedRows.map((r) => r.id));
+                                        setRows((prev) =>
+                                            prev.filter((row) => !idsToDelete.has(row.id))
+                                        );
+                                    }
+                                    handleMenuClose();
+                                }}
+                            >
+                                Eliminar
+                            </MenuItem>
+                        )}
 
                         {/* EXPORTACIONES */}
-                        <MenuItem
-                            onClick={() => {
-                                handleExportData();
-                                handleMenuClose();
-                            }}
-                        >
-                            Exportar Todo
-                        </MenuItem>
-                        <MenuItem
-                            onClick={() => {
-                                handleExportRows(table.getPrePaginationRowModel().rows);
-                                handleMenuClose();
-                            }}
-                        >
-                            Exportar Todas Filas
-                        </MenuItem>
-                        <MenuItem
-                            onClick={() => {
-                                handleExportRows(table.getRowModel().rows);
-                                handleMenuClose();
-                            }}
-                        >
-                            Exportar Página Actual
-                        </MenuItem>
-                        <MenuItem
-                            disabled={selectedCount === 0}
-                            onClick={() => {
-                                handleExportRows(selectedRows);
-                                handleMenuClose();
-                            }}
-                        >
-                            Exportar Seleccionados
-                        </MenuItem>
+                        {actions?.export && [
+                            <MenuItem
+                                key="export-all"
+                                onClick={() => {
+                                    handleExportData();
+                                    handleMenuClose();
+                                }}
+                            >
+                                Exportar Todo
+                            </MenuItem>,
+
+                            <MenuItem
+                                key="export-page"
+                                onClick={() => {
+                                    handleExportRows(table.getRowModel().rows);
+                                    handleMenuClose();
+                                }}
+                            >
+                                Exportar Página Actual
+                            </MenuItem>,
+
+                            <MenuItem
+                                key="export-selected"
+                                disabled={selectedCount === 0}
+                                onClick={() => {
+                                    handleExportRows(selectedRows);
+                                    handleMenuClose();
+                                }}
+                            >
+                                Exportar Seleccionados
+                            </MenuItem>,
+                        ]}
+
                     </Menu>
+
                 </Box>
             );
         },

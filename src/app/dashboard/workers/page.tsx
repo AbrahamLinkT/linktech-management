@@ -21,7 +21,7 @@ export default function Workers() {
     // Configura columnas para DataTable
     const columns = useMemo<MRT_ColumnDef<StaffItem>[]>(
         () => [
-            { accessorKey: "id", header: "ID", enableEditing: false },
+            //{ accessorKey: "id", header: "ID", enableEditing: false },
             { accessorKey: "consultor", header: "Nombre" },
             { accessorKey: "especialidad", header: "Especialidad" },
             { accessorKey: "nivel", header: "Nivel" },
@@ -40,7 +40,16 @@ export default function Workers() {
         <>
             <ContentBody title="Trabajadores">
                 {/* Aquí renderizas el DataTable */}
-                <DataTable<StaffItem> data={data} columns={columns} ModalAdd={<h1>hola</h1>} title_add="Trabajador" actions={{ edit: true }} />
+                <DataTable<StaffItem> data={data}
+                    columns={columns}
+                    //ModalAdd={<h1>hola</h1>}
+                    //title_add="Trabajador"
+                    //edit={true}
+                    urlRouteAdd="/dashboard/workers/new_worker"
+                    urlRouteEdit="/dashboard"
+                    actions={{ edit: true, add: true }}
+                    menu={true}
+                />
             </ContentBody>
         </>
     );

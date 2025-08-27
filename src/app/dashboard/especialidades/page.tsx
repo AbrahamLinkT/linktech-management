@@ -28,10 +28,16 @@ export default function EspecialidadesPage() {
 
     // Datos con ID
     const data = especialidades.map((e, idx) => ({ ...e, id: idx.toString() }));
+    const actions = { edit: true, add: true, export: true, delete: true }
 
     return (
         <ContentBody title="Especialidades">
-            <DataTable data={data} columns={columns} />
+            <DataTable
+                data={data}
+                columns={columns}
+                menu={true}
+                actions={actions}
+            />
         </ContentBody>
     );
 }

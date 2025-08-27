@@ -28,10 +28,16 @@ export default function EsquemaContratacionPage() {
 
     // Datos con ID (obligatorio para DataTable)
     const data = esquemas.map((e, idx) => ({ ...e, id: idx.toString() }));
+    const actions = { edit: true, add: true, export: true, delete: true }
 
     return (
         <ContentBody title="Esquema contractual">
-            <DataTable data={data} columns={columns} />
+            <DataTable
+                data={data}
+                columns={columns}
+                menu={true}
+                actions={actions}
+            />
         </ContentBody>
     );
 }

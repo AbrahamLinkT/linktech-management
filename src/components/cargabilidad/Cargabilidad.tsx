@@ -23,7 +23,7 @@ export default function CargabilidadComponent() {
 
     // Columnas para DataTable
     const columns = [
-        { accessorKey: "id", header: "ID", enableEditing: false },
+        //{ accessorKey: "id", header: "ID", enableEditing: false },
         { accessorKey: "consultor", header: "Consultor" },
         { accessorKey: "especialidad", header: "Especialidad" },
         { accessorKey: "nivel", header: "Nivel" },
@@ -35,6 +35,7 @@ export default function CargabilidadComponent() {
 
     // Datos del JSON
     const data: StaffItem[] = Array.isArray(staf.staff) ? staf.staff : [];
+    const actions = { edit: true, add: true, export: true, delete: true }
 
     return (
         <div className="w-full">
@@ -47,7 +48,10 @@ export default function CargabilidadComponent() {
                         Ver resumen
                     </button>
                 </div>
-                <DataTable<StaffItem> data={data} columns={columns} />
+                <DataTable<StaffItem> data={data} columns={columns}
+                    menu={true}
+                    actions={actions}
+                />
             </ContentBody>
         </div>
     );

@@ -57,9 +57,11 @@ export default function Projects() {
         //title_add="Agregar"
         //ModalAdd={<h1>Agregar</h1>}
         urlRoute="/dashboard/projects/project?id="
+        urlRouteAdd="/dashboard"
+        menu={true}
         data={data}      // Datos consumidos del JSON
         columns={columns} // Columnas definidas arriba
-        actions={{ edit: true }}
+        actions={{ edit: true, add: true }}
 
       />
     </ContentBody>

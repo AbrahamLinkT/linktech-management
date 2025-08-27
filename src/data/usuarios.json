@@ -1,37 +1,37 @@
 {
   "usuarios": [
         {
-            "id": 1,
+            "id": "1",
             "correo": "admin@linktech.com.mx",
-            "nombre_empleado": "Admin User",
+            "nombre": "Admin User",
             "rol": "Admin",
             "estatus": "Activo"
         },
         {
-            "id": 2,
+            "id": "2",
             "correo": "myrna.guajardo@linktech.com.mx",
-            "nombre_empleado": "Myrna Guajardo",
+            "nombre": "Myrna Guajardo",
             "rol": "Admin",
             "estatus": "Activo"
         },
         {
-            "id": 3,
+            "id": "3",
             "correo": "fernando.molinar@linktech.com.mx",
-            "nombre_empleado": "Fernando Molinar Gonzalez",
+            "nombre": "Fernando Molinar Gonzalez",
             "rol": "PM",
             "estatus": "Activo"
         },
         {
-            "id": 4,
+            "id": "4",
             "correo": "antonio.velazquez@linktech.com.mx",
-            "nombre_empleado": "Antonio Velazquez",
+            "nombre": "Antonio Velazquez",
             "rol": "Admin - Servicios",
             "estatus": "Activo"
         },
         {
-            "id": 5,
+            "id": "5",
             "correo": "diego.tirado@linktech.com.mx",
-            "nombre_empleado": "Diego Tirado",
+            "nombre": "Diego Tirado",
             "rol": "Aprobador - Innovación",
             "estatus": "Activo"
         }
