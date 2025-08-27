@@ -1,91 +1,199 @@
 "use client";
-import { useState } from "react";
+
+import React, { useMemo, useState } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
   type MRT_Row,
 } from "material-react-table";
-import { Box, Button, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  FormControl,
+  IconButton,
+  InputLabel,
+  Menu,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import DehazeIcon from "@mui/icons-material/Dehaze";
+import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import { mkConfig, generateCsv, download } from "export-to-csv";
-import { ModalEdit, ModalGen, ModalRoute } from "@/components/modal/modal_master";
 import { useRouter } from "next/navigation";
 
+// =================== CSV CONFIG ===================
 const csvConfig = mkConfig({
   fieldSeparator: ",",
   decimalSeparator: ".",
   useKeysAsHeaders: true,
 });
 
-type DataTableProps<T extends { id: string }> = {
-  data: T[];
-  columns: MRT_ColumnDef<T>[];
-  ModalAdd?: React.ReactNode;
-  title_add?: string;
-  urlRoute?: string;
-  actions?: {
-    edit?: boolean;
-    add?: boolean;
-    archive?: boolean;
-    delete?: boolean;
-    export?: boolean;
-  };
+// =================== TIPOS ===================
+type RowData = {
+  id: string;
+  consultor: string;
+  departamento: string;
+  tipoEmpleado: string;
+  esquema: string;
+  tiempo: string;
+  modulo: string;
+  nivel: string;
+  ubicacion: string;
 };
 
-export function DataTable<T extends { id: string }>({
-  data,
-  columns,
-  ModalAdd,
-  title_add,
-  urlRoute,
-  actions = {
-    edit: true,
-    add: true,
-    archive: true,
-    delete: true,
-    export: true,
+// =================== MOCK DATA ===================
+const initialData: RowData[] = [
+  {
+    id: "1",
+    consultor: "Ana López",
+    departamento: "SAP FI",
+    tipoEmpleado: "Interno",
+    esquema: "Full-time",
+    tiempo: "40",
+    modulo: "FI",
+    nivel: "Sr",
+    ubicacion: "Monterrey",
   },
-}: DataTableProps<T>) {
-  const [rows, setRows] = useState<T[]>(data);
-  const [editRow, setEditRow] = useState<T | null>(null);
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [routeModal, setRouteModal] = useState(false);
-  const [id, setId] = useState<string | null>(null);
+  {
+    id: "2",
+    consultor: "Luis Pérez",
+    departamento: "SAP MM",
+    tipoEmpleado: "Externo",
+    esquema: "Part-time",
+    tiempo: "20",
+    modulo: "MM",
+    nivel: "Jr",
+    ubicacion: "CDMX",
+  },
+];
 
-  // ==== EXPORT ====
-  const handleExportRows = (rows: MRT_Row<T>[]) => {
-    const rowData = rows.map((row) => row.original);
+// OIs y proyectos (ejemplo)
+const OI_OPTIONS = ["OI-001", "OI-002", "OI-003"];
+const PROYECTO_BY_OI: Record<string, string> = {
+  "OI-001": "Implementación SAP FI – ACME",
+  "OI-002": "Optimización MM – RetailMX",
+  "OI-003": "Proyecto HCM – UANL",
+};
+
+// =================== COMPONENTE ===================
+export default function ProyeccionPage() {
+  const router = useRouter();
+
+  // -------- Estado tabla principal --------
+  const [tableData, setTableData] = useState<RowData[]>(initialData);
+
+  const columns = useMemo<MRT_ColumnDef<RowData>[]>(
+    () => [
+      { accessorKey: "consultor", header: "Consultor" },
+      { accessorKey: "departamento", header: "Departamento" },
+      { accessorKey: "tipoEmpleado", header: "Tipo Empleado" },
+      { accessorKey: "esquema", header: "Esquema" },
+      { accessorKey: "tiempo", header: "Horas/Sem" },
+      { accessorKey: "modulo", header: "Módulo" },
+      { accessorKey: "nivel", header: "Nivel" },
+      { accessorKey: "ubicacion", header: "Ubicación" },
+    ],
+    []
+  );
+
+  // -------- Toolbar: OI/Proyecto y botones --------
+  const [selectedIO, setSelectedIO] = useState<string>("");
+  const uniqueIOs = OI_OPTIONS;
+  const selectedProyecto = selectedIO ? PROYECTO_BY_OI[selectedIO] ?? "" : "";
+
+  // Simulación acción "Agregar consultor"
+  const handleAgregar = () => setOpenAddModal(true);
+
+  // -------- EXPORTACIONES --------
+  const handleExportRows = (rows: MRT_Row<RowData>[]) => {
+    const rowData = rows.map((r) => r.original);
     const csv = generateCsv(csvConfig)(rowData);
     download(csvConfig)(csv);
   };
-
   const handleExportData = () => {
-    const csv = generateCsv(csvConfig)(rows);
+    const csv = generateCsv(csvConfig)(tableData);
     download(csvConfig)(csv);
   };
 
-  const router = useRouter();
-  const handleConfirmRoute = () => {
-    if (urlRoute && id) router.push(`${urlRoute}${id}`);
-  };
-
-  // ==== MENU STATE ====
+  // -------- Menu acciones (ícono hamburguesa) --------
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const handleMenuOpen = (e: React.MouseEvent<HTMLButtonElement>) =>
+    setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
+  // -------- Modal Agregar consultor --------
+  const [openAddModal, setOpenAddModal] = useState(false);
+
+  // Resultados fake del buscador del modal
+  type ModalRow = {
+    nombre: string;
+    especialidad: string;
+    nivel: string;
+    departamento: string;
+  };
+  const [modalRows] = useState<ModalRow[]>([
+    {
+      nombre: "María Gómez",
+      especialidad: "SAP FI",
+      nivel: "Sr",
+      departamento: "Finanzas",
+    },
+    {
+      nombre: "Carlos Ruiz",
+      especialidad: "SAP MM",
+      nivel: "Mid",
+      departamento: "Abastecimiento",
+    },
+  ]);
+  const [selectedModalRows, setSelectedModalRows] = useState<
+    Record<number, boolean>
+  >({});
+
+  const handleSelectModalRow = (idx: number) => {
+    setSelectedModalRows((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const handleAgregarSeleccionados = () => {
+    const nuevos = Object.entries(selectedModalRows)
+      .filter(([, v]) => v)
+      .map(([idx]) => {
+        const r = modalRows[Number(idx)];
+        return {
+          id: String(Date.now() + Math.random()),
+          consultor: r.nombre,
+          departamento: r.departamento,
+          tipoEmpleado: "Externo",
+          esquema: "Full-time",
+          tiempo: "40",
+          modulo: r.especialidad.includes("FI") ? "FI" : "MM",
+          nivel: r.nivel,
+          ubicacion: "Remoto",
+        } as RowData;
+      });
+
+    setTableData((prev) => [...prev, ...nuevos]);
+    setOpenAddModal(false);
+    setSelectedModalRows({});
+  };
+
+  // -------- Material React Table --------
   const table = useMaterialReactTable({
     columns,
-    data: rows,
+    data: tableData,
+    getRowId: (row) => row.id,
     enableRowSelection: true,
     enableColumnDragging: true,
     enableColumnResizing: true,
     columnResizeMode: "onChange",
-    getRowId: (row) => row.id,
     enablePagination: true,
     initialState: {
       pagination: { pageIndex: 0, pageSize: 5 },
@@ -97,9 +205,10 @@ export function DataTable<T extends { id: string }>({
         backgroundColor: "transparent",
       },
     },
-    renderTopToolbarCustomActions: ({ table }) => {
-      const selectedRows = table.getSelectedRowModel().rows;
-      const selectedCount = selectedRows.length;
+  });
+
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
 
   return (
     <Box sx={{ p: 2 }}>
@@ -108,6 +217,7 @@ export function DataTable<T extends { id: string }>({
         <Typography variant="h5" sx={{ mr: "auto" }}>
           Proyección
         </Typography>
+
         <Stack direction="row" spacing={2} alignItems="center">
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel id="oi-select-label">OI</InputLabel>
@@ -129,55 +239,78 @@ export function DataTable<T extends { id: string }>({
               ))}
             </Select>
           </FormControl>
-          <Typography variant="body1" sx={{ minWidth: 240 }}>
+
+          <Typography variant="body1" sx={{ minWidth: 280 }}>
             <strong>Proyecto:</strong>{" "}
             {selectedIO ? selectedProyecto || "—" : "Selecciona una OI"}
           </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAgregar}
-              >
-                Agregar consultor
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500, ml: 2 }}
-                onClick={() => window.location.href = '/dashboard/proyeccion/date'}
-              >
-                Ver proyección
-              </Button>
-            </Box>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAgregar}
+          >
+            Agregar consultor
+          </Button>
+
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 500,
+            }}
+            onClick={() => router.push("/dashboard/proyeccion/date")}
+          >
+            Ver proyección
+          </Button>
+
+          {/* Menú de acciones (export, etc.) */}
+          <IconButton onClick={handleMenuOpen}>
+            <DehazeIcon />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+            {/* EXPORTACIONES */}
+            <MenuItem
+              onClick={() => {
+                handleExportData();
+                handleMenuClose();
+              }}
+            >
+              Exportar Todo
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleExportRows(table.getPrePaginationRowModel().rows);
+                handleMenuClose();
+              }}
+            >
+              Exportar Todas las Filas
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleExportRows(table.getRowModel().rows);
+                handleMenuClose();
+              }}
+            >
+              Exportar Página Actual
+            </MenuItem>
+            <MenuItem
+              disabled={selectedCount === 0}
+              onClick={() => {
+                handleExportRows(selectedRows);
+                handleMenuClose();
+              }}
+            >
+              Exportar Seleccionadas ({selectedCount})
+            </MenuItem>
+          </Menu>
         </Stack>
       </Box>
 
       {/* Tabla principal */}
-      <MaterialReactTable
-        columns={columns}
-        data={tableData}
-        enableColumnResizing
-        enableRowNumbers
-        enablePagination
-        enableColumnFilterModes
-        enableFacetedValues
-        enableFilters
-        enableHiding
-        enableColumnOrdering
-        enableFullScreenToggle
-        enableDensityToggle
-        enableColumnActions
-        muiTableContainerProps={{ sx: { maxHeight: "500px" } }}
-        // Si luego agregas modal de detalle, descomenta:
-        // muiTableBodyRowProps={({ row }) => ({
-        //   onClick: () => {
-        //     setSelectedRow(row.original);
-        //     setOpenModal(true);
-        //   },
-        //   style: { cursor: "pointer" },
-        // })}
-      />
+      <MaterialReactTable table={table} />
 
       {/* Modal para agregar consultor */}
       <Dialog
@@ -220,17 +353,17 @@ export function DataTable<T extends { id: string }>({
                   fullWidth
                   sx={{
                     bgcolor: "#ede9f6",
-                    borderRadius: 8,
+                    borderRadius: 2,
                     ".MuiOutlinedInput-root": {
-                      borderRadius: 8,
-                      height: 56,
-                      fontSize: 22,
+                      borderRadius: 2,
+                      height: 48,
+                      fontSize: 16,
                       color: "#3c3842",
                     },
                   }}
                   InputProps={{
                     endAdornment: (
-                      <Box sx={{ pr: 2 }}>
+                      <Box sx={{ pr: 1 }}>
                         <IconButton edge="end" sx={{ color: "#3c3842" }}>
                           <SearchIcon />
                         </IconButton>
@@ -241,117 +374,90 @@ export function DataTable<T extends { id: string }>({
               </Box>
             ))}
 
-            {/* EXPORTACIONES */}
-            {actions.export && (
-              <>
-                <MenuItem
-                  onClick={() => {
-                    handleExportData();
-                    handleMenuClose();
-                  }}
-                >
-                  Exportar Todo
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleExportRows(table.getPrePaginationRowModel().rows);
-                    handleMenuClose();
-                  }}
-                >
-                  Exportar Todas Filas
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleExportRows(table.getRowModel().rows);
-                    handleMenuClose();
-                  }}
-                >
-                  Exportar Página Actual
-                </MenuItem>
-                <MenuItem
-                  disabled={selectedCount === 0}
-                  onClick={() => {
-                    handleExportRows(selectedRows);
-                    handleMenuClose();
-                  }}
-                >
-                  <Typography sx={{ fontWeight: 500, color: "#444" }}>
-                    Horas por día:
-                  </Typography>
-                </Box>
-                <TextField
-                  type="number"
-                  defaultValue={2}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    bgcolor: "#ede9f6",
-                    borderRadius: 8,
-                    width: 90,
-                    ".MuiOutlinedInput-root": {
-                      borderRadius: 8,
-                      height: 40,
-                      fontSize: 18,
-                      color: "#3c3842",
-                    },
-                  }}
-                />
-                {/* Apartado de próxima fecha libre */}
-                <Box sx={{ minWidth: 180, bgcolor: '#f7f4fa', px: 2, py: 1, borderRadius: 2, ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ fontWeight: 500, color: '#444', mr: 1 }}>
-                    Próxima fecha libre:
-                  </Typography>
-                  <Typography sx={{ color: '#3c3842', fontWeight: 400 }}>
-                    25/08/2025
-                  </Typography>
-                </Box>
-                {/* Botón para ver proyección */}
-                <Box sx={{ ml: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
-                    onClick={() => window.location.href = '/dashboard/proyeccion/date'}
-                  >
-                    Ver proyección
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
-
             {/* Resultados de ejemplo */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Button variant="contained" color="primary" startIcon={<SearchIcon />}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<SearchIcon />}
+              >
                 BUSCAR
               </Button>
             </Box>
+
             <Box sx={{ mt: 2 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  background: "#fff",
+                }}
+              >
                 <thead>
                   <tr>
-                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Nombre</th>
-                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Especialidad</th>
-                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Nivel</th>
-                    <th style={{ border: "1px solid #aaa", padding: 4 }}>Departamento</th>
-                    <th style={{ border: "1px solid #aaa", padding: 4, textAlign: "center" }}>Seleccionar</th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      Nombre
+                    </th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      Especialidad
+                    </th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      Nivel
+                    </th>
+                    <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      Departamento
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #aaa",
+                        padding: 4,
+                        textAlign: "center",
+                      }}
+                    >
+                      Seleccionar
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {modalRows.map((row, idx) => (
                     <tr key={idx}>
-                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.nombre}</td>
-                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.especialidad}</td>
-                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.nivel}</td>
-                      <td style={{ border: "1px solid #aaa", padding: 4 }}>{row.departamento}</td>
-                      <td style={{ border: "1px solid #aaa", padding: 4, textAlign: "center" }}>
-                        <input type="checkbox" checked={!!selectedModalRows[idx]} onChange={() => handleSelectModalRow(idx)} />
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        {row.nombre}
+                      </td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        {row.especialidad}
+                      </td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        {row.nivel}
+                      </td>
+                      <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        {row.departamento}
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #aaa",
+                          padding: 4,
+                          textAlign: "center",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!selectedModalRows[idx]}
+                          onChange={() => handleSelectModalRow(idx)}
+                        />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
               <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAgregarSeleccionados}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={handleAgregarSeleccionados}
+                >
                   Agregar
                 </Button>
               </Box>
