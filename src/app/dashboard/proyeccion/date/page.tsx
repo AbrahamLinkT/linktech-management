@@ -7,6 +7,7 @@ import {
   type MRT_RowSelectionState,
 } from "material-react-table";
 import { Box, Typography, Button } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 // ---- Tipos ----
 type ProyeccionRow = {
@@ -83,35 +84,23 @@ function ProyeccionTablePage() {
         columns: semana.dias.map((dia, dIdx) => {
           const idx = sIdx * 5 + dIdx;
           return {
-            id: `horas-${idx}`,
+            accessorKey: `horas[${idx}]`,
             header: dia,
-            accessorFn: (row) => row.horas[idx] ?? "",
             size: 80,
             muiTableHeadCellProps: {
               sx: {
-                bgcolor: "#b6c6f7",
-                color: "#222",
-                fontWeight: 500,
-                textAlign: "center",
+                bgcolor: '#b6c6f7', color: '#222', fontWeight: 500, textAlign: 'center',
               },
             },
             Cell: ({ row }) => {
-              const value = row.original.horas[idx] ?? "";
+              const value = row.original.horas[idx];
               return (
-                <Box
-                  sx={{
-                    bgcolor: value ? "#e3e8fd" : "#fff",
-                    color: "#222",
-                    fontWeight: 500,
-                    textAlign: "center",
-                    borderRadius: 1,
-                  }}
-                >
+                <Box sx={{ bgcolor: value ? '#e3e8fd' : '#fff', color: '#222', fontWeight: 500, textAlign: 'center', borderRadius: 1 }}>
                   {value}
                 </Box>
               );
             },
-          } as MRT_ColumnDef<ProyeccionRow>;
+          };
         }),
       })
     );
@@ -148,49 +137,21 @@ function ProyeccionTablePage() {
 
   return (
     <Box sx={{ p: 4, bgcolor: "#f7f8fa", minHeight: "100vh" }}>
-      <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+      <Typography variant="h5" sx={{ mr: "auto" }}>
         Proyección
       </Typography>
-
-      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-        <Button
-          variant="contained"
-          sx={{
-            bgcolor: "#444",
-            color: "#fff",
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: 500,
-          }}
-        >
-          Seleccionar horas
-        </Button>
-        <Button
-          variant="contained"
-          sx={{
-            bgcolor: "#444",
-            color: "#fff",
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: 500,
-          }}
-        >
-          Seleccionar horas
-        </Button>
-      </Box>
-
       <MaterialReactTable
         columns={columns}
         data={tableData}
         enableRowSelection
         enableColumnResizing
-        enableColumnOrdering={false}
-        enablePagination={false}
-        enableFilters={false}
-        enableHiding={false}
-        enableDensityToggle={false}
-        enableFullScreenToggle={false}
-        enableColumnActions={false}
+        enableColumnOrdering={true}
+        enablePagination={true}
+        enableFilters={true}
+        enableHiding={true}
+        enableDensityToggle={true}
+        enableFullScreenToggle={true}
+        enableColumnActions={true}
         muiTableContainerProps={{
           sx: { borderRadius: 3, boxShadow: "none", background: "#fff" },
         }}
@@ -213,6 +174,16 @@ function ProyeccionTablePage() {
             ],
           },
         }}
+        renderTopToolbarCustomActions={() => (
+          <Button
+            variant="contained"
+            startIcon={<VisibilityIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
+            onClick={() => {/* lógica para cambiar vista aquí */}}
+          >
+            Cambiar vista
+          </Button>
+        )}
       />
     </Box>
   );
