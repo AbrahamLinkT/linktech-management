@@ -1,4 +1,4 @@
-'use client';
+/* 'use client';
 import { useRef, useState } from "react";
 import staf from "@/data/staff.json"
 
@@ -158,9 +158,6 @@ export default function DataTable() {
         />
       </ContentBody>
 
-      {/* fin de el contenedor de tabla */}
-
-      {/* Modal*/}
       <DialogBase
         close={handleClose}
         dialogRef={dialogRef}>
@@ -172,4 +169,4 @@ export default function DataTable() {
 
     </>
   );
-}
+} */
