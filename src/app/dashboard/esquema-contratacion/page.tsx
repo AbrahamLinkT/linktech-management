@@ -1,129 +1,43 @@
 "use client";
-import React, { useState } from "react";
-import { ContentBody, ContentTable } from "@/components/containers/containers";
+import React, { useMemo, useState } from "react";
+import { ContentBody } from "@/components/containers/containers";
+import { DataTable } from "@/components/tables/table_master"; // tu DataTable
+import { type MRT_ColumnDef } from "material-react-table";
 
 interface Esquema {
-  nombreCorto: string;
-  descripcion: string;
-  numeroHoras: number;
+    nombreCorto: string;
+    descripcion: string;
+    numeroHoras: number;
 }
 
 const esquemasIniciales: Esquema[] = [
-  { nombreCorto: "Honorarios", descripcion: "Pago por servicios profesionales", numeroHoras: 40 },
-  { nombreCorto: "Asimilados", descripcion: "Pago bajo régimen de asimilados", numeroHoras: 30 },
+    { nombreCorto: "Honorarios", descripcion: "Pago por servicios profesionales", numeroHoras: 40 },
+    { nombreCorto: "Asimilados", descripcion: "Pago bajo régimen de asimilados", numeroHoras: 30 },
 ];
 
 export default function EsquemaContratacionPage() {
-  const [esquemas, setEsquemas] = useState<Esquema[]>(esquemasIniciales);
-  const [form, setForm] = useState<Esquema>({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
-  const [editIdx, setEditIdx] = useState<number | null>(null);
+    const [esquemas] = useState<Esquema[]>(esquemasIniciales);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: name === "numeroHoras" ? Number(value) : value });
-  };
+    // Configura columnas para DataTable
+    const columns = useMemo<MRT_ColumnDef<Esquema & { id: string }>[]>(() => [
+        //{ accessorKey: "id", header: "ID", enableEditing: false },
+        { accessorKey: "nombreCorto", header: "Nombre corto", size: 200 },
+        { accessorKey: "descripcion", header: "Descripción", size: 300 },
+        { accessorKey: "numeroHoras", header: "Número de horas", size: 150 },
+    ], []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.nombreCorto && form.descripcion && form.numeroHoras > 0) {
-      if (editIdx !== null) {
-        const nuevos = [...esquemas];
-        nuevos[editIdx] = { ...form };
-        setEsquemas(nuevos);
-        setEditIdx(null);
-      } else {
-        setEsquemas([...esquemas, { ...form }]);
-      }
-      setForm({ nombreCorto: "", descripcion: "", numeroHoras: 0 });
-    }
-  };
+    // Datos con ID (obligatorio para DataTable)
+    const data = esquemas.map((e, idx) => ({ ...e, id: idx.toString() }));
+    const actions = { edit: true, add: true, export: true, delete: true }
 
-  const handleEdit = (idx: number) => {
-    setForm(esquemas[idx]);
-    setEditIdx(idx);
-  };
-
-  return (
-    <ContentBody title="Esquema contractual">
-      <ContentTable
-        header={null}
-        Body={
-          <>
-            <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow mb-8">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Nombre corto</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Descripción</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100">Número de horas</th>
-                  <th className="px-6 py-3 text-left text-base font-bold text-gray-700 bg-gray-100"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {esquemas.map((esq, idx) => (
-                  <tr key={idx}>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.nombreCorto}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.descripcion}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{esq.numeroHoras}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(idx)}
-                        className="bg-yellow-400 text-white px-4 py-2 rounded font-semibold hover:bg-yellow-500 shadow"
-                      >
-                        Modificar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg shadow p-6 flex flex-col md:flex-row gap-6 items-center justify-center">
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Nombre corto</label>
-                <input
-                  type="text"
-                  name="nombreCorto"
-                  value={form.nombreCorto}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-                  required
-                />
-              </div>
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Descripción</label>
-                <input
-                  type="text"
-                  name="descripcion"
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-                  required
-                />
-              </div>
-              <div className="flex flex-col w-full md:w-1/4">
-                <label className="mb-2 text-sm font-semibold text-gray-700">Número de horas</label>
-                <input
-                  type="number"
-                  name="numeroHoras"
-                  value={form.numeroHoras}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-                  required
-                  min={1}
-                />
-              </div>
-              <div className="flex items-center h-full w-full md:w-auto">
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-600 shadow transition-colors duration-200 mt-[10px]"
-                >
-                  {editIdx !== null ? "Guardar cambios" : "Agregar"}
-                </button>
-              </div>
-            </form>
-          </>
-        }
-      />
-    </ContentBody>
-  );
+    return (
+        <ContentBody title="Esquema contractual">
+            <DataTable
+                data={data}
+                columns={columns}
+                menu={true}
+                actions={actions}
+            />
+        </ContentBody>
+    );
 }

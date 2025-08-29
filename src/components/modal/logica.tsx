@@ -1,4 +1,4 @@
-import Asignados from "@/data/ProyectosAsignados.json";
+/* import Asignados from "@/data/ProyectosAsignados.json";
 import Projects from "@/data/Projects.json";
 import horasData from "@/data/HorasAsignadas.json";
 import { Table_1 } from "@/components/tables/table";
@@ -121,3 +121,4 @@ export function LogicaSwtich({ id, n }: { id: string | null; n: string | null })
 function TotalHoras(id: string, Oi: string) {
     console.log("Calculando horas para:", id, Oi);
 }
+ */

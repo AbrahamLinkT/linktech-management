@@ -1,265 +1,134 @@
-import React, { useEffect, useMemo, useState } from "react";
+// table_master.tsx
+"use client";
+import { useState } from "react";
+import {
+    MaterialReactTable,
+    useMaterialReactTable,
+    type MRT_ColumnDef,
+    type MRT_Row,
+    type MRT_Cell,
+    type MRT_Column,
+    type MRT_TableInstance,
+} from "material-react-table";
+import { Box, Button, Menu, MenuItem, TextFieldProps } from "@mui/material";
+import DehazeIcon from "@mui/icons-material/Dehaze";
+import { mkConfig, generateCsv, download } from "export-to-csv";
 
-// componente para tablas 
-export function Table_1({ headers, hoverActive = false, rows, EventOnclick, rowActiveIndex }: {
-    headers: string[], rows: (string | React.ReactNode)[][],
-    EventOnclick?: (row: (React.ReactNode | string)[]) => void, hoverActive?: boolean,
-    rowActiveIndex?: number
-}) {
-    return (
-        <div className="overflow-auto">
-            <table className="table w-full">
-                <thead className="table-header">
-                    <tr className="table-row">
-                        {headers.map((header, index) => (
-                            <th key={index} className="table-head">
-                                {header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="table-body">
-                    {
-                        rows.map((row, index) => (
-                            <tr
-                                key={index}
-                                className={
-                                    `${hoverActive ?
-                                        "table-row hover:bg-gray-100 cursor-pointer" :
-                                        "table-row hover:bg-gray-100 "
-                                    } ${rowActiveIndex === index ? "bg-blue-100" : ""}`
-                                }
-                                onClick={() => EventOnclick?.(row)}
-                            >
-                                {
-                                    row.map((cell, colIndex) => (
-                                        <td
-                                            key={colIndex}
-                                            className={`table-cell ${colIndex === row.length - 1 ? "relative text-center" : ""}`}
-                                        >
-                                            {cell}
-                                        </td>
-                                    ))
-                                }
-                            </tr>
-                        ))
-                    }
-                </tbody>
-            </table>
-        </div>
-    )
-}
+// Configuración CSV
+const csvConfig = mkConfig({
+    fieldSeparator: ",",
+    decimalSeparator: ".",
+    useKeysAsHeaders: true,
+});
 
-export function Table_2({ headers, rows, EventOnclick, }: { headers: string[]; rows: (string | React.ReactNode)[][]; EventOnclick?: (row: (React.ReactNode | string)[]) => void; }) {
-    return (
-        <div className="w-full ">
-            <table className="min-w-[1000px] w-full table-auto border-collapse">
-                <thead className="table-header sticky top-0 ">
-                    <tr>
-                        {headers.map((header, index) => (
-                            <th
-                                key={index}
-                                className="table-head "
-                            >
-                                {header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row, rowIndex) => (
-                        <tr
-                            key={rowIndex}
-                            className="hover:bg-gray-100 cursor-pointer"
-                            onClick={() => EventOnclick?.(row)}
-                        >
-                            {row.map((cell, colIndex) => (
-                                <td
-                                    key={colIndex}
-                                    className={`px-4 py-2 border-b ${colIndex === row.length - 1 ? "text-center" : "text-left"
-                                        }`}
-                                >
-                                    {cell}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
+type DataTableProps<T extends { id: string }> = {
+    data: T[];
+    columns: MRT_ColumnDef<T>[];
+    onSave?: (rows: T[]) => void;
+};
 
-interface TableProps {
-    headers: string[];
-    rows: (string | React.ReactNode)[][];
-    EventOnclick?: (index: number) => void;
-    selectable?: boolean;
-    sortable?: boolean;
-    clearSelection?: boolean;
-}
+export function DataTable<T extends { id: string }>({
+    data,
+    columns,
+    onSave,
+}: DataTableProps<T>) {
+    const [rows, setRows] = useState<T[]>(data);
+    const [editedRows, setEditedRows] = useState<Record<string, T>>({});
 
-export function Table_3({
-    headers,
-    rows,
-    EventOnclick,
-    selectable = true, // por defecto activado
-    sortable = false,
-    clearSelection
-}: TableProps) {
-    const [columnWidths, setColumnWidths] = useState<number[]>(
-        new Array(headers.length).fill(150)
-    );
-    const [selectedCell, setSelectedCell] = useState<number | null>(null);
-    const [sortConfig, setSortConfig] = useState<{
-        columnIndex: number | null;
-        direction: "asc" | "desc";
-    }>({ columnIndex: null, direction: "asc" });
-
-    useEffect(() => {
-        if (clearSelection) {
-            setSelectedCell(null)
-        }
-    }, [clearSelection])
-
-    const startResize = (index: number, e: React.MouseEvent) => {
-        e.preventDefault();
-        const startX = e.clientX;
-        const startWidth = columnWidths[index];
-
-        const handleMouseMove = (e: MouseEvent) => {
-            const newWidth = Math.max(startWidth + (e.clientX - startX), 50);
-            setColumnWidths((prev) => {
-                const updated = [...prev];
-                updated[index] = newWidth;
-                return updated;
-            });
-        };
-
-        const stopResize = () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", stopResize);
-        };
-
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mouseup", stopResize);
+    // Guardar cambios
+    const handleSaveRows = () => {
+        const updated = rows.map((r) => editedRows[r.id] || r);
+        setRows(updated);
+        setEditedRows({});
+        onSave?.(updated);
     };
 
-    /* logica de ordenamiento */
-    const sortedRows = useMemo(() => {
-        if (!sortable || sortConfig.columnIndex === null) return rows;
+    // Export CSV
+    const handleExportRows = (rowsToExport: MRT_Row<T>[]) => {
+        const rowData = rowsToExport.map((row) => row.original);
+        const csv = generateCsv(csvConfig)(rowData);
+        download(csvConfig)(csv);
+    };
 
-        const sorted = [...rows].sort((a, b) => {
-            const aVal = a[sortConfig.columnIndex!];
-            const bVal = b[sortConfig.columnIndex!];
+    const handleExportData = () => {
+        const csv = generateCsv(csvConfig)(rows);
+        download(csvConfig)(csv);
+    };
 
-            const aStr = typeof aVal === "string" ? aVal : String(aVal);
-            const bStr = typeof bVal === "string" ? bVal : String(bVal);
+    // Menú
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
 
-            const aNum = parseFloat(aStr);
-            const bNum = parseFloat(bStr);
-            const isNumeric = !isNaN(aNum) && !isNaN(bNum);
+    // Columnas editables (usando solo `row`, los demás se ignoran)
+    const editableColumns = columns.map((col) => ({
+        ...col,
+        muiEditTextFieldProps: ({
+            row, // solo usamos row
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            cell, column, table, // los demás parámetros no usados
+        }: {
+            cell: MRT_Cell<T, unknown>;
+            column: MRT_Column<T, unknown>;
+            row: MRT_Row<T>;
+            table: MRT_TableInstance<T>;
+        }): TextFieldProps => {
+            const key = col.accessorKey as keyof T;
+            const value = row.original[key] as string;
 
-            if (isNumeric) {
-                return sortConfig.direction === "asc" ? aNum - bNum : bNum - aNum;
-            } else {
-                return sortConfig.direction === "asc"
-                    ? aStr.localeCompare(bStr)
-                    : bStr.localeCompare(aStr);
-            }
-        });
+            return {
+                defaultValue: value,
+                onChange: (e) => {
+                    const newVal = e.target.value;
+                    setEditedRows((prev) => ({
+                        ...prev,
+                        [row.original.id]: { ...row.original, [key]: newVal },
+                    }));
+                },
+            };
+        },
+    }));
 
-        return sorted;
-    }, [rows, sortConfig, sortable]);
-    return (
-        <div className="overflow-auto w-full">
-            <table className="table w-full border-collapse">
-                <thead className="table-header">
-                    <tr className="table-row">
-                        {headers.map((header, index) => (
-                            <th
-                                key={index}
-                                style={{ width: columnWidths[index] }}
-                                className="table-head relative select-none cursor-pointer"
-                                onClick={() => {
-                                    if (!sortable) return;
+    const table = useMaterialReactTable({
+        columns: editableColumns,
+        data: rows,
+        editDisplayMode: "cell",
+        enableEditing: true,
+        enableRowSelection: true,
+        getRowId: (row) => row.id,
+        initialState: { columnVisibility: { id: false } },
+        renderTopToolbarCustomActions: ({ table }) => (
+            <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
+                <Button variant="outlined" startIcon={<DehazeIcon />} onClick={handleMenuOpen}>
+                    Selecciona
+                </Button>
+                <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+                    <MenuItem onClick={() => { handleExportData(); handleMenuClose(); }}>Exportar Todo</MenuItem>
+                    <MenuItem onClick={() => { handleExportRows(table.getPrePaginationRowModel().rows); handleMenuClose(); }}>Exportar Todas Filas</MenuItem>
+                    <MenuItem onClick={() => { handleExportRows(table.getRowModel().rows); handleMenuClose(); }}>Exportar Página Actual</MenuItem>
+                    <MenuItem
+                        disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                        onClick={() => { handleExportRows(table.getSelectedRowModel().rows); handleMenuClose(); }}
+                    >
+                        Exportar Seleccionados
+                    </MenuItem>
+                </Menu>
+            </Box>
+        ),
+        renderBottomToolbarCustomActions: () => (
+            <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                <Button
+                    color="success"
+                    variant="contained"
+                    onClick={handleSaveRows}
+                    disabled={Object.keys(editedRows).length === 0} // activo al hacer cambios
+                >
+                    Guardar
+                </Button>
+            </Box>
+        ),
+    });
 
-                                    if (sortConfig.columnIndex === index) {
-                                        setSortConfig({
-                                            columnIndex: index,
-                                            direction:
-                                                sortConfig.direction === "asc" ? "desc" : "asc",
-                                        });
-                                    } else {
-                                        setSortConfig({ columnIndex: index, direction: "asc" });
-                                    }
-                                }}
-                            >
-                                <div className="flex justify-between items-center pr-2">
-                                    <span>{header}</span>
-                                    {sortable && sortConfig.columnIndex === index && (
-                                        <svg
-                                            className={`w-4 h-4 ml-1 transition-transform duration-150 ${sortConfig.direction === "asc" ? "rotate-180" : ""
-                                                }`}
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M19 9l-7 7-7-7"
-                                            ></path>
-                                        </svg>
-                                    )}
-                                    <div
-                                        onMouseDown={(e) => startResize(index, e)}
-                                        className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400"
-                                    />
-                                </div>
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="table-body">
-                    {sortedRows.map((row, rowIndex) => {
-                        const isSelected = selectedCell === rowIndex;
-
-                        return (
-                            <tr
-                                key={rowIndex}
-                                className={`table-row ${selectable ? "cursor-pointer" : ""} ${isSelected ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                                {...(selectable
-                                    ? {
-                                        onClick: () => {
-                                            if (selectedCell === rowIndex) {
-                                                setSelectedCell(null); // desmarca si ya está seleccionada
-                                                EventOnclick?.(-1);
-                                            } else {
-                                                setSelectedCell(rowIndex); // selecciona nueva fila
-                                                EventOnclick?.(rowIndex);
-                                            }
-                                        },
-                                    }
-                                    : {})}
-                            >
-                                {row.map((cell, colIndex) => (
-                                    <td
-                                        key={colIndex}
-                                        style={{ width: columnWidths[colIndex] }}
-                                        className={`table-cell ${colIndex === row.length - 1 ? "relative text-center" : ""}`}
-                                    >
-                                        {cell}
-                                    </td>
-                                ))}
-                            </tr>
-                        );
-                    })}
-                </tbody>
-
-            </table>
-        </div>
-    );
+    return <MaterialReactTable table={table} />;
 }
