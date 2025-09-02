@@ -10,8 +10,6 @@ import {
     Box,
 } from "@mui/material";
 
-
-// -------------------- MODAL EDIT --------------------
 type ModalEditProps<T extends { id: string }> = {
     open: boolean;
     onClose: () => void;
@@ -46,22 +44,70 @@ export function ModalEdit<T extends { id: string }>({
         }
     };
 
+    // Detectamos si pasamos de 5 campos
+    const entries = Object.entries(formData).filter(([key]) => key !== "id");
+    const isTwoColumns = entries.length > 5;
+
+    // Función para detectar si un campo es fecha
+    const isDateField = (key: string, value: unknown) => {
+        if (key.toLowerCase().includes("fecha")) return true;
+
+        if (typeof value !== "string") return false;
+
+        // Regex estrictas para formatos de fecha comunes
+        const regexISO = /^\d{4}[-/]\d{2}[-/]\d{2}$/; // YYYY-MM-DD o YYYY/MM/DD
+        const regexDMY = /^\d{2}[-/]\d{2}[-/]\d{4}$/; // DD-MM-YYYY o DD/MM/YYYY
+
+        return regexISO.test(value) || regexDMY.test(value);
+    };
+
+    // 🟢 Función para normalizar la fecha al formato válido para input[type="date"]
+    const normalizeDate = (value: string) => {
+        if (!value) return "";
+
+        // Caso rango "2025/08/23 - 2025/08/25" → tomar la primera fecha
+        if (value.includes("-") && value.includes("/")) {
+            const firstDate = value.split("-")[0].trim();
+            return firstDate.replace(/\//g, "-"); // "2025-08-23"
+        }
+
+        // Caso "2025/12/23" → convertir "/" a "-"
+        if (/^\d{4}\/\d{2}\/\d{2}$/.test(value)) {
+            return value.replace(/\//g, "-"); // "2025-12-23"
+        }
+
+        return value;
+    };
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>Editar Registro</DialogTitle>
             <DialogContent>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-                    {Object.entries(formData).map(([key, value]) =>
-                        key !== "id" ? (
-                            <TextField
-                                key={key}
-                                label={key}
-                                value={String(value)}
-                                onChange={(e) => handleChange(key as keyof T, e.target.value)}
-                                fullWidth
-                            />
-                        ) : null
-                    )}
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: isTwoColumns ? "1fr 1fr" : "1fr",
+                        gap: 2,
+                        mt: 1,
+                    }}
+                >
+                    {entries.map(([key, value]) => (
+                        <TextField
+                            key={key}
+                            label={key}
+                            type={isDateField(key, value) ? "date" : "text"}
+                            value={
+                                isDateField(key, value)
+                                    ? normalizeDate(String(value))
+                                    : String(value)
+                            }
+                            onChange={(e) => handleChange(key as keyof T, e.target.value)}
+                            fullWidth
+                            InputLabelProps={
+                                isDateField(key, value) ? { shrink: true } : undefined
+                            }
+                        />
+                    ))}
                 </Box>
             </DialogContent>
             <DialogActions>
@@ -75,6 +121,7 @@ export function ModalEdit<T extends { id: string }>({
         </Dialog>
     );
 }
+
 
 // -------------------- MODAL ADD --------------------
 

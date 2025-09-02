@@ -37,6 +37,8 @@ export default function EsquemaContratacionPage() {
                 columns={columns}
                 menu={true}
                 actions={actions}
+                urlRouteAdd="/dashboard/esquema-contratacion/new"
+                urlRouteEdit="/dashboard/esquema-contratacion/edit?id="
             />
         </ContentBody>
     );

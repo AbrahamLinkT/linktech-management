@@ -42,13 +42,12 @@ export default function Workers() {
                 {/* Aquí renderizas el DataTable */}
                 <DataTable<StaffItem> data={data}
                     columns={columns}
-                    //ModalAdd={<h1>hola</h1>}
-                    //title_add="Trabajador"
-                    //edit={true}
-                    urlRouteAdd="/dashboard/workers/new_worker"
-                    urlRouteEdit="/dashboard"
+                    urlRoute="/dashboard/workers/show?id="
+                    urlRouteAdd="/dashboard/workers/new"
+                    urlRouteEdit="/dashboard/workers/edit?id="
                     actions={{ edit: true, add: true }}
                     menu={true}
+
                 />
             </ContentBody>
         </>

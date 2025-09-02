@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 
 type ActionsConfig = {
     edit?: boolean;
+    editRow?: boolean;
     add?: boolean;
     export?: boolean;
     delete?: boolean;
@@ -34,6 +35,7 @@ type DataTableProps<T extends { id: string }> = {
     urlRouteAdd?: string
     urlRoute?: string
     urlRouteEdit?: string
+    urlReturn?: string
     actions?: ActionsConfig;
     menu?: boolean
 
@@ -42,23 +44,24 @@ type DataTableProps<T extends { id: string }> = {
 export function DataTable<T extends { id: string }>({
     data,
     columns,
+    title_add,
     ModalAdd,
     edit,
-    title_add,
     urlRoute,
     urlRouteAdd,
     urlRouteEdit,
     menu,
-    actions = {}, // 👈 si no viene nada, será {}
+    actions = {},
 
 }: DataTableProps<T>) {
+    // =============== ESTADOS ================
     const [rows, setRows] = useState<T[]>(data);
     const [editRow, setEditRow] = useState<T | null>(null);
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [routeModal, setRouteModal] = useState(false)
     const [id, setId] = useState<string | null>(null)
 
-    // ==== EXPORT ====
+    // ========= EXPORT =========
     const handleExportRows = (rows: MRT_Row<T>[]) => {
         const rowData = rows.map((row) => row.original);
         const csv = generateCsv(csvConfig)(rowData);
@@ -68,21 +71,19 @@ export function DataTable<T extends { id: string }>({
         const csv = generateCsv(csvConfig)(rows);
         download(csvConfig)(csv);
     };
-
+    // ========= ROUTING =========
     const router = useRouter()
     const handleConfirmRoute = () => {
-        //console.log(`${urlRoute}${id}`);
-
         router.push(`${urlRoute}${id}`)
     }
-    // ==== MENU STATE ====
+    // ========= MENU STATE =========
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleMenuClose = () => setAnchorEl(null);
-
+    // ========= TABLA Y MENU =========
     const table = useMaterialReactTable({
         columns,
         data: rows,
@@ -123,14 +124,15 @@ export function DataTable<T extends { id: string }>({
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
                                     if (urlRouteEdit) {
-                                        router.push(`${urlRouteEdit}`)
+                                        const selected = selectedRows[0].original;
+                                        router.push(`${urlRouteEdit}${selected.id}`);
                                     } else if (edit) {
                                         if (selectedCount === 1) {
                                             setEditRow(selectedRows[0].original);
                                         }
                                         handleMenuClose();
+                                        console.log("estas dentro del modal");
 
-                                        //console.log("estas dentro del modal");
                                     }
 
                                 }}
@@ -234,6 +236,8 @@ export function DataTable<T extends { id: string }>({
                 if (urlRoute) {
                     setRouteModal(true)
                     setId(row.original.id)
+                } else if (actions?.editRow) {
+                    setEditRow(row.original);
                 }
 
             },
@@ -241,6 +245,7 @@ export function DataTable<T extends { id: string }>({
         }),
     });
 
+    // =============== RENDERIZADO DE MODALES Y TABLA ===============
     return (
         <>
             <MaterialReactTable table={table} />
@@ -261,7 +266,7 @@ export function DataTable<T extends { id: string }>({
             <ModalGen
                 open={addModalOpen}
                 onClose={() => setAddModalOpen(false)}
-                onSave={() => setAddModalOpen(false)} // 🚨 Aquí puedes pasar lógica real de guardado
+                onSave={() => setAddModalOpen(false)}
                 title={title_add}
             >
                 {ModalAdd}

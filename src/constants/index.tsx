@@ -16,20 +16,20 @@ export const navbarLinks = [
                 path: "/dashboard/analisis",
             },
             {
-                label: "Proyectos",
-                icon: NotepadText,
-                path: "/dashboard/projects",
-            },
-            {
                 label: "Proyección",
                 icon: ChartColumn,
                 path: "/dashboard/proyeccion",
             },
             {
+                label: "Proyectos",
+                icon: NotepadText,
+                path: "/dashboard/projects",
+            },
+            /* {
                 label: "Tabla",
                 icon: NotepadText,
                 path: "/dashboard/tabla",
-            },
+            }, */
         ],
     },
     {
