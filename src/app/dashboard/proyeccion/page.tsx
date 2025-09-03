@@ -187,6 +187,18 @@ export default function ProyeccionPage() {
                   textTransform: "none",
                   fontWeight: 500,
                 }}
+                onClick={() => router.push("/dashboard/solicitud_horas")}
+              >
+                Solicitud de Horas (2)
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 500,
+                }}
                 onClick={() => router.push("/dashboard/proyeccion/date")}
               >
                 Ver proyección
