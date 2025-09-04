@@ -11,7 +11,7 @@ export const navbarLinks = [
                 path: "/dashboard",
             },
             {
-                label: "Analisis",
+                label: "Análisis",
                 icon: ChartColumn,
                 path: "/dashboard/analisis",
             },
