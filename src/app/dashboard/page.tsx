@@ -33,7 +33,7 @@ const DashboardPage = () => {
             <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
               <DollarSign size={26} />
             </div>
-            <p className="card-title">Total Gananciass</p>
+            <p className="card-title">Total Ganancias</p>
           </div>
           <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
             <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">$16,000</p>
