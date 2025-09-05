@@ -90,6 +90,7 @@ function ProyeccionTablePage() {
   const [openModal, setOpenModal] = useState(false);
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
   const [rangoHoras, setRangoHoras] = useState({ desde: '', hasta: '', cantidad: '' });
+  const [registroSeleccionado, setRegistroSeleccionado] = useState<ProyeccionRow | null>(null);
 
   const [tableData, setTableData] = useState<ProyeccionRow[]>([
     {
@@ -155,16 +156,81 @@ function ProyeccionTablePage() {
     setOpenModal(true);
   };
 
+  // Función para abrir el modal desde el botón (con selección de registro)
+  const handleAbrirModalDesdeBoton = () => {
+    // Buscar el primer registro seleccionado
+    const selectedIndex = Object.keys(rowSelection)[0];
+    if (selectedIndex !== undefined) {
+      setRegistroSeleccionado(tableData[parseInt(selectedIndex)]);
+      setOpenModal(true);
+    }
+  };
+
   // Función para guardar el rango de horas
+  const diasInfo = [
+    { inicial: "Lun", fecha: "01/08/25" },
+    { inicial: "Mar", fecha: "02/08/25" },
+    { inicial: "Mie", fecha: "03/08/25" },
+    { inicial: "Jue", fecha: "04/08/25" },
+    { inicial: "Vie", fecha: "05/08/25" },
+    { inicial: "Lun", fecha: "08/08/25" },
+    { inicial: "Mar", fecha: "09/08/25" },
+    { inicial: "Mie", fecha: "10/08/25" },
+    { inicial: "Jue", fecha: "11/08/25" },
+    { inicial: "Vie", fecha: "12/08/25" },
+    { inicial: "Lun", fecha: "15/08/25" },
+    { inicial: "Mar", fecha: "16/08/25" },
+    { inicial: "Mie", fecha: "17/08/25" },
+    { inicial: "Jue", fecha: "18/08/25" },
+    { inicial: "Vie", fecha: "19/08/25" },
+  ];
+
+  const parseFecha = (f: string) => {
+    // Espera formato dd/mm/yy o yyyy-mm-dd
+    if (!f) return null;
+    if (f.includes("-")) {
+      // yyyy-mm-dd
+      return new Date(f);
+    }
+    const [d, m, y] = f.split("/");
+    return new Date(`20${y.length === 2 ? y : y.slice(-2)}` + `-${m}-${d}`);
+  };
+
   const handleGuardarHoras = () => {
-    if (diaSeleccionado === null) return;
-    setTableData((prev) =>
-      prev.map((row) => {
-        const nuevasHoras = [...row.horas];
-        nuevasHoras[diaSeleccionado] = `${rangoHoras.desde} - ${rangoHoras.hasta} (${rangoHoras.cantidad}h)`;
-        return { ...row, horas: nuevasHoras };
-      })
-    );
+    if (registroSeleccionado) {
+      setTableData((prev) =>
+        prev.map((row) => {
+          if (row === registroSeleccionado) {
+            const nuevasHoras = [...row.horas];
+            // Mapear fechas de columnas a índices
+            const desdeDate = parseFecha(rangoHoras.desde);
+            const hastaDate = parseFecha(rangoHoras.hasta);
+            for (let i = 0; i < diasInfo.length; i++) {
+              const colDate = parseFecha(diasInfo[i].fecha);
+              if (
+                desdeDate && hastaDate &&
+                colDate &&
+                colDate >= desdeDate &&
+                colDate <= hastaDate
+              ) {
+                nuevasHoras[i] = `${rangoHoras.cantidad}*`;
+              }
+            }
+            return { ...row, horas: nuevasHoras };
+          }
+          return row;
+        })
+      );
+      setRegistroSeleccionado(null);
+    } else if (diaSeleccionado !== null) {
+      setTableData((prev) =>
+        prev.map((row) => {
+          const nuevasHoras = [...row.horas];
+          nuevasHoras[diaSeleccionado] = `${rangoHoras.cantidad}*`;
+          return { ...row, horas: nuevasHoras };
+        })
+      );
+    }
     setOpenModal(false);
     setRangoHoras({ desde: '', hasta: '', cantidad: '' });
     setDiaSeleccionado(null);
@@ -387,7 +453,8 @@ function ProyeccionTablePage() {
             <Button
               variant="contained"
               sx={{ borderRadius: 2, textTransform: "none", fontWeight: 500 }}
-              onClick={() => setOpenModal(true)}
+              onClick={handleAbrirModalDesdeBoton}
+              disabled={Object.keys(rowSelection).length === 0}
             >
               Cambiar horas
             </Button>
@@ -510,9 +577,19 @@ function ProyeccionTablePage() {
             }}
           >
             <Typography variant="h6" sx={{ mb: 1 }}>
-              Cambiar horas por día
+              Cambiar horas
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {registroSeleccionado && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2"><b>Consultor:</b> {registroSeleccionado.consultor}</Typography>
+                <Typography variant="body2"><b>Departamento:</b> {registroSeleccionado.departamento}</Typography>
+                <Typography variant="body2"><b>Tipo Empleado:</b> {registroSeleccionado.tipoEmpleado}</Typography>
+                <Typography variant="body2"><b>Esquema:</b> {registroSeleccionado.esquema}</Typography>
+                <Typography variant="body2"><b>Módulo:</b> {registroSeleccionado.modulo}</Typography>
+                <Typography variant="body2"><b>Nivel:</b> {registroSeleccionado.nivel}</Typography>
+              </Box>
+            )}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', m: 2 }}>
               <Typography variant="body2">Desde:</Typography>
               <input
                 type="date"
@@ -541,7 +618,7 @@ function ProyeccionTablePage() {
               <Button variant="contained" color="primary" onClick={handleGuardarHoras}>
                 Guardar
               </Button>
-              <Button variant="outlined" color="secondary" onClick={() => setOpenModal(false)}>
+              <Button variant="outlined" color="secondary" onClick={() => { setOpenModal(false); setRegistroSeleccionado(null); }}>
                 Cancelar
               </Button>
             </Box>
