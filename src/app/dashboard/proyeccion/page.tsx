@@ -100,7 +100,7 @@ export default function ProyeccionPage() {
     []
   );
 
-  const actions = { edit: true, add: true, export: true, delete: true }
+  const actions = { add: true, export: true, delete: true }
   // ------------------- LOGICA DE MODAL ------------------
   const handleSelectModalRow = (idx: number) => {
     setSelectedModalRows((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -187,6 +187,18 @@ export default function ProyeccionPage() {
                   textTransform: "none",
                   fontWeight: 500,
                 }}
+                onClick={() => router.push("/dashboard/solicitud_horas")}
+              >
+                Solicitud de Horas (2)
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 500,
+                }}
                 onClick={() => router.push("/dashboard/proyeccion/date")}
               >
                 Ver proyección
@@ -200,6 +212,7 @@ export default function ProyeccionPage() {
           data={data}
           menu={true}
           actions={actions}
+
           ModalAdd={
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3, py: 2 }}>
               {/* Búsqueda por nombre, especialidad y nivel */}

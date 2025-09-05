@@ -1,8 +1,8 @@
 "use client"
-import { overviewData, topProducts } from '@/constants';
+import { overviewData } from '@/constants';
 import { useTheme } from '@/hooks/use-theme';
 import { Footer } from '@/layouts/footer';
-import { DollarSign, Package, PencilLine, Star, Trash, TrendingUp, Users } from 'lucide-react';
+import { DollarSign, Package, TrendingUp, Users } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 
@@ -33,7 +33,7 @@ const DashboardPage = () => {
             <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
               <DollarSign size={26} />
             </div>
-            <p className="card-title">Total Gananciass</p>
+            <p className="card-title">Total Ganancias</p>
           </div>
           <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
             <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">$16,000</p>
@@ -99,70 +99,6 @@ const DashboardPage = () => {
           </div>
         </div>
         {/* fin de la grafica  */}
-      </div>
-
-
-      {/* Comienzo de top  */}
-      <div className="card">
-        <div className="card-header">
-          <p className="card-title">Top Product Manager</p>
-        </div>
-        <div className="card-body p-0">
-          <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:thin]">
-            <table className="table">
-              <thead className="table-header">
-                <tr className="table-row">
-                  <th className="table-head">#</th>
-                  <th className="table-head">Product</th>
-                  <th className="table-head">Price</th>
-                  <th className="table-head">Status</th>
-                  <th className="table-head">Rating</th>
-                  <th className="table-head">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="table-body">
-                {topProducts.map((product) => (
-                  <tr
-                    key={product.number}
-                    className="table-row"
-                  >
-                    <td className="table-cell">{product.number}</td>
-                    <td className="table-cell">
-                      <div className="flex w-max gap-x-4">
-
-                        <div className="flex flex-col">
-                          <p>{product.name}</p>
-                          <p className="font-normal text-slate-600 dark:text-slate-400">{product.description}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="table-cell">${product.price}</td>
-                    <td className="table-cell">{product.status}</td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-x-2">
-                        <Star
-                          size={18}
-                          className="fill-yellow-600 stroke-yellow-600"
-                        />
-                        {product.rating}
-                      </div>
-                    </td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-x-4">
-                        <button className="text-blue-500 dark:text-blue-600">
-                          <PencilLine size={20} />
-                        </button>
-                        <button className="text-red-500">
-                          <Trash size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
       {/* final del top */}
       <Footer />

@@ -6,10 +6,11 @@
       "especialidad": "SD",
       "nivel": "sr",
       "departamento": "delivery",
-      "esquema": "asimilado",
-      "tiempo": "indefinido",
+      "esquema": "Asimilados",
+      "horas": "5",
       "estatus": "Activo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     },
     {
       "id": "2",
@@ -18,9 +19,10 @@
       "nivel": "jr",
       "departamento": "consultoría",
       "esquema": "Honorarios",
-      "tiempo": "medio",
+      "horas": "5",
       "estatus": "Activo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     },
     {
       "id": "3",
@@ -29,9 +31,10 @@
       "nivel": "sr",
       "departamento": "soporte",
       "esquema": "Asimilados",
-      "tiempo": "completo",
+      "horas": "5",
       "estatus": "Inactivo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     },
     {
       "id": "4",
@@ -40,9 +43,10 @@
       "nivel": "ssr",
       "departamento": "implementación",
       "esquema": "Honorarios",
-      "tiempo": "completo",
+      "horas": "50",
       "estatus": "Activo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     },
     {
       "id": "5",
@@ -51,9 +55,10 @@
       "nivel": "jr",
       "departamento": "desarrollo",
       "esquema": "Nómina",
-      "tiempo": "medio",
+      "horas": "60",
       "estatus": "Activo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     },
     {
       "id": "6",
@@ -62,9 +67,10 @@
       "nivel": "sr",
       "departamento": "consultoría",
       "esquema": "Asimilados",
-      "tiempo": "completo",
+      "horas": "80",
       "estatus": "Inactivo",
-      "foto": ""
+      "fecha-inicio": "2023-10-01",
+      "fecha-fin": "2024-10-01"
     }
   ]
 }

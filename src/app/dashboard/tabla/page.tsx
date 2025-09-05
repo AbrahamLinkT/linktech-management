@@ -1,277 +1,148 @@
 "use client";
-import React, { useMemo, useState, MouseEvent } from "react";
+
+import React, { useMemo, useState } from "react";
 import {
-  MaterialReactTable,
-  MRT_ColumnDef,
-  MRT_RowSelectionState,
+    MaterialReactTable,
+    type MRT_ColumnDef,
+    type MRT_RowSelectionState,
 } from "material-react-table";
-import {
-  Box,
-  Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Menu,
-  MenuItem,
-} from "@mui/material";
-import { useRouter } from "next/navigation";
+import { Box, Typography } from "@mui/material";
 
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-
-type Person = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+// ---- Tipos ----
+type TablaRow = {
+    consultor: string;
+    departamento: string;
+    tipoEmpleado: string;
+    esquema: string;
+    tiempo: string;
+    modulo: string;
+    nivel: string;
+    horas: string[]; // índice 0..14 (3 semanas * 5 días)
+    fechaLibre: string;
 };
 
-const CustomTable: React.FC = () => {
-  const router = useRouter();
+// ---- Datos de cabeceras por semana ----
+const semanas = [
+    { nombre: "Semana 1", dias: ["Lunes 1", "Martes 2", "Miércoles 3", "Jueves 4", "Viernes 5"] },
+    { nombre: "Semana 2", dias: ["Lunes 8", "Martes 9", "Miércoles 10", "Jueves 11", "Viernes 12"] },
+    { nombre: "Semana 3", dias: ["Lunes 15", "Martes 16", "Miércoles 17", "Jueves 18", "Viernes 19"] },
+];
 
-  const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
-  const [tableData, setTableData] = useState<Person[]>(() => {
-    const guardados = JSON.parse(localStorage.getItem("personas") || "[]");
-    const base = [
-      { id: 1, firstName: "Luis", lastName: "Hernández", email: "luis@mail.com" },
-      { id: 2, firstName: "Ana", lastName: "Gómez", email: "ana@mail.com" },
-      { id: 3, firstName: "Carlos", lastName: "Pérez", email: "carlos@mail.com" },
-      { id: 4, firstName: "María", lastName: "López", email: "maria@mail.com" },
-    ];
-    // Mezclar datos base + guardados, evitando IDs duplicados
-    const idsBase = new Set(base.map(p => p.id));
-    const filtrados = guardados.filter((p: Person) => !idsBase.has(p.id));
-    return [...base, ...filtrados];
-  });
-
-
-
-  // Menú
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openMenu = Boolean(anchorEl);
-
-  // Modal archivar
-  const [openArchiveModal, setOpenArchiveModal] = useState(false);
-
-  // Obtener los IDs reales seleccionados
-  const selectedIds = Object.keys(rowSelection)
-    .map((key) => tableData[Number(key)]?.id)
-    .filter((id) => id !== undefined);
-
-  // Abrir/cerrar menú
-  const handleMenuClick = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Exportar a Excel
-  const exportToExcel = () => {
-    if (selectedIds.length === 0) {
-      alert("Selecciona al menos un registro para exportar.");
-      return;
-    }
-    const dataToExport = tableData.filter((p) => selectedIds.includes(p.id));
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Trabajadores");
-
-    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-
-    const blob = new Blob([wbout], { type: "application/octet-stream" });
-    saveAs(blob, "trabajadores.xlsx");
-  };
-
-  // Acciones menú
-  const handleMenuItemClick = (
-    action: "nuevo" | "editar" | "archivar" | "eliminar" | "exportar"
-  ) => {
-    handleMenuClose();
-
-    switch (action) {
-      case "nuevo":
-        router.push("/dashboard/tabla/new");
-        break;
-      case "editar":
-        if (selectedIds.length !== 1) {
-          alert("Selecciona exactamente un registro para editar.");
-          return;
-        }
-        router.push(`/dashboard/edith/${selectedIds[0]}`);
-        break;
-      case "archivar":
-        if (selectedIds.length === 0) {
-          alert("Selecciona al menos un registro para archivar.");
-          return;
-        }
-        setOpenArchiveModal(true);
-        break;
-      case "eliminar":
-        if (selectedIds.length === 0) {
-          alert("Selecciona al menos un registro para eliminar.");
-          return;
-        }
-        if (
-          confirm(
-            `¿Eliminar ${selectedIds.length} registro(s)? Esta acción no se puede deshacer.`
-          )
-        ) {
-          setTableData((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-          setRowSelection({});
-        }
-        break;
-      case "exportar":
-        exportToExcel();
-        break;
-    }
-  };
-
-  // Confirmar archivar
-  const handleConfirmArchive = () => {
-    setTableData((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-    setRowSelection({});
-    setOpenArchiveModal(false);
-  };
-
-  const columns = useMemo<MRT_ColumnDef<Person>[]>(
-    () => [
-      { accessorKey: "id", header: "ID", size: 60 },
-      { accessorKey: "firstName", header: "Nombre" },
-      { accessorKey: "lastName", header: "Apellido" },
-      { accessorKey: "email", header: "Correo Electrónico" },
-    ],
-    []
-  );
-
-  return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Tabla Interactiva - Material React Table
-      </Typography>
-
-      {/* Menú acciones */}
-      <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={handleMenuClick}>
-          Acciones
-        </Button>
-        <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
-          <MenuItem onClick={() => handleMenuItemClick("nuevo")}>Nuevo</MenuItem>
-          <MenuItem
-            onClick={() => handleMenuItemClick("editar")}
-            disabled={selectedIds.length !== 1}
-          >
-            Editar
-          </MenuItem>
-          <MenuItem
-            onClick={() => handleMenuItemClick("archivar")}
-            disabled={selectedIds.length === 0}
-          >
-            Archivar
-          </MenuItem>
-          <MenuItem
-            onClick={() => handleMenuItemClick("eliminar")}
-            disabled={selectedIds.length === 0}
-          >
-            Eliminar
-          </MenuItem>
-          <MenuItem
-            onClick={() => handleMenuItemClick("exportar")}
-            disabled={selectedIds.length === 0}
-          >
-            Exportar a Excel
-          </MenuItem>
-        </Menu>
-      </Box>
-
-      {/* Modal archivar */}
-      <Dialog open={openArchiveModal} onClose={() => setOpenArchiveModal(false)}>
-        <DialogTitle>¿Archivar registros seleccionados?</DialogTitle>
-        <DialogContent>
-          <Typography>
-            ¿Estás seguro de que deseas archivar los registros seleccionados? Esta acción no se
-            puede deshacer.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenArchiveModal(false)} color="inherit">
-            Cancelar
-          </Button>
-          <Button variant="contained" color="warning" onClick={handleConfirmArchive}>
-            Archivar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <MaterialReactTable<Person>
-        localization={{
-          actions: "Acciones",
-          showHideColumns: "Mostrar/Ocultar columnas",
-          showHideFilters: "Mostrar/Ocultar filtros",
-          showHideSearch: "Mostrar/Ocultar búsqueda",
-          search: "Buscar",
-          clearSearch: "Limpiar búsqueda",
-          rowNumber: "N°",
-          noRecordsToDisplay: "No hay registros para mostrar",
-          rowsPerPage: "Filas por página",
-          columnActions: "Acciones de columna",
-          filterMode: "Modo de filtro",
-          filterByColumn: "Filtrar por columna",
-          filterContains: "Contiene",
-          filterEmpty: "Vacío",
-          filterEndsWith: "Termina con",
-          filterEquals: "Igual a",
-          filterFuzzy: "Búsqueda difusa",
-          filterGreaterThan: "Mayor que",
-          filterGreaterThanOrEqualTo: "Mayor o igual que",
-          filterLessThan: "Menor que",
-          filterLessThanOrEqualTo: "Menor o igual que",
-          filterNotEmpty: "No vacío",
-          filterNotEquals: "Distinto de",
-          filterStartsWith: "Empieza con",
-          clearSort: "Limpiar orden",
-          sortByColumnAsc: "Ordenar por {column} ascendente",
-          sortByColumnDesc: "Ordenar por {column} descendente",
-          clearFilter: "Limpiar filtro",
-          resetColumnSize: "Restablecer tamaño de columna",
-          hideColumn: "Ocultar columna",
-          showAllColumns: "Mostrar todas las columnas",
-          hideAll: "Ocultar todas",
-          showAll: "Mostrar todas",
-          resetOrder: "Restablecer orden",
-          rowNumbers: "Números de fila",
-          select: "Seleccionar",
-        }}
-        columns={columns}
-        data={tableData}
-        enableColumnResizing
-        enableRowSelection
-        enableRowNumbers
-        enablePagination
-        enableColumnFilterModes
-        enableFacetedValues
-        enableFilters
-        enableHiding
-        enableColumnOrdering
-        enableFullScreenToggle
-        enableDensityToggle
-        enableColumnActions
-        muiTableContainerProps={{ sx: { maxHeight: "500px" } }}
-        onRowSelectionChange={setRowSelection}
-        state={{ rowSelection }}
-        renderBottomToolbarCustomActions={() => (
-          <Box sx={{ p: 1 }}>
-            <Typography variant="body2">
-              Filas seleccionadas: {Object.keys(rowSelection).length}
+// ---- Encabezado minimalista ----
+function TitleOnlyHeader({ title }: { title: string }) {
+    return (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", p: 0.5 }}>
+            <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, textAlign: "center", lineHeight: 1.1 }}
+                title={title}
+            >
+                {title}
             </Typography>
-          </Box>
-        )}
-      />
-    </Box>
-  );
-};
+        </Box>
+    );
+}
 
-export default CustomTable;
+function TablaPage() {
+    // ---- Datos vacíos ----
+    const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
+    const [tableData] = useState<TablaRow[]>([
+        {
+            consultor: "",
+            departamento: "",
+            tipoEmpleado: "",
+            esquema: "",
+            tiempo: "",
+            modulo: "",
+            nivel: "",
+            horas: Array(15).fill(""), // todas vacías
+            fechaLibre: "",
+        },
+    ]);
+
+    // ---- Columnas (con grupos por semana) ----
+    const columns = useMemo<MRT_ColumnDef<TablaRow>[]>(() => {
+        const baseCols: MRT_ColumnDef<TablaRow>[] = [
+            { accessorKey: "consultor", header: "Consultor", Header: () => <TitleOnlyHeader title="Consultor" /> },
+            { accessorKey: "departamento", header: "Departamento", Header: () => <TitleOnlyHeader title="Departamento" /> },
+            { accessorKey: "tipoEmpleado", header: "Tipo de empleado", Header: () => <TitleOnlyHeader title="Tipo de empleado" /> },
+            { accessorKey: "esquema", header: "Esquema", Header: () => <TitleOnlyHeader title="Esquema" /> },
+            { accessorKey: "tiempo", header: "Tiempo", Header: () => <TitleOnlyHeader title="Tiempo" /> },
+            { accessorKey: "modulo", header: "Módulo", Header: () => <TitleOnlyHeader title="Módulo" /> },
+            { accessorKey: "nivel", header: "Nivel", Header: () => <TitleOnlyHeader title="Nivel" /> },
+        ];
+
+        const semanaGroups: MRT_ColumnDef<TablaRow>[] = semanas.map((semana, sIdx) => ({
+            header: semana.nombre,
+            columns: semana.dias.map((dia, dIdx) => {
+                const idx = sIdx * 5 + dIdx;
+                return {
+                    id: `horas_${idx}`,
+                    header: dia,
+                    accessorFn: (row) => row.horas?.[idx] ?? "",
+                    Header: () => <TitleOnlyHeader title={dia} />,
+                    Cell: ({ cell }) => (
+                        <Box
+                            sx={{
+                                bgcolor: "#fff",
+                                textAlign: "center",
+                                borderRadius: 1,
+                                py: 0.5,
+                            }}
+                        >
+                            {cell.getValue<string>()}
+                        </Box>
+                    ),
+                } as MRT_ColumnDef<TablaRow>;
+            }),
+        }));
+
+        const tailCol: MRT_ColumnDef<TablaRow> = {
+            accessorKey: "fechaLibre",
+            header: "Próxima fecha libre",
+            Header: () => <TitleOnlyHeader title="Próxima fecha libre" />,
+        };
+
+        return [...baseCols, ...semanaGroups, tailCol];
+    }, []);
+
+    return (
+        <Box sx={{ p: 4, bgcolor: "#f7f8fa", minHeight: "100vh" }}>
+            <Typography variant="h5" sx={{ mr: "auto", mb: 2 }}>
+                Tabla Vacía
+            </Typography>
+
+            <MaterialReactTable
+                columns={columns}
+                data={tableData}
+                enableSorting={false}
+                enableColumnActions={false}
+                enableFilters={false}
+                enableRowSelection
+                enableColumnResizing
+                enableColumnOrdering
+                enablePagination
+                enableHiding={false}
+                enableDensityToggle
+                enableFullScreenToggle
+                muiTableContainerProps={{
+                    sx: { borderRadius: 3, boxShadow: "none", background: "#fff" },
+                }}
+                muiTableHeadCellProps={{
+                    sx: { textAlign: "center", fontWeight: 500, fontSize: 14, py: 0.5 },
+                }}
+                muiTableBodyCellProps={{ sx: { textAlign: "center", fontSize: 15 } }}
+                onRowSelectionChange={setRowSelection}
+                state={{ rowSelection }}
+                initialState={{
+                    columnPinning: {
+                        left: ["consultor", "departamento", "tipoEmpleado", "esquema", "tiempo", "modulo", "nivel"],
+                    },
+                }}
+
+            />
+        </Box>
+    );
+}
+
+export default TablaPage;

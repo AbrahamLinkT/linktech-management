@@ -31,6 +31,8 @@ export default function UsersComponent() {
         columns={columns}
         menu={true}
         actions={actions}
+        urlRouteAdd="/dashboard/usuarios/new"
+        urlRouteEdit="/dashboard/usuarios/edit?id="
       />
     </ContentBody>
   );

@@ -58,6 +58,8 @@ export default function AsuetosPage() {
                 columns={columns}
                 menu={true}
                 actions={actions}
+                urlRouteAdd="/dashboard/asuetos/new"
+                urlRouteEdit="/dashboard/asuetos/edit?id="
             />
         </ContentBody>
     );

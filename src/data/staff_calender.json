@@ -1,0 +1,39 @@
+{
+    "staff":[
+        {
+            "id": "1",
+            "id_consultor": "1",
+            "consultor": "Juan Perez",
+            "nivel": "Senior",
+            "departamento": "IT",
+            "especialidad": "Desarrollador",
+            "esquema": "Remoto",
+            "totalHoras": "40",
+            "estatus": "Activo",
+            "fechas":[
+                {
+                    "fecha": "2023-01-01",
+                    "horas": "8"
+                },
+                {
+                    "fecha": "2023-01-02",
+                    "horas": "8"
+                },
+                {
+                    "fecha": "2023-01-03",
+                    "horas": "8"
+                }
+            ]
+        },
+        {
+            "id": "2",
+            "consultor": "Maria Gomez",
+            "especialidad": "Diseñadora",
+            "nivel": "Junior",
+            "departamento": "Marketing",
+            "esquema": "Presencial",
+            "horas": "35",
+            "estatus": "Activo"
+        }
+    ]
+}

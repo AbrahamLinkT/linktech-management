@@ -142,7 +142,7 @@ export default function NewWorker() {
                         </div>
                     </fieldset>
 
-                    {/* Botón de guardar 
+                    Botón de guardar
                     <div className="flex justify-end">
                         <button
                             type="submit"
@@ -150,7 +150,7 @@ export default function NewWorker() {
                         >
                             Guardar
                         </button>
-                    </div>*/}
+                    </div>
                 </form>
             </div>
         </ContentBody>

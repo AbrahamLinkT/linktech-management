@@ -7,7 +7,7 @@ export const Footer = () => {
                     href="#"
                     className="link"
                 >
-                    Politica de privasidad
+                    Politica de privacidad
                 </a>
                 <a
                     href="#"

@@ -26,10 +26,19 @@ export default function Client() {
         contacto: p.detalles.contacto,
         cargo: p.detalles.cargo,
     }));
-
+    const actions = { add: true, edit: true }
     return (
         <ContentBody title="Clientes">
-            <DataTable urlRoute="/dashboard" title_add="Agregar nuevo cliente" columns={columns} data={data} ModalAdd={<Adduser />} />
+            <DataTable
+                title_add="Agregar nuevo cliente"
+                columns={columns}
+                data={data}
+                ModalAdd={<Adduser />}
+                menu={true}
+                actions={actions}
+                urlRouteAdd="/dashboard/client/new"
+                urlRouteEdit="/dashboard/client/edit?id="
+            />
         </ContentBody>
     );
 }

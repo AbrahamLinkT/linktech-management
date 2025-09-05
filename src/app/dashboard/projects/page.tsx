@@ -28,9 +28,11 @@ export default function Projects() {
     { accessorKey: "descripcion", header: "Descripción" },
     {
       accessorKey: "fechaIn",
-      header: "Fechas",
-      // Concatenamos fecha inicio y fin en una sola celda
-      Cell: ({ row }) => `${row.original.fechaIn} - ${row.original.fechaFn}`,
+      header: "Fecha Inicio",
+    },
+    {
+      accessorKey: "fechaFn",
+      header: "Fecha Fin",
     },
     { accessorKey: "estatus", header: "Estatus" },
     { accessorKey: "responsable", header: "Responsable" },
@@ -56,12 +58,13 @@ export default function Projects() {
       <DataTable<Project>
         //title_add="Agregar"
         //ModalAdd={<h1>Agregar</h1>}
-        urlRoute="/dashboard/projects/project?id="
-        urlRouteAdd="/dashboard"
+        urlRoute="/dashboard/projects/show?id="
+        urlRouteAdd="/dashboard/projects/new"
         menu={true}
-        data={data}      // Datos consumidos del JSON
-        columns={columns} // Columnas definidas arriba
+        data={data}
+        columns={columns}
         actions={{ edit: true, add: true }}
+        edit={true}
 
       />
     </ContentBody>

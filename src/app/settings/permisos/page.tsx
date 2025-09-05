@@ -8,6 +8,7 @@ const secciones = [
   { label: "Proyectos", path: "/dashboard/projects" },
   { label: "Workers", path: "/dashboard/workers" },
   { label: "Nuevo trabajador", path: "/dashboard/new_worker" },
+  { label: "Solicitud de horas", path: "/dashboard/solicitud_horas" },
   { label: "Disponibilidad", path: "/dashboard/disponibilidad" },
   { label: "Cargabilidad", path: "/dashboard/cargabilidad" },
   { label: "Departamento", path: "/dashboard/departamento" },

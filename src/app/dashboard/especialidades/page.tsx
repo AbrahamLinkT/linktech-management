@@ -37,6 +37,8 @@ export default function EspecialidadesPage() {
                 columns={columns}
                 menu={true}
                 actions={actions}
+                urlRouteAdd="/dashboard/especialidades/new"
+                urlRouteEdit="/dashboard/especialidades/edit?id="
             />
         </ContentBody>
     );
