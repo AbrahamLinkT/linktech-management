@@ -88,12 +88,12 @@ export const navbarLinks = [
             {
                 label: "Roles",
                 icon: Settings,
-                path: "/settings/roles",
+                path: "/dashboard/settings/roles",
             },
             {
                 label: "Permisos",
                 icon: Settings,
-                path: "/settings/permisos",
+                path: "/dashboard/settings/permisos",
             },
             {
                 label: "Configuracion",
