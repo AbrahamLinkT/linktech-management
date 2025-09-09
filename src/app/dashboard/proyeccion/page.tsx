@@ -74,6 +74,9 @@ export default function ProyeccionPage() {
   // ------------------- STATE ------------------
   const [selectedModalRows, setSelectedModalRows] = useState<Record<number, boolean>>({});
   const [selectedIO, setSelectedIO] = useState<string>("");
+  // Estado para filtro de fechas en la modal
+  const [modalDesde, setModalDesde] = useState<string>("");
+  const [modalHasta, setModalHasta] = useState<string>("");
   //const [tableData, setTableData] = useState<RowData[]>(initialData);
 
   // ------------------- ROUTE -----------------
@@ -132,21 +135,48 @@ export default function ProyeccionPage() {
     especialidad: string;
     nivel: string;
     departamento: string;
+    fecha?: string; // Fecha tentativa de liberación
   };
+  // Agrega un campo de fecha ficticio para ejemplo
   const [modalRows] = useState<ModalRow[]>([
     {
       nombre: "María Gómez",
       especialidad: "SAP FI",
       nivel: "Sr",
       departamento: "Finanzas",
+      fecha: "2024-06-01",
     },
     {
       nombre: "Carlos Ruiz",
       especialidad: "SAP MM",
       nivel: "Mid",
       departamento: "Abastecimiento",
+      fecha: "2024-06-10",
+    },
+    {
+      nombre: "Ana Torres",
+      especialidad: "SAP HCM",
+      nivel: "Jr",
+      departamento: "Recursos Humanos",
+      fecha: "2024-06-15",
     },
   ]);
+
+  // Filtrado por rango de fechas
+  const filteredModalRows = modalRows.filter((row) => {
+    if (!modalDesde && !modalHasta) return true;
+    if (!row.fecha) return false;
+    const rowDate = new Date(row.fecha);
+    if (modalDesde) {
+      const desdeDate = new Date(modalDesde);
+      if (rowDate < desdeDate) return false;
+    }
+    if (modalHasta) {
+      const hastaDate = new Date(modalHasta);
+      if (rowDate > hastaDate) return false;
+    }
+    return true;
+  });
   return (
     <>
       <ContentBody
@@ -215,6 +245,7 @@ export default function ProyeccionPage() {
 
           ModalAdd={
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3, py: 2 }}>
+              {/* Filtros de búsqueda */}
               {/* Búsqueda por nombre, especialidad y nivel */}
               {[
                 { label: "Nombre", placeholder: "Buscar por nombre" },
@@ -267,6 +298,26 @@ export default function ProyeccionPage() {
                 </Box>
               ))}
 
+              {/* Filtros de fecha: Desde y Hasta */}
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  label="Desde"
+                  type="date"
+                  value={modalDesde}
+                  onChange={e => setModalDesde(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ minWidth: 180 }}
+                />
+                <TextField
+                  label="Hasta"
+                  type="date"
+                  value={modalHasta}
+                  onChange={e => setModalHasta(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ minWidth: 180 }}
+                />
+              </Box>
+
               {/* Resultados de ejemplo */}
               <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
                 <Button
@@ -282,29 +333,35 @@ export default function ProyeccionPage() {
                 <table
                   style={{
                     width: "100%",
-                    borderCollapse: "collapse",
+                    borderCollapse: "separate",
+                    borderSpacing: "0 8px",
                     background: "#fff",
                   }}
                 >
                   <thead>
                     <tr>
-                      <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
                         Nombre
                       </th>
-                      <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
                         Especialidad
                       </th>
-                      <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
                         Nivel
                       </th>
-                      <th style={{ border: "1px solid #aaa", padding: 4 }}>
+                      <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
                         Departamento
+                      </th>
+                      <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
+                        Fecha tentativa de liberación
                       </th>
                       <th
                         style={{
                           border: "1px solid #aaa",
-                          padding: 4,
+                          padding: '10px 8px',
                           textAlign: "center",
+                          fontSize: 15,
+                          background: '#f7f4fa'
                         }}
                       >
                         Seleccionar
@@ -312,25 +369,29 @@ export default function ProyeccionPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {modalRows.map((row, idx) => (
+                    {filteredModalRows.map((row, idx) => (
                       <tr key={idx}>
-                        <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
                           {row.nombre}
                         </td>
-                        <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
                           {row.especialidad}
                         </td>
-                        <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
                           {row.nivel}
                         </td>
-                        <td style={{ border: "1px solid #aaa", padding: 4 }}>
+                        <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
                           {row.departamento}
+                        </td>
+                        <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
+                          {row.fecha ? new Date(row.fecha).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—'}
                         </td>
                         <td
                           style={{
                             border: "1px solid #aaa",
-                            padding: 4,
+                            padding: '10px 8px',
                             textAlign: "center",
+                            fontSize: 15
                           }}
                         >
                           <input
