@@ -7,6 +7,8 @@ import {
   type MRT_RowSelectionState,
 } from "material-react-table";
 import { Box, Typography, Button } from "@mui/material";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useRouter } from "next/navigation";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 // ---- Tipos ----
@@ -45,6 +47,7 @@ function TitleOnlyHeader({ title }: { title: string }) {
 }
 
 function ProyeccionTablePage() {
+  const router = useRouter();
   const [vistaError, setVistaError] = useState('');
   // Estado para modal de cambiar vista
   const [openVistaModal, setOpenVistaModal] = useState(false);
@@ -394,9 +397,14 @@ function ProyeccionTablePage() {
 
   return (
     <Box sx={{ p: 4, bgcolor: "#f7f8fa", minHeight: "100vh" }}>
-      <Typography variant="h5" sx={{ mr: "auto", mb: 2 }}>
-        Proyección
-      </Typography>
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h5">
+          Proyección
+        </Typography>
+        <Button variant="outlined" color="primary" onClick={() => router.back()} startIcon={<ArrowBackIcon />}>
+          Regresar
+        </Button>
+      </Box>
 
       <MaterialReactTable
         columns={columns.slice(0, 7).concat(columns.slice(7, 7 + vistaSemanas))}
