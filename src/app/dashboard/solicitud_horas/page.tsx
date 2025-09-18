@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
@@ -28,7 +28,7 @@ export default function SolicitudHoras() {
     { accessorKey: "solicitante", header: "Solicitante", size: 180 },
   ], []);
 
-  const data: Solicitud[] = [
+  const initialData: Solicitud[] = [
     {
       id: "1",
       consultor: "Diego Carranza",
@@ -51,23 +51,46 @@ export default function SolicitudHoras() {
     },
   ];
 
+  // Estado para las filas
+  const [rows, setRows] = useState<Solicitud[]>(initialData);
+  // Estado para filas seleccionadas (ids)
+  const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+
   const actions = { edit: false, add: false, export: false, delete: false };
 
   const handleRechazar = () => {
+    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+    if (selectedIds.length === 0) {
+      alert("No seleccionaste ninguna solicitud.");
+      return;
+    }
+    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+    setSelectedRowIds({});
     alert("Se rechazaron las solicitudes seleccionadas.");
   };
 
   const handleAceptar = () => {
+    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+    if (selectedIds.length === 0) {
+      alert("No seleccionaste ninguna solicitud.");
+      return;
+    }
+    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+    setSelectedRowIds({});
     alert("Se aceptaron las solicitudes seleccionadas.");
   };
 
   return (
     <ContentBody title="Solicitud de horas pendientes">
       <DataTable<Solicitud>
-        data={data}
+        data={rows}
         columns={columns}
         menu={false}
         actions={actions}
+        // Controlar selección desde aquí
+        //initialState={{ rowSelection: selectedRowIds }}
+        //state={{ rowSelection: selectedRowIds }}
+        //onRowSelectionChange={setSelectedRowIds}
       />
 
       {/* Botones debajo de la tabla */}
