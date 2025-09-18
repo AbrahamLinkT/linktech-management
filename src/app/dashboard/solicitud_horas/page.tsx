@@ -58,44 +58,38 @@ export default function SolicitudHoras() {
 
   const actions = { edit: false, add: false, export: false, delete: false };
 
-const handleRechazar = () => {
-  const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
-  if (selectedIds.length === 0) {
-    alert("No seleccionaste ninguna solicitud.");
-    return;
-  }
+  const handleRechazar = () => {
+    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+    if (selectedIds.length === 0) {
+      alert("No seleccionaste ninguna solicitud.");
+      return;
+    }
+    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+    setSelectedRowIds({});
+    alert("Se rechazaron las solicitudes seleccionadas.");
+  };
 
-  setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
-
-  setSelectedRowIds({});
-
-  alert("Se rechazaron las solicitudes seleccionadas.");
-};
-
-const handleAceptar = () => {
-  const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
-  if (selectedIds.length === 0) {
-    alert("No seleccionaste ninguna solicitud.");
-    return;
-  }
-
-  setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
-
-  setSelectedRowIds({});
-
-  alert("Se aceptaron las solicitudes seleccionadas.");
-};
+  const handleAceptar = () => {
+    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+    if (selectedIds.length === 0) {
+      alert("No seleccionaste ninguna solicitud.");
+      return;
+    }
+    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+    setSelectedRowIds({});
+    alert("Se aceptaron las solicitudes seleccionadas.");
+  };
 
   return (
     <ContentBody title="Solicitud de horas pendientes">
-      <DataTable<Solicitud>
-        data={rows}
-        columns={columns}
-        menu={false}
-        actions={actions}
-        rowSelection={selectedRowIds}
-        onRowSelectionChange={setSelectedRowIds}
-      />
+    <DataTable<Solicitud>
+      data={rows}
+      columns={columns}
+      menu={false}
+      actions={actions}
+      rowSelection={selectedRowIds}
+      onRowSelectionChange={setSelectedRowIds}
+    />
 
       {/* Botones debajo de la tabla */}
       <div className="flex justify-between items-center mt-6">

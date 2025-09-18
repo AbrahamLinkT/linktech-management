@@ -54,8 +54,8 @@ export function DataTable<T extends { id: string }>({
     urlRouteEdit,
     menu,
     actions = {},
-    rowSelection,
-    onRowSelectionChange,
+    rowSelection,                // 👈 nuevo
+    onRowSelectionChange,        // 👈 nuevo
 
 }: DataTableProps<T>) {
     // =============== ESTADOS ================
@@ -64,7 +64,7 @@ export function DataTable<T extends { id: string }>({
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [routeModal, setRouteModal] = useState(false)
     const [id, setId] = useState<string | null>(null)
-    const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
+    
 
     // ========= EXPORT =========
     const handleExportRows = (rows: MRT_Row<T>[]) => {
@@ -91,7 +91,7 @@ export function DataTable<T extends { id: string }>({
     // ========= TABLA Y MENU =========
     const table = useMaterialReactTable({
         columns,
-        data: rows,
+        data: rowSelection ? data : rows,
         enableRowSelection: true,
         enableColumnDragging: true,
         enableColumnResizing: true,
@@ -109,18 +109,12 @@ export function DataTable<T extends { id: string }>({
             },
         },
         state: {
-            rowSelection: rowSelection ?? internalRowSelection,
+            ...(rowSelection ? { rowSelection } : {}),
         },
-        onRowSelectionChange: (updater) => {
-        if (rowSelection) {
-            onRowSelectionChange?.(updater); 
-        } else {
-            setInternalRowSelection(updater);
-        }
-        },
+        onRowSelectionChange: onRowSelectionChange,
         renderTopToolbarCustomActions: ({ table }) => {
-            const selectedRows = table?.getSelectedRowModel?.()?.rows ?? [];
-            const selectedCount = selectedRows.length; 
+            const selectedRows = table?.getSelectedRowModel?.()?.rows.filter(row => row) ?? [];
+            const selectedCount = Object.keys(rowSelection ?? {}).filter(id => rowSelection![id]).length;
             return menu && (
                 <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
                     <Button
@@ -137,20 +131,24 @@ export function DataTable<T extends { id: string }>({
                             <MenuItem
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
-                                    if (selectedCount === 1) {
+                                    if (urlRouteEdit) {
                                         const selected = selectedRows[0].original;
-                                        if (urlRouteEdit) {
-                                            router.push(`${urlRouteEdit}${selected.id}`);
-                                        } else if (edit) {
-                                            setEditRow(selected);
-                                            handleMenuClose();
+                                        router.push(`${urlRouteEdit}${selected.id}`);
+                                    } else if (edit) {
+                                        if (selectedCount === 1) {
+                                            setEditRow(selectedRows[0].original);
                                         }
+                                        handleMenuClose();
+                                        console.log("estas dentro del modal");
+
                                     }
+
                                 }}
                             >
                                 Editar
                             </MenuItem>
-                        )}
+                        )
+                        }
 
                         {/* AGREGAR */}
                         {actions?.add && (
@@ -188,12 +186,11 @@ export function DataTable<T extends { id: string }>({
                                 onClick={() => {
                                     if (selectedCount > 0) {
                                         const idsToDelete = new Set(selectedRows.map((r) => r.id));
+                                        if (!rowSelection) {
                                         setRows((prev) => prev.filter((row) => !idsToDelete.has(row.id)));
-                                        rowSelection
-                                            ? onRowSelectionChange?.({})
-                                            : setInternalRowSelection({});
-                                        handleMenuClose();
+                                        }
                                     }
+                                    handleMenuClose();
                                 }}
                             >
                                 Eliminar
@@ -223,6 +220,7 @@ export function DataTable<T extends { id: string }>({
                             </MenuItem>,
 
                             <MenuItem
+                                key="export-selected"
                                 disabled={selectedCount === 0}
                                 onClick={() => {
                                     handleExportRows(selectedRows);
@@ -230,7 +228,7 @@ export function DataTable<T extends { id: string }>({
                                 }}
                             >
                                 Exportar Seleccionados
-                            </MenuItem>
+                            </MenuItem>,
                         ]}
 
                     </Menu>
