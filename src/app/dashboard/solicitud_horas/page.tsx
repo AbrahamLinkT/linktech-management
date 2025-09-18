@@ -58,27 +58,33 @@ export default function SolicitudHoras() {
 
   const actions = { edit: false, add: false, export: false, delete: false };
 
-  const handleRechazar = () => {
-    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
-    if (selectedIds.length === 0) {
-      alert("No seleccionaste ninguna solicitud.");
-      return;
-    }
-    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
-    setSelectedRowIds({});
-    alert("Se rechazaron las solicitudes seleccionadas.");
-  };
+const handleRechazar = () => {
+  const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+  if (selectedIds.length === 0) {
+    alert("No seleccionaste ninguna solicitud.");
+    return;
+  }
 
-  const handleAceptar = () => {
-    const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
-    if (selectedIds.length === 0) {
-      alert("No seleccionaste ninguna solicitud.");
-      return;
-    }
-    setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
-    setSelectedRowIds({});
-    alert("Se aceptaron las solicitudes seleccionadas.");
-  };
+  setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+
+  setSelectedRowIds({});
+
+  alert("Se rechazaron las solicitudes seleccionadas.");
+};
+
+const handleAceptar = () => {
+  const selectedIds = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]);
+  if (selectedIds.length === 0) {
+    alert("No seleccionaste ninguna solicitud.");
+    return;
+  }
+
+  setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+
+  setSelectedRowIds({});
+
+  alert("Se aceptaron las solicitudes seleccionadas.");
+};
 
   return (
     <ContentBody title="Solicitud de horas pendientes">
@@ -87,10 +93,8 @@ export default function SolicitudHoras() {
         columns={columns}
         menu={false}
         actions={actions}
-        // Controlar selección desde aquí
-        //initialState={{ rowSelection: selectedRowIds }}
-        //state={{ rowSelection: selectedRowIds }}
-        //onRowSelectionChange={setSelectedRowIds}
+        rowSelection={selectedRowIds}
+        onRowSelectionChange={setSelectedRowIds}
       />
 
       {/* Botones debajo de la tabla */}
