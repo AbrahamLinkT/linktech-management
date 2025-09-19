@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { ContentBody } from "@/components/containers/containers";
 import { Btn_data } from "@/components/buttons/buttons";
 /* impórtaciones de jsons */
-import { staff } from "@/data/staff.json"
+import staffData from "@/data/staff.json"
 import Image from 'next/image';
 import cat from '@/assets/cat-photo-hd.png'
 
@@ -18,7 +18,7 @@ export default function Show() {
     const id = searchParams.get("id");
     const route = useRouter();
     // ========= busqeuda de usuario ==================
-    const user = staff.find((user) => user.id === id);
+    const user = staffData.staff.find((user) => user.id === id);
 
     const handleClick = () => {
         route.push("/dashboard/workers");
