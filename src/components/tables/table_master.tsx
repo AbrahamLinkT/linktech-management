@@ -126,8 +126,6 @@ export function DataTable<T extends { id: string }>({
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
                                     if (selectedCount === 1) {
-                                        alert("Solicitud CANCELADA");
-                                        // eliminar fila de la tabla
                                         const idsToRemove = new Set(selectedRows.map(r => r.id));
                                         setRows(prev => prev.filter(row => !idsToRemove.has(row.id)));
                                     }
@@ -143,8 +141,6 @@ export function DataTable<T extends { id: string }>({
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
                                     if (selectedCount === 1) {
-                                        alert("Solicitud ACEPTADA");
-                                        // eliminar fila de la tabla
                                         const idsToRemove = new Set(selectedRows.map(r => r.id));
                                         setRows(prev => prev.filter(row => !idsToRemove.has(row.id)))
                                     }
