@@ -19,6 +19,8 @@ type ActionsConfig = {
     export?: boolean;
     delete?: boolean;
     archive?: boolean;
+    cancel?: boolean;
+    accept?: boolean;
 };
 const csvConfig = mkConfig({
     fieldSeparator: ",",
@@ -118,6 +120,42 @@ export function DataTable<T extends { id: string }>({
                     </Button>
 
                     <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+                        {/* CANCELAR */}
+                        {actions?.cancel && (
+                            <MenuItem
+                                disabled={selectedCount !== 1}
+                                onClick={() => {
+                                    if (selectedCount === 1) {
+                                        alert("Solicitud CANCELADA");
+                                        // eliminar fila de la tabla
+                                        const idsToRemove = new Set(selectedRows.map(r => r.id));
+                                        setRows(prev => prev.filter(row => !idsToRemove.has(row.id)));
+                                    }
+                                    handleMenuClose();
+                                }}
+                            >
+                                Cancelar
+                            </MenuItem>
+                        )}
+                        {/* ACEPTAR */}
+                        {actions?.accept && (
+                            <MenuItem
+                                disabled={selectedCount !== 1}
+                                onClick={() => {
+                                    if (selectedCount === 1) {
+                                        alert("Solicitud ACEPTADA");
+                                        // eliminar fila de la tabla
+                                        const idsToRemove = new Set(selectedRows.map(r => r.id));
+                                        setRows(prev => prev.filter(row => !idsToRemove.has(row.id)))
+                                    }
+                                    handleMenuClose();
+                                }}
+                            >
+                                Aceptar
+                            </MenuItem>
+                        )}
+
+
                         {/* EDITAR */}
                         {actions?.edit && (
                             <MenuItem
