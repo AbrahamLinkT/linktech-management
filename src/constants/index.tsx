@@ -66,6 +66,11 @@ export const navbarLinks = [
                 path: "/dashboard/asuetos",
             },
             {
+                label: "Horas por aprobar",
+                icon: NotepadText,
+                path: "/dashboard/horas-por-aprobar",
+            },
+            {
                 label: "Usuarios",
                 icon: Users,
                 path: "/dashboard/usuarios",

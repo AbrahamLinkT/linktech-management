@@ -6,19 +6,7 @@ import { MRT_ColumnDef } from "material-react-table";
 import { useMemo, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-
-import {
-  Box,
-  Button,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Stack,
-  Select,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Stack, TextField, Typography, Autocomplete } from "@mui/material";
 import { useRouter } from "next/navigation";
 
 
@@ -33,6 +21,7 @@ type RowData = {
   modulo: string;
   nivel: string;
   ubicacion: string;
+  proyecto: string;
 };
 
 // =================== MOCK DATA ===================
@@ -47,6 +36,7 @@ const initialData: RowData[] = [
     modulo: "FI",
     nivel: "Sr",
     ubicacion: "Monterrey",
+    proyecto: "Implementación SAP FI – ACME",
   },
   {
     id: "2",
@@ -58,22 +48,53 @@ const initialData: RowData[] = [
     modulo: "MM",
     nivel: "Jr",
     ubicacion: "CDMX",
+    proyecto: "Optimización MM – RetailMX",
+  },
+  {
+    id: "3",
+    consultor: "María Gómez",
+    departamento: "SAP HCM",
+    tipoEmpleado: "Interno",
+    esquema: "Full-time",
+    tiempo: "40",
+    modulo: "HCM",
+    nivel: "Sr",
+    ubicacion: "Guadalajara",
+    proyecto: "Proyecto HCM – UANL",
+  },
+  {
+    id: "4",
+    consultor: "Carlos Ruiz",
+    departamento: "SAP FI",
+    tipoEmpleado: "Externo",
+    esquema: "Part-time",
+    tiempo: "20",
+    modulo: "FI",
+    nivel: "Jr",
+    ubicacion: "CDMX",
+    proyecto: "Implementación SAP FI – ACME",
+  },
+  {
+    id: "5",
+    consultor: "Ana Torres",
+    departamento: "SAP MM",
+    tipoEmpleado: "Interno",
+    esquema: "Full-time",
+    tiempo: "40",
+    modulo: "MM",
+    nivel: "Sr",
+    ubicacion: "Monterrey",
+    proyecto: "Optimización MM – RetailMX",
   },
 ];
 
-// OIs y proyectos (ejemplo)
-const OI_OPTIONS = ["OI-001", "OI-002", "OI-003"];
-const PROYECTO_BY_OI: Record<string, string> = {
-  "OI-001": "Implementación SAP FI – ACME",
-  "OI-002": "Optimización MM – RetailMX",
-  "OI-003": "Proyecto HCM – UANL",
-};
+// OIs y proyectos eliminados
 
 // =================== COMPONENTE ===================
 export default function ProyeccionPage() {
   // ------------------- STATE ------------------
   const [selectedModalRows, setSelectedModalRows] = useState<Record<number, boolean>>({});
-  const [selectedIO, setSelectedIO] = useState<string>("");
+  // const [selectedIO, setSelectedIO] = useState<string>("");
   // Estado para filtro de fechas en la modal
   const [modalDesde, setModalDesde] = useState<string>("");
   const [modalHasta, setModalHasta] = useState<string>("");
@@ -83,8 +104,8 @@ export default function ProyeccionPage() {
   const router = useRouter();
 
   // -------------------  Toolbar: OI/Proyecto y botones -----------------
-  const uniqueIOs = OI_OPTIONS;
-  const selectedProyecto = selectedIO ? PROYECTO_BY_OI[selectedIO] ?? "" : "";
+  // const uniqueIOs = OI_OPTIONS;
+  // const selectedProyecto = selectedIO ? PROYECTO_BY_OI[selectedIO] ?? "" : "";
 
   // ------------------- TABLE -----------------
   const [data] = useState<RowData[]>(initialData);
@@ -177,38 +198,29 @@ export default function ProyeccionPage() {
     }
     return true;
   });
+  // Estado para búsqueda dinámica de proyecto
+  const [projectSearch, setProjectSearch] = useState("");
   return (
     <>
       <ContentBody
         title="Proyección"
         ContentBtn={
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FormControl size="small" sx={{ minWidth: 180 }}>
-                <InputLabel id="oi-select-label">OI</InputLabel>
-                <Select
-                  labelId="oi-select-label"
-                  label="OI"
-                  value={selectedIO}
-                  onChange={(e) => setSelectedIO(e.target.value)}
-                >
-                  {uniqueIOs.length === 0 && (
-                    <MenuItem value="" disabled>
-                      Sin OI registradas
-                    </MenuItem>
-                  )}
-                  {uniqueIOs.map((oi) => (
-                    <MenuItem key={oi} value={oi}>
-                      {oi}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <Typography variant="body1" sx={{ minWidth: 280 }}>
-                <strong>Proyecto:</strong>{" "}
-                {selectedIO ? selectedProyecto || "—" : "Selecciona una OI"}
-              </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Autocomplete
+              freeSolo
+              options={Array.from(new Set(data.map(row => row.proyecto).filter(Boolean)))}
+              value={projectSearch}
+              onInputChange={(_, newValue) => setProjectSearch(newValue)}
+              renderInput={(params) => (
+                <TextField {...params} label="Buscar proyecto" variant="outlined" size="small" sx={{ minWidth: 240 }} />
+              )}
+            />
+            <Typography sx={{ ml: 3, fontWeight: 600, color: '#222', fontSize: 20 }}>
+              {projectSearch && data.some(row => row.proyecto === projectSearch)
+                ? `Proyecto: ${projectSearch}`
+                : ""}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -233,13 +245,19 @@ export default function ProyeccionPage() {
               >
                 Ver proyección
               </Button>
-            </Stack>
+            </Box>
           </Box>
         }
       >
+        {/* Ya no se muestra el nombre de proyecto arriba, ahora va a la derecha del buscador */}
         <DataTable
           columns={columns}
-          data={data}
+          data={projectSearch
+            ? data.filter(row => {
+                const proyecto = (row as { proyecto?: string }).proyecto || "";
+                return proyecto.toLowerCase().includes(projectSearch.toLowerCase());
+              })
+            : data}
           menu={true}
           actions={actions}
 
