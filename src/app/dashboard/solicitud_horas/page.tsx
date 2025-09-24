@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "@/components/buttons/buttons";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation"; // Eliminado: no usado
+import { Box, Button, Typography } from "@mui/material";
 
 interface Solicitud {
   id: string;
@@ -58,6 +59,16 @@ export default function SolicitudHoras() {
     },
   ];
 
+  // --- Estado para el modal ---
+  const [openModal, setOpenModal] = useState(false);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState<Solicitud | null>(null);
+  const [rangoHoras, setRangoHoras] = useState({ desde: "", hasta: "", cantidad: 0 });
+  const handleGuardarHoras = () => { // aqui se pone la logica para guardar horas
+    console.log("Guardando horas:", registroSeleccionado, rangoHoras);
+    setOpenModal(false);
+    setRegistroSeleccionado(null);
+  };
+
   const actions = { edit: false, add: false, export: false, delete: false, cancel: true, accept: true };
   const router = useRouter() // Eliminado: no usado
   const handleClickRoute = () => {
@@ -78,7 +89,112 @@ export default function SolicitudHoras() {
         columns={columns}
         menu={true}
         actions={actions}
+        onAccept={(selectedRows) => {
+          if (selectedRows.length === 1) {
+            const registro = selectedRows[0];
+
+            // Convertir la fecha de "DD/MM/YY - DD/MM/YY" a formato "YYYY-MM-DD"
+            const [desdeStr, hastaStr] = registro.fechas.split(" - ");
+            const parseDate = (str: string) => {
+              const [d, m, y] = str.split("/").map(Number);
+              return `20${y.toString().padStart(2, "0")}-${m.toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
+            }
+
+            setRegistroSeleccionado(registro);
+            setRangoHoras({
+              desde: parseDate(desdeStr),
+              hasta: parseDate(hastaStr),
+              cantidad: Number(registro.horas.split(" ")[0])
+            });
+            setOpenModal(true);
+          }
+        }}
       />
+
+      {/* Modal para cambiar horas */}
+      {openModal && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            bgcolor: "rgba(0,0,0,0.25)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              bgcolor: "#fff",
+              borderRadius: 3,
+              p: 4,
+              minWidth: 320,
+              boxShadow: 6,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Solicitud
+            </Typography>
+            {registroSeleccionado && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2"><b>Consultor:</b> {registroSeleccionado.consultor}</Typography>
+                <Typography variant="body2"><b>Departamento:</b> {registroSeleccionado.departamento}</Typography>
+                <Typography variant="body2"><b>Módulo:</b> {registroSeleccionado.modulo}</Typography>
+                <Typography variant="body2"><b>Proyecto:</b> {registroSeleccionado.proyecto}</Typography>
+                <Typography variant="body2"><b>Solicitante:</b> {registroSeleccionado.solicitante}</Typography>
+              </Box>
+            )}
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", m: 2 }}>
+              <Typography variant="body2">Desde:</Typography>
+              <input
+                type="date"
+                value={rangoHoras.desde}
+                onChange={e => setRangoHoras(r => ({ ...r, desde: e.target.value }))}
+                style={{ width: 140, padding: 4 }}
+              />
+              <Typography variant="body2">Hasta:</Typography>
+              <input
+                type="date"
+                value={rangoHoras.hasta}
+                onChange={e => setRangoHoras(r => ({ ...r, hasta: e.target.value }))}
+                style={{ width: 140, padding: 4 }}
+              />
+              <Typography variant="body2">Cantidad de horas:</Typography>
+              <input
+                type="number"
+                min={0}
+                max={24}
+                value={rangoHoras.cantidad}
+                onChange={e => setRangoHoras(r => ({ ...r, cantidad: Number(e.target.value) }))}
+                style={{ width: 80, padding: 4 }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+              <Button variant="contained" color="primary" onClick={handleGuardarHoras}>
+                Guardar
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setOpenModal(false);
+                  setRegistroSeleccionado(null);
+                }}
+              >
+                Cancelar
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+      
     </ContentBody>
   );
 }
