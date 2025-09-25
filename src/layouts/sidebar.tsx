@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { navbarLinks } from "@/constants";
+import { useHorasPorAprobar } from "@/store/horasPorAprobarStore";
 
 import logoLight from "@/assets/Linktech-light.png";
 import logoDark from "@/assets/Linktech-light.png";
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, ref) => {
   const pathname = usePathname();
+  const horasPorAprobar = useHorasPorAprobar();
 
   return (
     <aside
@@ -51,7 +53,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
             </p>
             {navbarLink.links.map((link) => {
               const isActive = pathname === link.path;
-
+              const isHorasPorAprobar = link.label === "Horas por aprobar";
               return (
                 <Link
                   key={link.label}
@@ -65,9 +67,17 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
                   )}
                 >
                   <link.icon size={22} className="flex-shrink-0" />
-                  {!collapsed && <p className="whitespace-nowrap">{link.label}</p>}
+                  {!collapsed && (
+                    <p className="whitespace-nowrap">
+                      {link.label}
+                      {isHorasPorAprobar && (
+                        <span style={{ marginLeft: 8, color: '#2563eb', fontWeight: 600 }}>
+                          ({horasPorAprobar})
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </Link>
-
               );
             })}
           </nav>

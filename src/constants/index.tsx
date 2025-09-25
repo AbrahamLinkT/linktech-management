@@ -5,11 +5,11 @@ export const navbarLinks = [
     {
         title: "Dashboard",
         links: [
-            {
+            /*{
                 label: "Inicio",
                 icon: Home,
                 path: "/dashboard",
-            },
+            },*/
             {
                 label: "Análisis",
                 icon: ChartColumn,
@@ -64,6 +64,11 @@ export const navbarLinks = [
                 label: "Asuetos",
                 icon: UserCheck,
                 path: "/dashboard/asuetos",
+            },
+            {
+                label: "Horas por aprobar",
+                icon: NotepadText,
+                path: "/dashboard/horas-por-aprobar",
             },
             {
                 label: "Usuarios",

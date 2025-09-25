@@ -40,7 +40,7 @@ type DataTableProps<T extends { id: string }> = {
     urlReturn?: string
     actions?: ActionsConfig;
     menu?: boolean
-
+    onAccept?: (selected: T[]) => void; //callback que recibe los registros seleccionados cuando se pulsa "Aceptar"
 };
 
 export function DataTable<T extends { id: string }>({
@@ -54,6 +54,7 @@ export function DataTable<T extends { id: string }>({
     urlRouteEdit,
     menu,
     actions = {},
+    onAccept
 
 }: DataTableProps<T>) {
     // =============== ESTADOS ================
@@ -140,12 +141,25 @@ export function DataTable<T extends { id: string }>({
                             <MenuItem
                                 disabled={selectedCount !== 1}
                                 onClick={() => {
+                                    
                                     if (selectedCount === 1) {
-                                        const idsToRemove = new Set(selectedRows.map(r => r.id));
-                                        setRows(prev => prev.filter(row => !idsToRemove.has(row.id)))
+                                        const selectedOriginals = selectedRows.map((r) => r.original);
+
+
+                                    if (onAccept) {
+                                    // Delegamos la acción al componente padre (p. ej. abrir un modal controlado)
+                                        onAccept(selectedOriginals);
+                                    } else {
+                                    // Comportamiento por defecto: eliminar las filas seleccionadas
+                                        const idsToRemove = new Set(selectedRows.map((r) => r.id));
+                                        setRows((prev) => prev.filter((row) => !idsToRemove.has(row.id)));
+                                        }
                                     }
                                     handleMenuClose();
-                                }}
+                                    }
+                                    
+                                    
+                                }
                             >
                                 Aceptar
                             </MenuItem>
