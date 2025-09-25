@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ContentBody } from "@/components/containers/containers";
 import { Btn_data } from "@/components/buttons/buttons";
-import { staff } from '@/data/staff.json'
+import staffData from '@/data/staff.json'
 
 
 export default function Edit() {
@@ -16,7 +16,7 @@ export default function Edit() {
     const route = useRouter();
 
     // =================== filtro de usuario ===================
-    const user = staff.find((user) => user.id === id);
+    const user = staffData.staff.find((user) => user.id === id);
 
     const handleClick = () => {
         route.push("/dashboard/workers");
