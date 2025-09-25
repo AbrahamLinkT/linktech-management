@@ -10,9 +10,9 @@ export function useHorasPorAprobar() {
         const res = await fetch("/data/staff_horas.json");
         const data = await res.json();
         // Suponiendo que las horas pendientes tienen un campo 'estatus' = 'Pendiente'
-        const pendientes = data.staff.filter((h) => h.estatus === "Pendiente");
+  const pendientes = data.staff.filter((h: { estatus: string }) => h.estatus === "Pendiente");
         setCount(pendientes.length);
-      } catch (e) {
+      } catch {
         setCount(0);
       }
     }
