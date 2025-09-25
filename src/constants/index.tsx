@@ -1,4 +1,4 @@
-import { BarChart2, ChartColumn, DollarSign, Home, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
+import { BarChart2, ChartColumn, DollarSign, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
 import { ReactNode } from "react";
 /* Package, PackagePlus, */
 export const navbarLinks = [
