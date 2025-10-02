@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const images = [
-  { src: "/LinkLOGO.png", alt: "Solución SAP 1" },
-  { src: "/next.svg", alt: "Solución SAP 2" },
-  { src: "/vercel.svg", alt: "Solución SAP 3" },
-  { src: "/file.svg", alt: "Solución SAP 4" },
-  { src: "/globe.svg", alt: "Solución SAP 5" },
-  { src: "/window.svg", alt: "Solución SAP 6" },
+  { src: "/20anios.png", alt: "Solución SAP 1" },
+  { src: "/cdmx.jpg", alt: "Solución SAP 2" },
+  { src: "/mty.jpg", alt: "Solución SAP 3" },
+  { src: "/texas.jpg", alt: "Solución SAP 4" },
+  { src: "/nuevageneracionERP.jpg", alt: "Solución SAP 5" },
 ];
 
 export default function Carousel() {
