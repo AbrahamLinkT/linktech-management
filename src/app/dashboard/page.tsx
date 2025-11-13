@@ -1,107 +1,49 @@
-"use client"
-import { overviewData } from '@/constants';
-import { useTheme } from '@/hooks/use-theme';
-import { Footer } from '@/layouts/footer';
-import { DollarSign, Package, TrendingUp, Users } from 'lucide-react';
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
+"use client";
+import Link from "next/link";
+import { useTheme } from "@/hooks/use-theme";
+import { Footer } from "@/layouts/footer";
+import { navbarLinks } from "@/constants";
 
 const DashboardPage = () => {
-  const { theme } = useTheme()
+  const { theme } = useTheme();
 
   return (
-    <div className="flex flex-col gap-y-4">
-      <h1 className="title">Inicio</h1>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div className="card">
-          <div className="card-header">
-            <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-              <Package size={26} />
+    <div className="pt-0 p-6">
+      <div className="flex flex-col gap-y-6">
+        {navbarLinks.map((section, i) => (
+          <div key={i} className="flex flex-col gap-y-4">
+            {/* Título de sección */}
+            {/*<h1 className="title text-lg">{section.title}</h1>*/}
+
+            {section.title != null ? <br /> : null}
+
+            {/* Tarjetas */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {section.links.map((link, j) => {
+                const Icon = link.icon;
+                return (
+                  <div key={j} className="flex flex-col gap-2">
+                    <h3 className="text-base font-semibold">{link.label}</h3>
+                    <Link href={link.path}>
+                      <div className="flex flex-col items-center justify-center rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md dark:bg-neutral-900 cursor-pointer">
+                        <div className="mb-3 text-blue-500 dark:text-blue-400">
+                          <Icon size={32} />
+                        </div>
+                        <p className="text-sm text-center text-gray-600 dark:text-gray-300">
+                          {link.description}
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
-            <p className="card-title">Total Proyectos</p>
           </div>
-          <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-            <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">25,154</p>
-            <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-              <TrendingUp size={18} />
-              25%
-            </span>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-header">
-            <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-              <DollarSign size={26} />
-            </div>
-            <p className="card-title">Total Ganancias</p>
-          </div>
-          <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-            <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">$16,000</p>
-            <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-              <TrendingUp size={18} />
-              12%
-            </span>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-header">
-            <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-              <Users size={26} />
-            </div>
-            <p className="card-title">Total trabajadores</p>
-          </div>
-          <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-            <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">15,400k</p>
-            <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-              <TrendingUp size={18} />
-              15%
-            </span>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-header">
-            <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-              <Package size={26} />
-            </div>
-            <p className="card-title">Proyectos en proceso</p>
-          </div>
-          <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-            <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">12,340</p>
-            <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-              <TrendingUp size={18} />
-              19%
-            </span>
-          </div>
-        </div>
+        ))}
+
+        {/* Footer */}
+        <Footer />
       </div>
-      {/*  Iinicio de segunda seccion */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* comienzo de grafica */}
-        <div className="card col-span-2 md:col-span-2 lg:col-span-7">
-          <div className="card-header">
-            <p className="card-title">Overview</p>
-          </div>
-          <div className="card-body p-0">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={overviewData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Tooltip cursor={false} formatter={(value) => `$${value}`} />
-                <XAxis dataKey="name" strokeWidth={0} stroke={theme === "light" ? "#475569" : "#94a3b8"} tickMargin={6} />
-                <YAxis dataKey="total" strokeWidth={0} stroke={theme === "light" ? "#475569" : "#94a3b8"} tickFormatter={(value) => `$${value}`} tickMargin={6} />
-                <Area type="monotone" dataKey="total" stroke="#2563eb" fillOpacity={1} fill="url(#colorTotal)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        {/* fin de la grafica  */}
-      </div>
-      {/* final del top */}
-      <Footer />
     </div>
   );
 };
