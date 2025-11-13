@@ -1,12 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useTheme } from "@/hooks/use-theme";
 import { Footer } from "@/layouts/footer";
 import { navbarLinks } from "@/constants";
 
 const DashboardPage = () => {
-  const { theme } = useTheme();
-
   return (
     <div className="pt-0 p-6">
       <div className="flex flex-col gap-y-6">

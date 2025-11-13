@@ -40,6 +40,8 @@ type DataTableProps<T extends { id: string }> = {
     urlReturn?: string
     actions?: ActionsConfig;
     menu?: boolean
+    rowSelection?: Record<string, boolean>;
+    onRowSelectionChange?: (updater: Record<string, boolean> | ((old: Record<string, boolean>) => Record<string, boolean>)) => void;
     onAccept?: (selected: T[]) => void; //callback que recibe los registros seleccionados cuando se pulsa "Aceptar"
 };
 

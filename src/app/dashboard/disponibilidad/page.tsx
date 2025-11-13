@@ -40,7 +40,7 @@ function getWeekDates(startDate: Date) {
 }
 
 // Generar disponibilidad con nombre de proyecto en slot ocupado
-function generarDisponibilidad(_consultor: string) {
+function generarDisponibilidad() {
   const proyectos = (proyectosData as ProyectosJson).proyectos ?? [];
   return dias.map(() =>
     horas.map(() => {
@@ -55,7 +55,7 @@ function generarDisponibilidad(_consultor: string) {
 
 const mockDisponibilidad = consultores.map((consultor) => ({
   consultor,
-  disponibilidad: generarDisponibilidad(consultor),
+  disponibilidad: generarDisponibilidad(),
 }));
 
 // Apila los slots ocupados arriba y los libres abajo para cada día
