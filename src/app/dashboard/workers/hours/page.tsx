@@ -4,7 +4,7 @@ import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { staff } from "@/data/staff_calender.json";
+import staffCalender from "@/data/staff_calender.json";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 
@@ -25,7 +25,7 @@ export default function HoursPage() {
     const handleClick = () => {
         router.back();
     };
-    const user = staff.find((member) => member.id_consultor === id);
+    const user = staffCalender.staff.find((member) => member.id_consultor === id);
 
     // ====== Datos de ejemplo para TODOS los días ======
     const data: RowHoras[] = [

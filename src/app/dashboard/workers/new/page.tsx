@@ -142,7 +142,6 @@ export default function NewWorker() {
                         </div>
                     </fieldset>
 
-                    Botón de guardar
                     <div className="flex justify-end">
                         <button
                             type="submit"

@@ -1,15 +1,15 @@
-import { BarChart2, ChartColumn, DollarSign, Home, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
+import { BarChart2, ChartColumn, DollarSign, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
 import { ReactNode } from "react";
 /* Package, PackagePlus, */
 export const navbarLinks = [
     {
         title: "Dashboard",
         links: [
-            {
+            /*{
                 label: "Inicio",
                 icon: Home,
                 path: "/dashboard",
-            },
+            },*/
             {
                 label: "Análisis",
                 icon: ChartColumn,
@@ -64,6 +64,11 @@ export const navbarLinks = [
                 label: "Asuetos",
                 icon: UserCheck,
                 path: "/dashboard/asuetos",
+            },
+            {
+                label: "Horas por aprobar",
+                icon: NotepadText,
+                path: "/dashboard/horas-por-aprobar",
             },
             {
                 label: "Usuarios",
