@@ -54,6 +54,8 @@ export function DataTable<T extends { id: string }>({
     urlRouteEdit,
     menu,
     actions = {},
+    rowSelection,                // 👈 nuevo
+    onRowSelectionChange,        // 👈 nuevo
     onAccept
 
 }: DataTableProps<T>) {
@@ -63,6 +65,7 @@ export function DataTable<T extends { id: string }>({
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [routeModal, setRouteModal] = useState(false)
     const [id, setId] = useState<string | null>(null)
+    
 
     // ========= EXPORT =========
     const handleExportRows = (rows: MRT_Row<T>[]) => {
@@ -89,7 +92,7 @@ export function DataTable<T extends { id: string }>({
     // ========= TABLA Y MENU =========
     const table = useMaterialReactTable({
         columns,
-        data: rows,
+        data: rowSelection ? data : rows,
         enableRowSelection: true,
         enableColumnDragging: true,
         enableColumnResizing: true,
@@ -106,10 +109,13 @@ export function DataTable<T extends { id: string }>({
                 backgroundColor: "transparent",
             },
         },
+        state: {
+            ...(rowSelection ? { rowSelection } : {}),
+        },
+        onRowSelectionChange: onRowSelectionChange,
         renderTopToolbarCustomActions: ({ table }) => {
-            const selectedRows = table.getSelectedRowModel().rows;
-            const selectedCount = selectedRows.length;
-
+            const selectedRows = table?.getSelectedRowModel?.()?.rows.filter(row => row) ?? [];
+            const selectedCount = Object.keys(rowSelection ?? {}).filter(id => rowSelection![id]).length;
             return menu && (
                 <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
                     <Button
@@ -226,9 +232,9 @@ export function DataTable<T extends { id: string }>({
                                 onClick={() => {
                                     if (selectedCount > 0) {
                                         const idsToDelete = new Set(selectedRows.map((r) => r.id));
-                                        setRows((prev) =>
-                                            prev.filter((row) => !idsToDelete.has(row.id))
-                                        );
+                                        if (!rowSelection) {
+                                        setRows((prev) => prev.filter((row) => !idsToDelete.has(row.id)));
+                                        }
                                     }
                                     handleMenuClose();
                                 }}
