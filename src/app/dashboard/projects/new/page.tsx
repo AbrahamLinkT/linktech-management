@@ -1,10 +1,39 @@
 "use client";
 
-import { Btn_data } from "@/components/buttons/buttons"; // Eliminado: no usado
+import { useState } from "react";
+import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
-import { ArrowLeft } from "lucide-react"; // Eliminado: no usado
-import { useRouter } from "next/navigation"; // Eliminado: no usado
-export default function NewWorker() {
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useProjects } from "@/hooks/useProjects";
+
+interface FormData {
+  name: string;
+  description: string;
+  status: boolean;
+  start_date: string;
+  end_date: string;
+  oi: string;
+  id_project_manager: number | null;
+  client_id: number | null;
+}
+
+export default function NewProject() {
+  const router = useRouter();
+  const { createProject, isLoading, error } = useProjects();
+  
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    description: "",
+    status: true,
+    start_date: "",
+    end_date: "",
+    oi: "",
+    id_project_manager: null,
+    client_id: null
+  });
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const stylesInput = `
         w-full border border-gray-600 rounded px-3 py-2 
         hover:border-blue-600 
@@ -12,10 +41,55 @@ export default function NewWorker() {
         focus:ring-2 focus:ring-blue-300 
         focus:outline-none
     `;
-    const router = useRouter() // Eliminado: no usado
+
     const handleClickRoute = () => {
-        router.push("/dashboard/projects")
-    }
+        router.push("/dashboard/projects");
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'id_project_manager' || name === 'client_id' 
+                ? (value === '' ? null : parseInt(value) || null)
+                : name === 'status' 
+                    ? value === 'activo'
+                    : value
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSuccessMessage(null);
+        
+        // Validation
+        if (!formData.name || !formData.oi || !formData.start_date || !formData.end_date) {
+            alert('Por favor, completa todos los campos requeridos.');
+            return;
+        }
+
+        const result = await createProject(formData);
+        
+        if (result.success) {
+            setSuccessMessage('Proyecto creado exitosamente');
+            // Reset form
+            setFormData({
+                name: "",
+                description: "",
+                status: true,
+                start_date: "",
+                end_date: "",
+                oi: "",
+                id_project_manager: null,
+                client_id: null
+            });
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                router.push("/dashboard/projects");
+            }, 2000);
+        }
+    };
     return (
         <ContentBody title="Nuevo proyecto"
             btnReg={
@@ -28,7 +102,30 @@ export default function NewWorker() {
             }>
             <div className="m-1">
                 <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Proyecto</h2>
-                <form className="space-y-10 ml-4 mr-4">
+                
+                {/* Nota informativa */}
+                <div className="ml-4 mr-4 mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded">
+                    <p className="text-sm">
+                        <strong>Nota:</strong> Los campos de ID (Cliente, Project Manager) son opcionales. 
+                        Solo completa estos campos si tienes el ID exacto del empleado/cliente que existe en la base de datos.
+                        Dejar en blanco si no estás seguro.
+                    </p>
+                </div>
+                
+                {/* Mensajes de estado */}
+                {error && (
+                    <div className="ml-4 mr-4 mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        Error: {error}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div className="ml-4 mr-4 mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                        {successMessage}
+                    </div>
+                )}
+
+                <form className="space-y-10 ml-4 mr-4" onSubmit={handleSubmit}>
 
                     {/* Sección: Datos personales */}
                     <fieldset className="border border-gray-400 rounded-xl p-4" >
@@ -38,33 +135,59 @@ export default function NewWorker() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label htmlFor="nombre" className="block font-medium mb-1">
-                                    Nombre del proyecto
+                                    Nombre del proyecto *
                                 </label>
-                                <input type="text" id="nombre" name="nombre" className={stylesInput} />
+                                <input 
+                                    type="text" 
+                                    id="nombre" 
+                                    name="name" 
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    required
+                                />
                             </div>
 
                             <div>
                                 <label htmlFor="orden_interna" className="block font-medium mb-1">
-                                    Orden interna
+                                    Orden interna *
                                 </label>
-                                <input type="text" id="orden_interna" name="orden_interna" className={stylesInput} />
+                                <input 
+                                    type="text" 
+                                    id="orden_interna" 
+                                    name="oi" 
+                                    value={formData.oi}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    required
+                                />
                             </div>
                             <div>
-                                <label htmlFor="correo" className="block font-medium mb-1">
-                                    Empresa
+                                <label htmlFor="empresa" className="block font-medium mb-1">
+                                    Cliente ID (opcional)
                                 </label>
-                                <div className="flex items-center gap-4">
-                                    <select name="empresa" id="empresa" className={stylesInput}>
-                                        <option value="">Seleccione su opción</option>
-                                        <option value="activo">Activo</option>
-                                        <option value="inactivo">Inactivo</option>
-                                    </select>
-                                </div>
+                                <input 
+                                    type="number" 
+                                    id="empresa" 
+                                    name="client_id" 
+                                    value={formData.client_id || ''}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    min="0"
+                                    placeholder="Dejar en 0 si no se tiene ID"
+                                />
                             </div>
                             <div>
-                                <label htmlFor="status" className="block font-medium mb-1">Status</label>
+                                <label htmlFor="status" className="block font-medium mb-1">Status *</label>
                                 <div className="flex items-center gap-4">
-                                    <select name="status" id="status" className={stylesInput}>
+                                    <select 
+                                        name="status" 
+                                        id="status" 
+                                        value={formData.status ? 'activo' : 'inactivo'}
+                                        onChange={handleInputChange}
+                                        className={stylesInput}
+                                        required
+                                    >
                                         <option value="">Seleccione su opción</option>
                                         <option value="activo">Activo</option>
                                         <option value="inactivo">Inactivo</option>
@@ -72,22 +195,60 @@ export default function NewWorker() {
                                 </div>
                             </div>
                             <div className="col-span-2">
-                                <label htmlFor="departamento" className="block font-medium mb-1">
-                                    Descripcion
+                                <label htmlFor="descripcion" className="block font-medium mb-1">
+                                    Descripción
                                 </label>
-                                <input type="text" className={stylesInput} />
+                                <textarea 
+                                    name="description"
+                                    id="descripcion"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    rows={3}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="id_project_manager" className="block font-medium mb-1">
+                                    Project Manager ID (opcional)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="id_project_manager" 
+                                    name="id_project_manager" 
+                                    value={formData.id_project_manager || ''}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    min="0"
+                                    placeholder="Dejar en blanco si no se tiene ID"
+                                />
                             </div>
                             <div>
                                 <label htmlFor="fecha_inicio" className="block font-medium mb-1">
-                                    Fecha de inicio
+                                    Fecha de inicio *
                                 </label>
-                                <input type="date" id="fecha_inicio" name="fecha_inicio" className={stylesInput} />
+                                <input 
+                                    type="datetime-local" 
+                                    id="fecha_inicio" 
+                                    name="start_date" 
+                                    value={formData.start_date}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    required
+                                />
                             </div>
                             <div>
                                 <label htmlFor="fecha_fin" className="block font-medium mb-1">
-                                    Fecha de fin
+                                    Fecha de fin *
                                 </label>
-                                <input type="date" id="fecha_fin" name="fecha_fin" className={stylesInput} />
+                                <input 
+                                    type="datetime-local" 
+                                    id="fecha_fin" 
+                                    name="end_date" 
+                                    value={formData.end_date}
+                                    onChange={handleInputChange}
+                                    className={stylesInput} 
+                                    required
+                                />
                             </div>
                         </div>
                     </fieldset>
@@ -95,9 +256,14 @@ export default function NewWorker() {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
+                            disabled={isLoading}
+                            className={`font-semibold py-2 px-6 rounded ${
+                                isLoading 
+                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
                         >
-                            Guardar
+                            {isLoading ? 'Guardando...' : 'Guardar'}
                         </button>
                     </div>
                 </form>
