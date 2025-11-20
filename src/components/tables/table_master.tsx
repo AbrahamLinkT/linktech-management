@@ -19,8 +19,6 @@ type ActionsConfig = {
     export?: boolean;
     delete?: boolean;
     archive?: boolean;
-    cancel?: boolean;
-    accept?: boolean;
 };
 const csvConfig = mkConfig({
     fieldSeparator: ",",
@@ -42,7 +40,6 @@ type DataTableProps<T extends { id: string }> = {
     menu?: boolean
     rowSelection?: Record<string, boolean>;
     onRowSelectionChange?: (updater: Record<string, boolean> | ((old: Record<string, boolean>) => Record<string, boolean>)) => void;
-    onAccept?: (selected: T[]) => void; //callback que recibe los registros seleccionados cuando se pulsa "Aceptar"
 };
 
 export function DataTable<T extends { id: string }>({
@@ -58,7 +55,6 @@ export function DataTable<T extends { id: string }>({
     actions = {},
     rowSelection,                // 👈 nuevo
     onRowSelectionChange,        // 👈 nuevo
-    onAccept
 
 }: DataTableProps<T>) {
     // =============== ESTADOS ================
@@ -94,7 +90,7 @@ export function DataTable<T extends { id: string }>({
     // ========= TABLA Y MENU =========
     const table = useMaterialReactTable({
         columns,
-        data: rowSelection ? data : rows,
+        data: data,
         enableRowSelection: true,
         enableColumnDragging: true,
         enableColumnResizing: true,
@@ -112,7 +108,7 @@ export function DataTable<T extends { id: string }>({
             },
         },
         state: {
-            ...(rowSelection ? { rowSelection } : {}),
+            rowSelection: rowSelection || {},
         },
         onRowSelectionChange: onRowSelectionChange,
         renderTopToolbarCustomActions: ({ table }) => {
@@ -129,51 +125,6 @@ export function DataTable<T extends { id: string }>({
                     </Button>
 
                     <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
-                        {/* CANCELAR */}
-                        {actions?.cancel && (
-                            <MenuItem
-                                disabled={selectedCount !== 1}
-                                onClick={() => {
-                                    if (selectedCount === 1) {
-                                        const idsToRemove = new Set(selectedRows.map(r => r.id));
-                                        setRows(prev => prev.filter(row => !idsToRemove.has(row.id)));
-                                    }
-                                    handleMenuClose();
-                                }}
-                            >
-                                Cancelar
-                            </MenuItem>
-                        )}
-                        {/* ACEPTAR */}
-                        {actions?.accept && (
-                            <MenuItem
-                                disabled={selectedCount !== 1}
-                                onClick={() => {
-                                    
-                                    if (selectedCount === 1) {
-                                        const selectedOriginals = selectedRows.map((r) => r.original);
-
-
-                                    if (onAccept) {
-                                    // Delegamos la acción al componente padre (p. ej. abrir un modal controlado)
-                                        onAccept(selectedOriginals);
-                                    } else {
-                                    // Comportamiento por defecto: eliminar las filas seleccionadas
-                                        const idsToRemove = new Set(selectedRows.map((r) => r.id));
-                                        setRows((prev) => prev.filter((row) => !idsToRemove.has(row.id)));
-                                        }
-                                    }
-                                    handleMenuClose();
-                                    }
-                                    
-                                    
-                                }
-                            >
-                                Aceptar
-                            </MenuItem>
-                        )}
-
-
                         {/* EDITAR */}
                         {actions?.edit && (
                             <MenuItem

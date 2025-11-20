@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProjects";
 import { useClients } from "@/hooks/useClients";
 import { useProjectManagers } from "@/hooks/useProjectManagers";
@@ -20,9 +20,10 @@ interface FormData {
   client_id: number | null; // Puede ser null en el formulario hasta que se seleccione
 }
 
-export default function NewProject() {
+export default function EditProject() {
+  const params = useParams();
   const router = useRouter();
-  const { createProject, isLoading, error } = useProjects();
+  const { updateProject, isUpdating, error } = useProjects();
   const { clients, useAutoLoadClients } = useClients();
   const { projectManagers, useAutoLoadProjectManagers } = useProjectManagers();
   
@@ -42,7 +43,9 @@ export default function NewProject() {
   });
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const stylesInput = `
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
+
+  const stylesInput = `
         w-full border border-gray-600 rounded px-3 py-2 
         hover:border-blue-600 
         focus:border-blue-500 
@@ -53,6 +56,44 @@ export default function NewProject() {
     const handleClickRoute = () => {
         router.push("/dashboard/projects");
     };
+
+    // Cargar datos del proyecto
+    useEffect(() => {
+        const loadProject = async () => {
+            if (params.id) {
+                setIsLoadingProject(true);
+                try {
+                    const response = await fetch(`http://13.56.13.129/projects/${params.id}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (response.ok) {
+                        const project = await response.json();
+                        setFormData({
+                            name: project.name,
+                            description: project.description || "",
+                            status: project.status,
+                            start_date: project.start_date ? new Date(project.start_date).toISOString().slice(0, 16) : "",
+                            end_date: project.end_date ? new Date(project.end_date).toISOString().slice(0, 16) : "",
+                            oi: project.oi || "",
+                            id_project_manager: project.id_project_manager,
+                            client_id: project.client_id
+                        });
+                    } else {
+                        console.error('Error fetching project');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                } finally {
+                    setIsLoadingProject(false);
+                }
+            }
+        };
+        
+        loadProject();
+    }, [params.id]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -76,24 +117,13 @@ export default function NewProject() {
             return;
         }
 
-        const result = await createProject({
+        const result = await updateProject(params.id as string, {
             ...formData,
             client_id: formData.client_id! // Assert que no es null porque ya lo validamos
         });
         
         if (result.success) {
-            setSuccessMessage('Proyecto creado exitosamente');
-            // Reset form
-            setFormData({
-                name: "",
-                description: "",
-                status: true,
-                start_date: "",
-                end_date: "",
-                oi: "",
-                id_project_manager: null,
-                client_id: null
-            });
+            setSuccessMessage('Proyecto actualizado exitosamente');
             
             // Redirect after 2 seconds
             setTimeout(() => {
@@ -101,8 +131,19 @@ export default function NewProject() {
             }, 2000);
         }
     };
+
+    if (isLoadingProject) {
+        return (
+            <ContentBody title="Editar Proyecto">
+                <div className="flex justify-center items-center p-8">
+                    <div className="text-lg">Cargando datos del proyecto...</div>
+                </div>
+            </ContentBody>
+        );
+    }
+
     return (
-        <ContentBody title="Nuevo proyecto"
+        <ContentBody title="Editar proyecto"
             btnReg={
                 <Btn_data
                     icon={<ArrowLeft />}
@@ -112,7 +153,7 @@ export default function NewProject() {
                 />
             }>
             <div className="m-1">
-                <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Proyecto</h2>
+                <h2 className="text-2xl font-bold mb-6 ml-4">Editar Proyecto</h2>
                 
                 {/* Mensajes de estado */}
                 {error && (
@@ -129,7 +170,7 @@ export default function NewProject() {
 
                 <form className="space-y-10 ml-4 mr-4" onSubmit={handleSubmit}>
 
-                    {/* Sección: Datos personales */}
+                    {/* Sección: Datos del proyecto */}
                     <fieldset className="border border-gray-400 rounded-xl p-4" >
                         <legend className="text-lg font-semibold px-2 ml-2 mt-4 bg-white">
                             Datos del proyecto
@@ -280,14 +321,14 @@ export default function NewProject() {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isUpdating}
                             className={`font-semibold py-2 px-6 rounded ${
-                                isLoading 
+                                isUpdating 
                                     ? 'bg-gray-400 cursor-not-allowed' 
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                             }`}
                         >
-                            {isLoading ? 'Guardando...' : 'Guardar'}
+                            {isUpdating ? 'Actualizando...' : 'Actualizar'}
                         </button>
                     </div>
                 </form>

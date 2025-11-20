@@ -3,6 +3,7 @@ import { useMemo, useEffect, useState } from "react";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { ContentBody } from "@/components/containers/containers";
+import { useProjectManagers } from "@/hooks/useProjectManagers";
 
 // Definimos el tipo de cada proyecto basado en la respuesta del API
 type Project = {
@@ -36,6 +37,20 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  
+  // Hook para obtener project managers
+  const { projectManagers, useAutoLoadProjectManagers } = useProjectManagers();
+  
+  // Cargar project managers automáticamente
+  useAutoLoadProjectManagers();
+
+  // Log cuando cambie la selección
+  useEffect(() => {
+    console.log('Row selection changed:', rowSelection);
+    const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
+    console.log('Selected project IDs:', selectedIds);
+  }, [rowSelection]);
 
   // Cargar proyectos al montar el componente
   useEffect(() => {
@@ -117,20 +132,32 @@ export default function Projects() {
   // Transformar los datos del API al formato que espera la tabla
   const data: ProjectTableRow[] = useMemo(() => {
     console.log('Transforming projects data:', projects);
-    const transformedData = projects.map(project => ({
-      id: project.id.toString(),
-      ordenInterna: project.oi || '',
-      titulo: project.name,
-      cliente: project.client_id ? `Cliente ${project.client_id}` : 'Sin asignar',
-      descripcion: project.description || '',
-      fechaIn: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
-      fechaFn: project.end_date ? new Date(project.end_date).toLocaleDateString() : '',
-      estatus: project.status ? 'Activo' : 'Inactivo',
-      responsable: project.id_project_manager ? `PM ${project.id_project_manager}` : 'Sin asignar',
-    }));
+    console.log('Available project managers:', projectManagers);
+    
+    const transformedData = projects.map(project => {
+      // Buscar el project manager por ID
+      const projectManager = projectManagers.find(pm => pm.id === project.id_project_manager);
+      const responsableName = projectManager ? projectManager.name : 
+                             project.id_project_manager ? `PM ${project.id_project_manager}` : 'Sin asignar';
+      
+      console.log(`Project ${project.name} - PM ID: ${project.id_project_manager}, Found PM: ${projectManager?.name || 'Not found'}`);
+      
+      return {
+        id: project.id.toString(),
+        ordenInterna: project.oi || '',
+        titulo: project.name,
+        cliente: project.client_id ? `Cliente ${project.client_id}` : 'Sin asignar',
+        descripcion: project.description || '',
+        fechaIn: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
+        fechaFn: project.end_date ? new Date(project.end_date).toLocaleDateString() : '',
+        estatus: project.status ? 'Activo' : 'Inactivo',
+        responsable: responsableName,
+      };
+    });
     console.log('Transformed data:', transformedData);
+    console.log('IDs for selection:', transformedData.map(item => item.id));
     return transformedData;
-  }, [projects]);
+  }, [projects, projectManagers]); // Agregar projectManagers como dependencia
 
   // Mostrar loading o error
   if (isLoading) {
@@ -160,6 +187,7 @@ export default function Projects() {
   }
 
   console.log('Rendering table with projects:', projects.length, 'data rows:', data.length);
+  console.log('Current rowSelection state:', rowSelection);
 
   return (
     <ContentBody
@@ -170,12 +198,14 @@ export default function Projects() {
         //ModalAdd={<h1>Agregar</h1>}
         urlRoute="/dashboard/projects/show?id="
         urlRouteAdd="/dashboard/projects/new"
+        urlRouteEdit="/dashboard/projects/edit/"
         menu={true}
         data={data}
         columns={columns}
         actions={{ edit: true, add: true }}
         edit={true}
-
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
       />
     </ContentBody>
   );
