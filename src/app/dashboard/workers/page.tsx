@@ -6,6 +6,20 @@ import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useWorkers } from "@/hooks/useWorkers";
 
+interface WorkerApiResponse {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  status: boolean;
+  location: string;
+  description: string;
+  levelName?: string;
+  roleName?: string;
+  schemeName?: string;
+  roleId?: number;
+}
+
 interface StaffItem {
   id: string;
   consultor: string;
@@ -19,17 +33,16 @@ interface StaffItem {
 export default function Workers() {
   const { data: workers, loading } = useWorkers();
 
-  const data: StaffItem[] = workers.map((w: any) => ({
-    id: String(w.id),
+  const data: StaffItem[] = workers.map((w: WorkerApiResponse) => ({
+    id: w.id.toString(),
     consultor: w.name,
-    especialidad: w.roleName || "-",
-    nivel: w.levelName || "-",
-    departamento: w.roleId || "-",
-    esquema: w.schemeName || "-",
+    especialidad: w.roleName ?? "-",
+    nivel: w.levelName ?? "-",
+    departamento: w.roleId ? String(w.roleId) : "-",
+    esquema: w.schemeName ?? "-",
     estatus: w.status ? "Activo" : "Inactivo",
   }));
 
-  // Columnas del DataTable
   const columns = useMemo<MRT_ColumnDef<StaffItem>[]>(
     () => [
       { accessorKey: "consultor", header: "Nombre" },
