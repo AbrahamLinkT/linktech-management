@@ -16,6 +16,7 @@ export default function NewWorker() {
     `;
 
     const router = useRouter();
+
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -28,11 +29,13 @@ export default function NewWorker() {
         role_id: "",
     });
 
-    const handleChange = (e: any) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // Convertir status a boolean
@@ -50,14 +53,12 @@ export default function NewWorker() {
             role_id: Number(form.role_id),
         };
 
-        console.log("📌 Payload que se enviará:", payload);
+        console.log("Payload que se enviará:", payload);
 
         try {
             const res = await fetch("http://13.56.13.129/worker", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
@@ -68,8 +69,8 @@ export default function NewWorker() {
             alert("Trabajador creado correctamente");
             router.push("/dashboard/workers");
         } catch (err) {
-            alert("Error al crear worker");
             console.error(err);
+            alert("Error al crear worker");
         }
     };
 
@@ -85,6 +86,7 @@ export default function NewWorker() {
                 />
             }
         >
+        
             <div className="m-1">
                 <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Usuario</h2>
 

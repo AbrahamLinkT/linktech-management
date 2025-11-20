@@ -14,6 +14,13 @@ interface CreateDepartmentDto {
   description: string;
 }
 
+interface DepartmentApiResponse {
+  id: number;
+  name: string;
+  short_name: string;
+  description: string;
+}
+
 export function useDepartments() {
   const [data, setData] = useState<DepartmentItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,9 +38,9 @@ export function useDepartments() {
 
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
 
-      const json = await res.json();
+      const json: DepartmentApiResponse[] = await res.json();
 
-      const mapped: DepartmentItem[] = json.map((item: any) => ({
+      const mapped: DepartmentItem[] = json.map((item) => ({
         id: item.id.toString(),
         departamento: item.name,
         nombreCorto: item.short_name,
@@ -41,8 +48,8 @@ export function useDepartments() {
       }));
 
       setData(mapped);
-    } catch (err: any) {
-      setError(err.message ?? "Error desconocido");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -64,12 +71,10 @@ export function useDepartments() {
 
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
 
-      // refrescar lista
       await fetchDepartments();
-
       return true;
-    } catch (err: any) {
-      setError(err.message ?? "Error desconocido");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
       return false;
     } finally {
       setLoading(false);
