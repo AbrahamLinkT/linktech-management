@@ -2,54 +2,59 @@
 
 import { ContentBody } from "@/components/containers/containers";
 import { useMemo } from "react";
-import staf from "@/data/staff.json";
-import { DataTable } from "@/components/tables/table_master"; // <-- importa tu DataTable
+import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
+import { useWorkers } from "@/hooks/useWorkers";
 
 interface StaffItem {
-    id: string;
-    consultor: string;
-    especialidad: string;
-    nivel: string;
-    departamento: string;
-    esquema: string;
-    tiempo: string;
-    estatus: string;
+  id: string;
+  consultor: string;
+  especialidad: string;
+  nivel: string;
+  departamento: string;
+  esquema: string;
+  estatus: string;
 }
 
 export default function Workers() {
-    // Configura columnas para DataTable
-    const columns = useMemo<MRT_ColumnDef<StaffItem>[]>(
-        () => [
-            //{ accessorKey: "id", header: "ID", enableEditing: false },
-            { accessorKey: "consultor", header: "Nombre" },
-            { accessorKey: "especialidad", header: "Especialidad" },
-            { accessorKey: "nivel", header: "Nivel" },
-            { accessorKey: "departamento", header: "Departamento" },
-            { accessorKey: "esquema", header: "Esquema" },
-            { accessorKey: "tiempo", header: "Tiempo" },
-            { accessorKey: "estatus", header: "Estatus" },
-        ],
-        []
-    );
+  const { data: workers, loading } = useWorkers();
 
-    // Datos del JSON
-    const data: StaffItem[] = Array.isArray(staf.staff) ? staf.staff : [];
+  const data: StaffItem[] = workers.map((w: any) => ({
+    id: String(w.id),
+    consultor: w.name,
+    especialidad: w.roleName || "-",
+    nivel: w.levelName || "-",
+    departamento: w.roleId || "-",
+    esquema: w.schemeName || "-",
+    estatus: w.status ? "Activo" : "Inactivo",
+  }));
 
-    return (
-        <>
-            <ContentBody title="Trabajadores">
-                {/* Aquí renderizas el DataTable */}
-                <DataTable<StaffItem> data={data}
-                    columns={columns}
-                    urlRoute="/dashboard/workers/show?id="
-                    urlRouteAdd="/dashboard/workers/new"
-                    urlRouteEdit="/dashboard/workers/edit?id="
-                    actions={{ edit: true, add: true }}
-                    menu={true}
+  // Columnas del DataTable
+  const columns = useMemo<MRT_ColumnDef<StaffItem>[]>(
+    () => [
+      { accessorKey: "consultor", header: "Nombre" },
+      { accessorKey: "especialidad", header: "Especialidad" },
+      { accessorKey: "nivel", header: "Nivel" },
+      { accessorKey: "departamento", header: "Departamento" },
+      { accessorKey: "esquema", header: "Esquema" },
+      { accessorKey: "estatus", header: "Estatus" },
+    ],
+    []
+  );
 
-                />
-            </ContentBody>
-        </>
-    );
+  if (loading) return <div>Cargando...</div>;
+
+  return (
+    <ContentBody title="Trabajadores">
+      <DataTable
+        data={data}
+        columns={columns}
+        menu={true}
+        actions={{ edit: true, add: true }}
+        urlRoute="/dashboard/workers/show?id="
+        urlRouteAdd="/dashboard/workers/new"
+        urlRouteEdit="/dashboard/workers/edit?id="
+      />
+    </ContentBody>
+  );
 }
