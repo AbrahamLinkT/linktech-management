@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
@@ -21,6 +21,9 @@ interface Solicitud {
 }
 
 export default function SolicitudHoras() {
+  // Estado para selección de filas
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  
   // Definir columnas
   const columns = useMemo<MRT_ColumnDef<Solicitud>[]>(
     () => [
@@ -35,8 +38,8 @@ export default function SolicitudHoras() {
     []
   );
 
-  // Datos estáticos (sin estado)
-  const data: Solicitud[] = [
+  // Datos estáticos (envueltos en useMemo)
+  const data: Solicitud[] = useMemo(() => [
     {
       id: "1",
       consultor: "Diego Carranza",
@@ -57,7 +60,7 @@ export default function SolicitudHoras() {
       horas: "8 horas",
       solicitante: "Luis Martinez",
     },
-  ];
+  ], []);
 
   // --- Estado para el modal ---
   const [openModal, setOpenModal] = useState(false);
@@ -68,6 +71,33 @@ export default function SolicitudHoras() {
     setOpenModal(false);
     setRegistroSeleccionado(null);
   };
+
+  // Manejar selección de filas
+  useEffect(() => {
+    const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
+    if (selectedIds.length === 1) {
+      const registro = data.find(item => item.id === selectedIds[0]);
+      if (registro) {
+        // Convertir la fecha de "DD/MM/YY - DD/MM/YY" a formato "YYYY-MM-DD"
+        const [desdeStr, hastaStr] = registro.fechas.split(" - ");
+        const parseDate = (str: string) => {
+          const [d, m, y] = str.split("/").map(Number);
+          return `20${y.toString().padStart(2, "0")}-${m.toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
+        };
+
+        setRegistroSeleccionado(registro);
+        setRangoHoras({
+          desde: parseDate(desdeStr),
+          hasta: parseDate(hastaStr),
+          cantidad: Number(registro.horas.split(" ")[0])
+        });
+        setOpenModal(true);
+        
+        // Limpiar selección para evitar loops
+        setRowSelection({});
+      }
+    }
+  }, [rowSelection, data]);
 
   const actions = { edit: false, add: false, export: false, delete: false, cancel: true, accept: true };
   const router = useRouter() // Eliminado: no usado
@@ -89,26 +119,8 @@ export default function SolicitudHoras() {
         columns={columns}
         menu={true}
         actions={actions}
-        onAccept={(selectedRows) => {
-          if (selectedRows.length === 1) {
-            const registro = selectedRows[0];
-
-            // Convertir la fecha de "DD/MM/YY - DD/MM/YY" a formato "YYYY-MM-DD"
-            const [desdeStr, hastaStr] = registro.fechas.split(" - ");
-            const parseDate = (str: string) => {
-              const [d, m, y] = str.split("/").map(Number);
-              return `20${y.toString().padStart(2, "0")}-${m.toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
-            }
-
-            setRegistroSeleccionado(registro);
-            setRangoHoras({
-              desde: parseDate(desdeStr),
-              hasta: parseDate(hastaStr),
-              cantidad: Number(registro.horas.split(" ")[0])
-            });
-            setOpenModal(true);
-          }
-        }}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
       />
 
       {/* Modal para cambiar horas */}
