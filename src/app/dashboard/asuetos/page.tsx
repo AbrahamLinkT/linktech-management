@@ -1,55 +1,102 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
+import { useAutoLoadAsuetos, type AsuetoResponse } from "@/hooks/useAsuetos";
+import { useAutoLoadEmployees } from "@/hooks/useEmployees";
 
-interface Asueto {
-    empleado: string;
-    fechaInicio: string;
-    fechaFin: string;
-    descripcion: string;
-    tiempo: string;
-}
-
-const asuetosIniciales: Asueto[] = [
-    {
-        empleado: "Abraham Castañeda",
-        fechaInicio: "2025-11-16",
-        fechaFin: "2025-11-16",
-        descripcion: "Independencia de MX",
-        tiempo: "Completo",
-    },
-];
+const formatDate = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    } catch {
+        return dateString;
+    }
+};
 
 export default function AsuetosPage() {
-    const [asuetos] = useState<Asueto[]>(asuetosIniciales);
+    // Cargar asuetos desde el API
+    const { asuetos, isLoading: asuetoLoading, error: asuetoError } = useAutoLoadAsuetos();
+    
+    // Cargar empleados para mostrar nombres
+    const { employees, isLoading: employeeLoading } = useAutoLoadEmployees();
 
-    // Formatear fechas
-    const formatDate = (date: string) => {
-        const [y, m, d] = date.split("-");
-        return `${d}/${m}/${y}`;
-    };
+    // Crear un mapa de employee_id -> name para búsqueda rápida
+    const employeeMap = useMemo(() => {
+        const map = new Map<number, string>();
+        console.log('🔍 Construyendo employeeMap con employees:', employees.length, 'empleados');
+        employees.forEach((emp: {id: number; name: string}) => {
+            map.set(emp.id, emp.name);
+        });
+        console.log('📊 EmployeeMap construido con', map.size, 'entradas');
+        return map;
+    }, [employees]);
 
-    // Columnas para DataTable
-    const columns = useMemo<MRT_ColumnDef<Asueto & { id: string }>[]>(() => [
-        //{ accessorKey: "id", header: "ID", enableEditing: false },
-        { accessorKey: "empleado", header: "Empleado", size: 200 },
-        { accessorKey: "fechaInicio", header: "Fecha inicio", size: 200 },
-        { accessorKey: "fechaFin", header: "Fecha fin", size: 170 },
-        { accessorKey: "descripcion", header: "Descripción", size: 250 },
-        { accessorKey: "tiempo", header: "Tiempo", size: 250 },
-    ], []);
+    const columns = useMemo<MRT_ColumnDef<AsuetoResponse & { id: string; empleado: string; fechaInicio: string; fechaFin: string }>[]>(
+        () => [
+            {
+                accessorKey: "empleado",
+                header: "Empleado",
+                size: 200,
+            },
+            {
+                accessorKey: "fechaInicio",
+                header: "Fecha inicio",
+                size: 200,
+            },
+            {
+                accessorKey: "fechaFin", 
+                header: "Fecha fin",
+                size: 170,
+            },
+        ],
+        []
+    );
 
-    // Datos con id y fechas formateadas
-    const data = asuetos.map((a, idx) => ({
-        ...a,
-        id: idx.toString(),
-        fechaInicio: formatDate(a.fechaInicio),
-        fechaFin: formatDate(a.fechaFin),
-        tiempo: a.tiempo === "Completo" ? "Completo" : "Medio día",
-    }));
-    const actions = { edit: true, add: true, export: true, delete: true }
+    // Transformar los datos de asuetos para la tabla
+    const data = useMemo(() => {
+        console.log('🔄 Transformando', asuetos.length, 'asuetos para la tabla');
+        return asuetos.map((asueto, idx) => {
+            const empleadoName = employeeMap.get(asueto.employee_id);
+            if (!empleadoName) {
+                console.warn(`⚠️ No se encontró empleado para employee_id: ${asueto.employee_id}`);
+            }
+            
+            return {
+                ...asueto,
+                id: asueto.id || idx.toString(),
+                empleado: empleadoName || `ID: ${asueto.employee_id}`,
+                fechaInicio: formatDate(asueto.startDate),
+                fechaFin: formatDate(asueto.endDate),
+            };
+        });
+    }, [asuetos, employeeMap]);
+
+    const actions = { edit: true, add: true, export: true, delete: true };
+
+    // Mostrar loading si cualquiera de las cargas está en progreso
+    if (asuetoLoading || employeeLoading) {
+        return (
+            <ContentBody title="Asuetos">
+                <div className="flex justify-center items-center h-40">
+                    <p>Cargando asuetos...</p>
+                </div>
+            </ContentBody>
+        );
+    }
+
+    // Mostrar error si hay algún problema
+    if (asuetoError) {
+        return (
+            <ContentBody title="Asuetos">
+                <div className="flex justify-center items-center h-40">
+                    <p className="text-red-500">Error al cargar asuetos: {asuetoError}</p>
+                </div>
+            </ContentBody>
+        );
+    }
 
     return (
         <ContentBody title="Asuetos">
