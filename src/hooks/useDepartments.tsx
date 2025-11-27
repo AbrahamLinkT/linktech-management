@@ -112,6 +112,32 @@ export function useDepartments() {
     }
   };
 
+  // =====================================
+  // PUT
+  // =====================================
+  const updateDepartment = async (id: string, body: CreateDepartmentDto) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`http://13.56.13.129/department/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+
+      await fetchDepartments();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDepartments();
   }, []);
@@ -123,5 +149,6 @@ export function useDepartments() {
     error,
     createDepartment,
     deleteDepartments,
+    updateDepartment
   };
 }
