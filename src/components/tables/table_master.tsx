@@ -40,6 +40,7 @@ type DataTableProps<T extends { id: string }> = {
     menu?: boolean
     rowSelection?: Record<string, boolean>;
     onRowSelectionChange?: (updater: Record<string, boolean> | ((old: Record<string, boolean>) => Record<string, boolean>)) => void;
+    onDelete?: (ids: string[]) => void;
 };
 
 export function DataTable<T extends { id: string }>({
@@ -53,8 +54,9 @@ export function DataTable<T extends { id: string }>({
     urlRouteEdit,
     menu,
     actions = {},
-    rowSelection,                // 👈 nuevo
-    onRowSelectionChange,        // 👈 nuevo
+    rowSelection,
+    onRowSelectionChange,
+    onDelete,
 
 }: DataTableProps<T>) {
     // =============== ESTADOS ================
@@ -180,20 +182,22 @@ export function DataTable<T extends { id: string }>({
 
                         {/* ELIMINAR */}
                         {actions?.delete && (
-                            <MenuItem
-                                disabled={selectedCount === 0}
-                                onClick={() => {
-                                    if (selectedCount > 0) {
-                                        const idsToDelete = new Set(selectedRows.map((r) => r.id));
-                                        if (!rowSelection) {
-                                        setRows((prev) => prev.filter((row) => !idsToDelete.has(row.id)));
-                                        }
-                                    }
-                                    handleMenuClose();
-                                }}
-                            >
-                                Eliminar
-                            </MenuItem>
+                        <MenuItem
+                            disabled={selectedCount === 0}
+                            onClick={() => {
+                            if (selectedCount > 0) {
+                                const idsToDelete = selectedRows.map((r) => r.id);
+
+                                // ⭐️ Si el padre (page.tsx) definió onDelete, lo usamos
+                                if (onDelete) {
+                                onDelete(idsToDelete);
+                                }
+                            }
+                            handleMenuClose();
+                            }}
+                        >
+                            Eliminar
+                        </MenuItem>
                         )}
 
                         {/* EXPORTACIONES */}

@@ -25,10 +25,11 @@ export function useDepartments() {
   const [data, setData] = useState<DepartmentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // ============================
-  // GET DEPARTMENTS
-  // ============================
+  // =====================================
+  // GET
+  // =====================================
   const fetchDepartments = async () => {
     setLoading(true);
     setError(null);
@@ -55,9 +56,9 @@ export function useDepartments() {
     }
   };
 
-  // ============================
-  // POST DEPARTMENT
-  // ============================
+  // =====================================
+  // POST
+  // =====================================
   const createDepartment = async (body: CreateDepartmentDto) => {
     setLoading(true);
     setError(null);
@@ -81,9 +82,46 @@ export function useDepartments() {
     }
   };
 
+  // =====================================
+  // DELETE múltiples
+  // =====================================
+  const deleteDepartments = async (ids: string[]) => {
+    if (ids.length === 0) return false;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      for (const id of ids) {
+        const res = await fetch(`http://13.56.13.129/department/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          throw new Error(`Falló eliminar id=${id}, status: ${res.status}`);
+        }
+      }
+
+      await fetchDepartments();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   useEffect(() => {
     fetchDepartments();
   }, []);
 
-  return { data, loading, error, createDepartment };
+  return {
+    data,
+    loading,
+    deleting,
+    error,
+    createDepartment,
+    deleteDepartments,
+  };
 }
