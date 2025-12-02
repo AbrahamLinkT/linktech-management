@@ -5,6 +5,7 @@ import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { buildApiUrl, API_CONFIG } from '../../../../config/api';
 
 export default function NewWorker() {
     const stylesInput = `

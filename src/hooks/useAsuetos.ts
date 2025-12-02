@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 // Interfaz para el formulario de asueto (nueva estructura simplificada)
 interface AsuetoFormData {

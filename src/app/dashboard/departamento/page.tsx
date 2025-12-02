@@ -22,11 +22,6 @@ export default function DepartmentPage() {
     }));
   }, [data]);
 
-  // ==== Obtener IDs seleccionados =====
-  const selectedIds = Object.keys(rowSelection).filter(
-    (key) => rowSelection[key]
-  );
-
   const columns = useMemo<MRT_ColumnDef<DepartmentItem>[]>(() => [
     { accessorKey: "departamento", header: "Departamento" },
     { accessorKey: "nombreCorto", header: "Nombre Corto" },

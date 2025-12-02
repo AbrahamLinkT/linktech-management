@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 export interface DepartmentItem {
   id: string;
