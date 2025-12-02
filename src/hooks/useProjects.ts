@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 // Interfaz para el payload del proyecto según el endpoint
 interface ProjectPayload {
@@ -64,8 +65,8 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      console.log('Fetching projects from API...');
-      const response = await axios.get('http://13.56.13.129/projects', {
+      console.log('Fetching projects from:', buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS));
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -117,7 +118,7 @@ export const useProjects = () => {
         client_id: projectData.client_id, // No convertir a null, debe ser un ID válido
       };
 
-      const response = await axios.post('http://13.56.13.129/projects', cleanedData, {
+      const response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), cleanedData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -159,7 +160,7 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      const response = await axios.get(`http://13.56.13.129/projects/${id}`, {
+      const response = await axios.get(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -209,7 +210,7 @@ export const useProjects = () => {
         client_id: projectData.client_id, // No convertir a null, debe ser un ID válido
       };
 
-      const response = await axios.put(`http://13.56.13.129/projects/${id}`, cleanedData, {
+      const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, cleanedData, {
         headers: {
           'Content-Type': 'application/json',
         },

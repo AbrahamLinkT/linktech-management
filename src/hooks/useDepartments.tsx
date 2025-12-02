@@ -35,7 +35,7 @@ export function useDepartments() {
     setError(null);
 
     try {
-      const res = await fetch("http://13.56.13.129/department");
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS));
 
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
 
@@ -64,7 +64,7 @@ export function useDepartments() {
     setError(null);
 
     try {
-      const res = await fetch("http://13.56.13.129/department", {
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -93,7 +93,7 @@ export function useDepartments() {
 
     try {
       for (const id of ids) {
-        const res = await fetch(`http://13.56.13.129/department/${id}`, {
+        const res = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS)}/${id}`, {
           method: "DELETE",
         });
 
@@ -120,7 +120,7 @@ export function useDepartments() {
     setError(null);
 
     try {
-      const res = await fetch(`http://13.56.13.129/department/${id}`, {
+      const res = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS)}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

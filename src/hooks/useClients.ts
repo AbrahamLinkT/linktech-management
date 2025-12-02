@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 // Interfaz para el cliente
 interface Client {
@@ -29,7 +30,7 @@ export const useClients = () => {
     setError(null);
 
     try {
-      const response = await axios.get('http://13.56.13.129/client', {
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS), {
         headers: {
           'Content-Type': 'application/json',
         },

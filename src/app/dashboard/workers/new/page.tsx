@@ -56,7 +56,7 @@ export default function NewWorker() {
         console.log("Payload que se enviará:", payload);
 
         try {
-            const res = await fetch("http://13.56.13.129/worker", {
+            const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),

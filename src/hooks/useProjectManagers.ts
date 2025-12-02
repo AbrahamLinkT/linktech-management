@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 // Interfaz para department-head
 interface DepartmentHead {
@@ -55,11 +56,11 @@ export const useProjectManagers = () => {
     try {
       // Obtener department-heads y workers en paralelo
       const [departmentHeadsResponse, workersResponse] = await Promise.all([
-        axios.get('http://13.56.13.129/department-heads', {
+        axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS), {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
         }),
-        axios.get('http://13.56.13.129/worker', {
+        axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
         })

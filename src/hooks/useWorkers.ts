@@ -8,7 +8,7 @@ export function useWorkers() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("http://13.56.13.129/worker");
+        const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS));
         const json = await res.json();
         setData(json.content || []);
       } catch (e) {

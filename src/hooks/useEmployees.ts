@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl, API_CONFIG } from '../config/api';
 
 // Interfaz para worker/empleado
 interface Employee {
@@ -37,7 +38,7 @@ export const useEmployees = () => {
     try {
       console.log('Fetching employees from API...');
       
-      const response = await axios.get('http://13.56.13.129/worker', {
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
         headers: { 'Content-Type': 'application/json' },
         timeout: 30000,
       });
@@ -118,7 +119,7 @@ export const useAutoLoadEmployees = () => {
         setIsLoading(true);
         console.log('Fetching employees from API...');
         
-        const response = await axios.get('http://13.56.13.129/worker', {
+        const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
           headers: { 'Content-Type': 'application/json' },
           timeout: 30000,
         });

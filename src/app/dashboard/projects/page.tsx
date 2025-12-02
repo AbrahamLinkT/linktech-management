@@ -4,6 +4,7 @@ import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { ContentBody } from "@/components/containers/containers";
 import { useProjectManagers } from "@/hooks/useProjectManagers";
+import { buildApiUrl, API_CONFIG } from '../../../config/api';
 
 // Definimos el tipo de cada proyecto basado en la respuesta del API
 type Project = {
@@ -59,9 +60,9 @@ export default function Projects() {
       setError(null);
       
       try {
-        console.log('Fetching projects from:', 'http://13.56.13.129/projects');
+        console.log('Fetching projects from:', buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS));
         
-        const response = await fetch('http://13.56.13.129/projects', {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

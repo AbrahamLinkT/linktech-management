@@ -35,7 +35,7 @@ export const useAsuetos = () => {
       console.log('Creating asueto with data:', asuetoData);
       console.log('JSON stringified data:', JSON.stringify(asuetoData, null, 2));
 
-      const response = await axios.post('http://13.56.13.129/Non-Working-Days', asuetoData, {
+      const response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS), asuetoData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -84,9 +84,9 @@ export const useAsuetos = () => {
   // Función para obtener todos los asuetos
   const getAsuetos = async (): Promise<AsuetoResponse[]> => {
     try {
-      console.log('📥 Obteniendo asuetos desde:', 'http://13.56.13.129/Non-Working-Days');
+      console.log('📥 Obteniendo asuetos desde:', buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS));
       
-      const response = await axios.get('http://13.56.13.129/Non-Working-Days', {
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS), {
         timeout: 30000,
       });
       
@@ -107,7 +107,7 @@ export const useAsuetos = () => {
       console.log('📝 Updating asueto with ID:', id, 'and data:', asuetoData);
       console.log('JSON stringified data:', JSON.stringify(asuetoData, null, 2));
 
-      const response = await axios.put(`http://13.56.13.129/Non-Working-Days/${id}`, asuetoData, {
+      const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS)}/${id}`, asuetoData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -172,9 +172,9 @@ export const useAutoLoadAsuetos = () => {
     const loadAsuetos = async () => {
       try {
         setIsLoading(true);
-        console.log('📥 Obteniendo asuetos desde:', 'http://13.56.13.129/Non-Working-Days');
+        console.log('📥 Obteniendo asuetos desde:', buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS));
         
-        const response = await axios.get('http://13.56.13.129/Non-Working-Days', {
+        const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS), {
           timeout: 30000,
         });
         
@@ -196,9 +196,9 @@ export const useAutoLoadAsuetos = () => {
   const refetch = async () => {
     try {
       setIsLoading(true);
-      console.log('📥 Recargando asuetos desde:', 'http://13.56.13.129/Non-Working-Days');
+      console.log('📥 Recargando asuetos desde:', buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS));
       
-      const response = await axios.get('http://13.56.13.129/Non-Working-Days', {
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS), {
         timeout: 30000,
       });
       
