@@ -1,45 +1,66 @@
 "use client";
+
+import { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
-import { Adduser } from "@/components/containers/modals_logic";
-import { DataTable } from "@/components/tables/table_master"; // Asegúrate de tener este componente
-import Clientes from "@/data/clientes.json";
+import { DataTable } from "@/components/tables/table_master";
+import { type MRT_ColumnDef } from "material-react-table";
+import { useClients, type ClientItem } from "@/hooks/useClients";
+import ConfirmModal from "@/components/ConfirmModal";
 
-export default function Client() {
-    const columns = [
-        //{ accessorKey: "id", header: "id", size: 150 },
-        { accessorKey: "nombreCorto", header: "Nombre Corto", size: 150 },
-        { accessorKey: "razonSocial", header: "Razon social", size: 250 },
-        { accessorKey: "email", header: "Email", size: 200 },
-        { accessorKey: "telefono", header: "Teléfono", size: 150 },
-        { accessorKey: "direccion", header: "Dirección", size: 200 },
-        { accessorKey: "contacto", header: "Contacto", size: 150 },
-        { accessorKey: "cargo", header: "Cargo", size: 150 },
-    ];
+export default function ClientPage() {
+  const { data, loading, error, deleteClients } = useClients();
 
-    const data = Clientes.map((p) => ({
-        id: String(p.id),
-        nombreCorto: p.nombre_corto,
-        razonSocial: p.razon_social,
-        email: p.detalles.email,
-        telefono: p.detalles.telefono,
-        direccion: p.detalles.direccion,
-        contacto: p.detalles.contacto,
-        cargo: p.detalles.cargo,
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [idsToDelete, setIdsToDelete] = useState<string[] | null>(null);
+
+  // ==== Table data is already mapped in hook, but ensure id is string ===
+  const tableData = useMemo(() => {
+    if (!data) return [];
+    return data.map((d) => ({
+      ...d,
+      id: d.id.toString(),
     }));
-    const actions = { add: true, edit: true }
-    return (
-        <ContentBody title="Clientes">
-            <DataTable
-                title_add="Agregar nuevo cliente"
-                columns={columns}
-                data={data}
-                ModalAdd={<Adduser />}
-                menu={true}
-                actions={actions}
-                urlRouteAdd="/dashboard/client/new"
-                urlRouteEdit="/dashboard/client/edit?id="
-            />
-        </ContentBody>
-    );
-}
+  }, [data]);
 
+  const columns = useMemo<MRT_ColumnDef<ClientItem>[]>(() => [
+    { accessorKey: "nombre", header: "Nombre" },
+    { accessorKey: "nombreCorto", header: "Nombre Corto" },
+  ], []);
+
+  const actions = { edit: true, add: true, export: true, delete: true };
+
+  return (
+    <ContentBody title="Clientes">
+      {loading && <p>Cargando clientes...</p>}
+      {error && <p>Error: {error}</p>}
+
+      <ConfirmModal
+        isOpen={idsToDelete !== null}
+        message={`¿Eliminar ${idsToDelete?.length ?? 0} cliente(s)?`}
+        onCancel={() => setIdsToDelete(null)}
+        onConfirm={async () => {
+          if (idsToDelete) {
+            await deleteClients(idsToDelete);
+          }
+          setIdsToDelete(null);
+          setRowSelection({});
+        }}
+      />
+
+      {!loading && !error && (
+        <DataTable<ClientItem & { id: string }>
+          data={tableData}
+          edit={true}
+          columns={columns}
+          menu={true}
+          urlRouteEdit="/dashboard/client/edit?id="
+          urlRouteAdd="/dashboard/client/new"
+          actions={actions}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          onDelete={(ids) => setIdsToDelete(ids)}
+        />
+      )}
+    </ContentBody>
+  );
+}

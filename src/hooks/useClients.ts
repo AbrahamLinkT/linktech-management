@@ -1,82 +1,151 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { buildApiUrl, API_CONFIG } from '../config/api';
+"use client";
+import { useEffect, useState } from "react";
+import { buildApiUrl, API_CONFIG } from "../config/api";
 
-// Interfaz para el cliente
-interface Client {
+export interface ClientItem {
+  id: string;
+  nombre: string;
+  nombreCorto: string;
+}
+
+interface ClientApiResponse {
   id: number;
   name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  created_at?: string;
-  updated_at?: string;
+  short_name: string;
 }
 
-interface GetClientsResponse {
-  success: boolean;
-  data?: Client[];
-  error?: string;
+interface CreateClientDto {
+  name: string;
+  short_name: string;
 }
 
-export const useClients = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export function useClients() {
+  const [data, setData] = useState<ClientItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // Función para obtener todos los clientes
-  const getClients = async (): Promise<GetClientsResponse> => {
-    setIsLoading(true);
+  // =====================================
+  // GET
+  // =====================================
+  const fetchClients = async () => {
+    setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000, // 30 segundos timeout
-      });
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS));
 
-      console.log('Clients API Response:', response.data);
-      setClients(response.data);
-      setIsLoading(false);
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (err: unknown) {
-      console.error('Error fetching clients:', err);
-      let errorMessage = 'Error fetching clients';
-      
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else {
-        const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
-        errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error fetching clients';
-      }
-      
-      setError(errorMessage);
-      setIsLoading(false);
-      
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+
+      const json: ClientApiResponse[] = await res.json();
+
+      const mapped: ClientItem[] = json.map((item) => ({
+        id: item.id.toString(),
+        nombre: item.name,
+        nombreCorto: item.short_name,
+      }));
+
+      setData(mapped);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Hook para cargar clientes automáticamente
-  const useAutoLoadClients = () => {
-    useEffect(() => {
-      getClients();
-    }, []);
+  // =====================================
+  // POST
+  // =====================================
+  const createClient = async (body: CreateClientDto) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+
+      await fetchClients();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return {
-    clients,
-    getClients,
-    useAutoLoadClients,
-    isLoading,
-    error,
+  // =====================================
+  // DELETE múltiples
+  // =====================================
+  const deleteClients = async (ids: string[]) => {
+    if (ids.length === 0) return false;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      for (const id of ids) {
+        const res = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS)}/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          throw new Error(`Falló eliminar id=${id}, status: ${res.status}`);
+        }
+      }
+
+      await fetchClients();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
+    } finally {
+      setDeleting(false);
+    }
   };
-};
+
+  // =====================================
+  // PUT
+  // =====================================
+  const updateClient = async (id: string, body: CreateClientDto) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.CLIENTS)}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+
+      await fetchClients();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  return {
+    data,
+    loading,
+    deleting,
+    error,
+    createClient,
+    deleteClients,
+    updateClient,
+  };
+}
