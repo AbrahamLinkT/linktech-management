@@ -4,7 +4,7 @@ import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEsquemaContratacion, type EsquemaItem } from "@/hooks/useEsquema-contratacion";
+import { useEsquemaContratacion } from "@/hooks/useEsquema-contratacion";
 import { useEffect, useState } from "react";
 
 export default function EditEsquema() {

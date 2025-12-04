@@ -4,7 +4,7 @@ import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useClients, type ClientItem } from "@/hooks/useClients";
+import { useClients } from "@/hooks/useClients";
 import { useEffect, useState } from "react";
 
 export default function EditClient() {

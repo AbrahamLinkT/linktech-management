@@ -23,11 +23,10 @@ interface FormData {
 export default function NewProject() {
   const router = useRouter();
   const { createProject, isLoading, error } = useProjects();
-  const { clients, useAutoLoadClients } = useClients();
+  const { data: clients } = useClients();
   const { projectManagers, useAutoLoadProjectManagers } = useProjectManagers();
   
-  // Cargar clientes y project managers automáticamente
-  useAutoLoadClients();
+  // Cargar project managers automáticamente
   useAutoLoadProjectManagers();
   
   const [formData, setFormData] = useState<FormData>({
@@ -185,7 +184,7 @@ export default function NewProject() {
                                     <option value="">Seleccione un cliente</option>
                                     {clients.map((client) => (
                                         <option key={client.id} value={client.id}>
-                                            {client.name} {client.company ? `- ${client.company}` : ''}
+                                            {client.nombre} {client.nombreCorto ? `- ${client.nombreCorto}` : ''}
                                         </option>
                                     ))}
                                 </select>
