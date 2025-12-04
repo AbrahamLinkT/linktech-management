@@ -1,6 +1,6 @@
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://loadB-backend-2060516226.us-west-1.elb.amazonaws.com',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://backend.linktech.com.mx',
   ENDPOINTS: {
     WORKERS: '/worker',
     PROJECTS: '/projects',
