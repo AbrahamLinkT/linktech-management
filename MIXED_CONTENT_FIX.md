@@ -37,26 +37,12 @@ El error se encuentra en el **frontend**, no en el backend.
 2. Ve a Settings → Environment Variables
 3. Agrega: 
    - Name: `NEXT_PUBLIC_API_URL`
-   - Value: `https://tu-backend-seguro.com` (⚠️ DEBE SER HTTPS)
+   - Value: `https://backend.linktech.com.mx` ✅ (HTTPS configurado)
 
-### Opciones para el backend:
-
-#### Opción 1: Configurar HTTPS en tu servidor (RECOMENDADO)
-- Agrega un certificado SSL a tu servidor `13.56.13.129`
-- Configura tu backend para servir HTTPS en el puerto 443
-- Actualiza la variable de entorno a `https://13.56.13.129`
-
-#### Opción 2: Proxy reverso con HTTPS
-- Usa un servicio como Cloudflare, AWS CloudFront, o Nginx
-- Configura un dominio con SSL que haga proxy a tu servidor HTTP
-- Ejemplo: `https://api.tudominio.com` → `http://13.56.13.129`
-
-#### Opción 3: Migrar a un servicio en la nube
-- AWS API Gateway + Lambda
-- Google Cloud Run
-- Heroku
-- Railway
-- Todos estos incluyen HTTPS por defecto
+### ✅ Backend actualizado:
+- **Nueva URL:** `https://backend.linktech.com.mx`
+- **Protocolo:** HTTPS (soporta conexiones seguras)
+- **Estado:** Listo para producción
 
 ## Verificación
 
@@ -73,11 +59,11 @@ npm run dev
 
 ## Estado actual
 ✅ Frontend preparado para usar HTTPS  
-⚠️ Backend necesita configuración HTTPS  
+✅ Backend configurado con HTTPS: `backend.linktech.com.mx`  
 ⚠️ Variable de entorno en Vercel necesita actualización  
 
 ## Próximos pasos
-1. **Configurar HTTPS en tu backend** (crítico)
-2. **Actualizar variable de entorno en Vercel**
-3. **Redeploy la aplicación**
-4. **Probar en producción**
+1. **Actualizar variable de entorno en Vercel:** `NEXT_PUBLIC_API_URL=https://backend.linktech.com.mx`
+2. **Redeploy la aplicación**
+3. **Probar en producción**
+4. **Verificar certificado SSL** del backend (debe ser válido)

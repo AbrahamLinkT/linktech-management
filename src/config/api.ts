@@ -1,6 +1,6 @@
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://13.56.13.129',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://backend.linktech.com.mx',
   ENDPOINTS: {
     WORKERS: '/worker',
     PROJECTS: '/projects',
