@@ -7,7 +7,8 @@ export const API_CONFIG = {
     DEPARTMENT_HEADS: '/department-heads',
     DEPARTMENTS: '/department',
     CLIENTS: '/client',
-    NON_WORKING_DAYS: '/Non-Working-Days'
+    NON_WORKING_DAYS: '/Non-Working-Days',
+    WORK_SCHEDULE: '/workSchedule',
   }
 };
 
