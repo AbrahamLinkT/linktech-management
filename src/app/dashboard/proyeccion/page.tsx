@@ -404,7 +404,14 @@ export default function ProyeccionPage() {
                   textTransform: "none",
                   fontWeight: 500,
                 }}
-                onClick={() => router.push("/dashboard/proyeccion/date")}
+                onClick={() => {
+                  if (selectedProject) {
+                    router.push(`/dashboard/proyeccion/date?project=${encodeURIComponent(selectedProject)}`);
+                  } else {
+                    alert('Por favor selecciona un proyecto primero');
+                  }
+                }}
+                disabled={!selectedProject}
               >
                 Ver proyección
               </Button>
