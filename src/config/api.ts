@@ -1,6 +1,10 @@
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://backend.linktech.com.mx',
+  // En producción usa el proxy interno para evitar Mixed Content (HTTPS -> HTTP)
+  // En desarrollo puede usar directamente el backend HTTP
+  BASE_URL: process.env.NODE_ENV === 'production' 
+    ? '/api/proxy' 
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://backend.linktech.com.mx'),
   ENDPOINTS: {
     WORKERS: '/worker',
     PROJECTS: '/projects',
