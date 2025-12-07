@@ -54,6 +54,7 @@ interface UpdateProjectResponse {
 }
 
 export const useProjects = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -74,10 +75,15 @@ export const useProjects = () => {
       });
 
       console.log('API Response:', response.data);
+      
+      // Guardar proyectos en el estado
+      const projectsData = Array.isArray(response.data) ? response.data : [];
+      setProjects(projectsData);
+      
       setIsLoading(false);
       return {
         success: true,
-        data: response.data,
+        data: projectsData,
       };
     } catch (err: unknown) {
       console.error('Error fetching projects:', err);
@@ -92,6 +98,7 @@ export const useProjects = () => {
       
       setError(errorMessage);
       setIsLoading(false);
+      setProjects([]);
       
       return {
         success: false,
@@ -255,5 +262,6 @@ export const useProjects = () => {
     isLoadingProject,
     isUpdating,
     error,
+    projects,
   };
 };

@@ -62,6 +62,9 @@ export default function Projects() {
       try {
         console.log('Fetching projects from:', buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS));
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+        
         const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
           method: 'GET',
           headers: {
@@ -69,7 +72,10 @@ export default function Projects() {
             'Accept': 'application/json',
           },
           mode: 'cors',
+          signal: controller.signal,
         });
+        
+        clearTimeout(timeoutId);
 
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);

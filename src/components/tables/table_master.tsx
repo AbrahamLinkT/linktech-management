@@ -241,19 +241,34 @@ export function DataTable<T extends { id: string }>({
         },
 
         // CLICK EN FILA
-        muiTableBodyRowProps: ({ row }) => ({
-            onClick: () => {
-                //console.log(JSON.stringify(row.original, null, 2))
-                if (urlRoute) {
-                    setRouteModal(true)
-                    setId(row.original.id)
-                } else if (actions?.editRow) {
-                    setEditRow(row.original);
-                }
-
-            },
-            sx: { cursor: "pointer" },
-        }),
+        muiTableBodyRowProps: ({ row }) => {
+            // Si hay selección de filas habilitada (cuando se pasa onRowSelectionChange),
+            // permitir que el checkbox funcione sin interferencia del onClick de la fila
+            if (onRowSelectionChange) {
+                return {
+                    sx: { 
+                        cursor: "default",
+                        '& .MuiTableCell-root:first-of-type': {
+                            cursor: 'pointer', // Solo el checkbox debe tener cursor pointer
+                        }
+                    },
+                };
+            }
+            
+            return {
+                onClick: () => {
+                    if (urlRouteEdit) {
+                        router.push(`${urlRouteEdit}${row.original.id}`);
+                    } else if (urlRoute) {
+                        setRouteModal(true)
+                        setId(row.original.id)
+                    } else if (actions?.editRow) {
+                        setEditRow(row.original);
+                    }
+                },
+                sx: { cursor: "pointer" },
+            };
+        },
     });
 
     // =============== RENDERIZADO DE MODALES Y TABLA ===============
