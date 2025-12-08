@@ -27,10 +27,10 @@ export default function New() {
                 />
             }>
             <div className="m-1">
-                <h2 className="text-2xl font-bold mb-6 ml-4">Alta de Usuario</h2>
+                <h2 className="text-2xl font-bold mb-6 ml-4"></h2>
                 <form className="space-y-10 ml-4 mr-4">
                     <fieldset className="border border-gray-400 rounded-xl p-4">
-                        <legend className="text-lg font-semibold px-2 ml-2 mt-4">Seleccion de usuario</legend>
+                        <legend className="text-lg font-semibold px-2 ml-2 mt-4">Lider de departamento</legend>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label htmlFor="usuario" className="block font-medium mb-1">

@@ -56,13 +56,13 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/dashboard/esquema-contratacion",
                 description: "Administra los tipos de contratación.",
-            },
+            },/*SE ELIMINA DE FORMA PROVICIONAL
             {
                 label: "Especialidades",
                 icon: UserCheck,
                 path: "/dashboard/especialidades",
                 description: "Consulta las habilidades y roles del equipo.",
-            },
+            },*/
             {
                 label: "Asuetos",
                 icon: UserCheck,
@@ -76,7 +76,7 @@ export const navbarLinks = [
                 description: "Revisa y aprueba las horas trabajadas."
             },
             {
-                label: "Usuarios",
+                label: "Lider de departamentos",
                 icon: Users,
                 path: "/dashboard/usuarios",
                 description: "Administra accesos y perfiles de usuario.",
