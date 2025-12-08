@@ -4,7 +4,6 @@ import { useState } from "react";
 const roles = ["Admin", "Manager", "Empleado"];
 const secciones = [
   { label: "Inicio", path: "/dashboard" },
-  { label: "Analisis", path: "/dashboard/project" },
   { label: "Proyectos", path: "/dashboard/projects" },
   { label: "Workers", path: "/dashboard/workers" },
   { label: "Nuevo trabajador", path: "/dashboard/new_worker" },

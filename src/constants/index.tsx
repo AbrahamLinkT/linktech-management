@@ -1,16 +1,10 @@
-import { BarChart2, ChartColumn, DollarSign, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
+import { BarChart2, DollarSign, NotepadText, Percent, Presentation, Receipt, Settings, TrendingDown, TrendingUp, UserCheck, Users } from "lucide-react";
 import { ReactNode } from "react";
 /* Package, PackagePlus, */
 export const navbarLinks = [
     {
         title: "Dashboard",
         links: [
-            {
-                label: "Análisis",
-                icon: ChartColumn,
-                path: "/dashboard/analisis",
-                description: "Visualiza métricas clave y datos estratégicos.",
-            },
             {
                 label: "Proyección",
                 icon: Presentation,

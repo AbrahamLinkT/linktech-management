@@ -4,21 +4,7 @@ import { ContentBody } from "@/components/containers/containers";
 import { useMemo } from "react";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
-import { useWorkers } from "@/hooks/useWorkers";
-
-interface WorkerApiResponse {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: boolean;
-  location: string;
-  description: string;
-  levelName?: string;
-  roleName?: string;
-  schemeName?: string;
-  roleId?: number;
-}
+import { useWorkers, WorkerData } from "@/hooks/useWorkers";
 
 interface StaffItem {
   id: string;
@@ -33,7 +19,7 @@ interface StaffItem {
 export default function Workers() {
   const { data: workers, loading } = useWorkers();
 
-  const data: StaffItem[] = workers.map((w: WorkerApiResponse) => ({
+  const data: StaffItem[] = workers.map((w: WorkerData) => ({
     id: w.id.toString(),
     consultor: w.name,
     especialidad: w.roleName ?? "-",

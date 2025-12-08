@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   MaterialReactTable,
   type MRT_ColumnDef,
@@ -8,8 +8,10 @@ import {
 } from "material-react-table";
 import { Box, Typography, Button } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useProjects } from "@/hooks/useProjects";
+import { useAssignedHours } from "@/hooks/useAssignedHours";
 
 // ---- Tipos ----
 type ProyeccionRow = {
@@ -18,7 +20,6 @@ type ProyeccionRow = {
   tipoEmpleado: string;
   esquema: string;
   tiempo: string;
-  modulo: string;
   nivel: string;
   horas: string[]; // índice 0..14 (3 semanas * 5 días)
   fechaLibre: string;
@@ -48,12 +49,30 @@ function TitleOnlyHeader({ title }: { title: string }) {
 
 function ProyeccionTablePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectName = searchParams.get('project');
+  
   const [vistaError, setVistaError] = useState('');
   // Estado para modal de cambiar vista
   const [openVistaModal, setOpenVistaModal] = useState(false);
   const [vistaTipo, setVistaTipo] = useState<'fechas' | 'semanas'>('semanas');
   const [vistaRango, setVistaRango] = useState({ desde: '', hasta: '' });
   const [vistaSemanas, setVistaSemanas] = useState(3); // cantidad de semanas a mostrar
+  
+  // Hooks para API
+  const { projects, getProjects } = useProjects();
+  const { getAssignedHours, getWorkersForAssignedHours } = useAssignedHours();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Cargar proyectos al inicio
+  useEffect(() => {
+    if (projects.length === 0) {
+      console.log('🔄 Cargando proyectos iniciales...');
+      getProjects();
+    }
+    // Solo ejecutar cuando cambie getProjects, no cuando cambie projects.length
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Función para cambiar la cantidad de semanas
   const handleGuardarVista = () => {
@@ -95,63 +114,123 @@ function ProyeccionTablePage() {
   const [rangoHoras, setRangoHoras] = useState({ desde: '', hasta: '', cantidad: '' });
   const [registroSeleccionado, setRegistroSeleccionado] = useState<ProyeccionRow | null>(null);
 
-  const [tableData, setTableData] = useState<ProyeccionRow[]>([
-    {
-      consultor: "Ana Martínez",
-      departamento: "Finanzas",
-      tipoEmpleado: "Tiempo completo",
-      esquema: "Presencial",
-      tiempo: "40/sem",
-      modulo: "SAP",
-      nivel: "Senior",
-      horas: ["8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8"],
-      fechaLibre: "15-09-25",
-    },
-    {
-      consultor: "Luis Gómez",
-      departamento: "TI",
-      tipoEmpleado: "Medio tiempo",
-      esquema: "Remoto",
-      tiempo: "20/sem",
-      modulo: "Oracle",
-      nivel: "Junior",
-      horas: ["4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4", "4"],
-      fechaLibre: "22-09-25",
-    },
-    {
-      consultor: "María López",
-      departamento: "Recursos Humanos",
-      tipoEmpleado: "Tiempo completo",
-      esquema: "Híbrido",
-      tiempo: "40/sem",
-      modulo: "PeopleSoft",
-      nivel: "Pleno",
-      horas: ["8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8"],
-      fechaLibre: "18-09-25",
-    },
-    {
-      consultor: "Carlos Ruiz",
-      departamento: "Operaciones",
-      tipoEmpleado: "Consultor externo",
-      esquema: "Remoto",
-      tiempo: "30/sem",
-      modulo: "SAP",
-      nivel: "Senior",
-      horas: ["6", "6", "6", "6", "6", "6", "6", "6", "6", "6", "6", "6", "6", "6", "6"],
-      fechaLibre: "25-09-25",
-    },
-    {
-      consultor: "Sofía Torres",
-      departamento: "Marketing",
-      tipoEmpleado: "Tiempo completo",
-      esquema: "Presencial",
-      tiempo: "40/sem",
-      modulo: "HubSpot",
-      nivel: "Junior",
-      horas: ["8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8", "8"],
-      fechaLibre: "29-09-25",
-    },
-  ]);
+  const [tableData, setTableData] = useState<ProyeccionRow[]>([]);
+  
+  // Cargar datos del proyecto desde el API
+  useEffect(() => {
+    const loadProjectData = async () => {
+      console.log('=== INICIO DE CARGA ===');
+      console.log('Project name from URL:', projectName);
+      console.log('Projects available:', projects.length);
+      
+      if (!projectName) {
+        console.log('❌ No hay nombre de proyecto en la URL');
+        setIsLoading(false);
+        return;
+      }
+
+      if (projects.length === 0) {
+        console.log('⏳ Esperando a que se carguen los proyectos...');
+        return; // El otro useEffect se encargará de cargarlos
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        console.log('Total de proyectos:', projects.length);
+        console.log('Proyectos:', projects.map(p => ({ id: p.id, name: p.name })));
+        
+        // Encontrar el proyecto por nombre
+        const project = projects.find(p => p.name === projectName);
+        if (!project) {
+          console.error('❌ Proyecto no encontrado:', projectName);
+          console.log('Nombres de proyectos disponibles:', projects.map(p => p.name));
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('📊 Cargando datos para proyecto:', project.name, 'ID:', project.id);
+        
+        // Obtener horas asignadas del proyecto
+        console.log('🔍 Obteniendo todas las horas asignadas...');
+        const allHours = await getAssignedHours();
+        console.log('📊 Total de horas asignadas:', allHours.length);
+        console.log('Todas las horas:', allHours.map(h => ({ id: h.id, projectId: h.projectId, projectName: h.projectName })));
+        
+        const projectHours = allHours.filter(h => h.projectId === project.id);
+        console.log(`🔍 Horas asignadas filtradas para proyecto ${project.id}:`, projectHours.length);
+        console.log('Horas del proyecto:', projectHours);
+        
+        if (projectHours.length === 0) {
+          console.warn('⚠️ No hay horas asignadas para este proyecto');
+          setTableData([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Obtener información de los workers
+        console.log('👥 Obteniendo información de workers...');
+        const workers = await getWorkersForAssignedHours(projectHours);
+        console.log('👥 Workers cargados:', workers.length);
+        console.log('Workers:', workers.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
+        
+        // Transformar datos para la tabla
+        const tableData: ProyeccionRow[] = projectHours.map(hour => {
+          const worker = workers.find(w => w.id === hour.assignedTo);
+          console.log(`🔧 Mapeando hora ${hour.id}: worker ${hour.assignedTo} ->`, worker ? worker.name : 'No encontrado');
+          
+          // Crear array de 15 días (3 semanas x 5 días)
+          // Usar los valores reales de hoursData
+          const horasArray = new Array(15).fill('0');
+          
+          // Llenar la primera semana con los datos reales
+          const hoursData = hour.hoursData;
+          if (hoursData) {
+            // Día 0-4: Primera semana
+            horasArray[0] = hoursData.monday !== null ? String(hoursData.monday) : '0';
+            horasArray[1] = hoursData.tuesday !== null ? String(hoursData.tuesday) : '0';
+            horasArray[2] = hoursData.wednesday !== null ? String(hoursData.wednesday) : '0';
+            horasArray[3] = hoursData.thursday !== null ? String(hoursData.thursday) : '0';
+            horasArray[4] = hoursData.friday !== null ? String(hoursData.friday) : '0';
+            
+            // Copiar la misma estructura para las siguientes semanas
+            for (let semana = 1; semana < 3; semana++) {
+              const offset = semana * 5;
+              horasArray[offset] = hoursData.monday !== null ? String(hoursData.monday) : '0';
+              horasArray[offset + 1] = hoursData.tuesday !== null ? String(hoursData.tuesday) : '0';
+              horasArray[offset + 2] = hoursData.wednesday !== null ? String(hoursData.wednesday) : '0';
+              horasArray[offset + 3] = hoursData.thursday !== null ? String(hoursData.thursday) : '0';
+              horasArray[offset + 4] = hoursData.friday !== null ? String(hoursData.friday) : '0';
+            }
+          }
+          
+          return {
+            consultor: hour.nameAssignedTo,
+            departamento: worker?.roleName || 'N/A',
+            tipoEmpleado: worker?.schemeName || 'N/A',
+            esquema: worker?.levelName || 'N/A',
+            tiempo: `${hour.hoursData.total}/sem`,
+            nivel: worker?.levelName || 'N/A',
+            horas: horasArray,
+            fechaLibre: 'N/A',
+          };
+        });
+        
+        console.log('✅ Datos transformados:', tableData);
+        setTableData(tableData);
+        console.log('✅ Datos cargados exitosamente:', tableData.length, 'registros');
+      } catch (error) {
+        console.error('❌ Error cargando datos del proyecto:', error);
+      } finally {
+        setIsLoading(false);
+        console.log('=== FIN DE CARGA ===');
+      }
+    };
+    
+    loadProjectData();
+    // Solo recargar cuando cambie el nombre del proyecto o los proyectos disponibles
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectName, projects.length]);
 
   // Función para abrir el modal y seleccionar el día
   const handleAbrirModal = (diaIdx: number) => {
@@ -273,12 +352,6 @@ function ProyeccionTablePage() {
         Header: () => <TitleOnlyHeader title="Tiempo" />,
       },
       {
-        accessorKey: "modulo",
-        header: "Módulo",
-        size: 120,
-        Header: () => <TitleOnlyHeader title="Módulo" />,
-      },
-      {
         accessorKey: "nivel",
         header: "Nivel",
         size: 120,
@@ -398,16 +471,23 @@ function ProyeccionTablePage() {
   return (
     <Box sx={{ p: 4, bgcolor: "#f7f8fa", minHeight: "100vh" }}>
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h5">
-          Proyección
-        </Typography>
+        <Box>
+          <Typography variant="h5">
+            Proyección
+          </Typography>
+          {projectName && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Proyecto: <strong>{projectName}</strong>
+            </Typography>
+          )}
+        </Box>
         <Button variant="outlined" color="primary" onClick={() => router.back()} startIcon={<ArrowBackIcon />}>
           Regresar
         </Button>
       </Box>
 
       <MaterialReactTable
-        columns={columns.slice(0, 7).concat(columns.slice(7, 7 + vistaSemanas))}
+        columns={columns.slice(0, 6).concat(columns.slice(6, 6 + vistaSemanas))}
         data={tableData}
         enableFilters={true}
         enableColumnActions={true}
@@ -432,20 +512,23 @@ function ProyeccionTablePage() {
         }}
         muiTableBodyCellProps={{ sx: { textAlign: "center", fontSize: 15 } }}
         onRowSelectionChange={setRowSelection}
-        state={{ rowSelection }}
+        state={{ 
+          rowSelection,
+          isLoading: isLoading,
+          showProgressBars: isLoading,
+        }}
         initialState={{
           columnVisibility: {
             consultor: true,
             departamento: true,
             tiempo: true,
-            modulo: true,
             tipoEmpleado: false,
             esquema: false,
             nivel: false,
             fechaLibre: false,
           },
           columnPinning: {
-            left: ["consultor", "departamento", "tiempo", "modulo"],
+            left: ["consultor", "departamento", "tiempo"],
           },
         }}
         renderTopToolbarCustomActions={() => (
@@ -593,7 +676,6 @@ function ProyeccionTablePage() {
                 <Typography variant="body2"><b>Departamento:</b> {registroSeleccionado.departamento}</Typography>
                 <Typography variant="body2"><b>Tipo Empleado:</b> {registroSeleccionado.tipoEmpleado}</Typography>
                 <Typography variant="body2"><b>Esquema:</b> {registroSeleccionado.esquema}</Typography>
-                <Typography variant="body2"><b>Módulo:</b> {registroSeleccionado.modulo}</Typography>
                 <Typography variant="body2"><b>Nivel:</b> {registroSeleccionado.nivel}</Typography>
               </Box>
             )}

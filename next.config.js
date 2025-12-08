@@ -2,7 +2,8 @@
 const nextConfig = {
   // config options here
   experimental: {
-    optimizePackageImports: ['@clerk/nextjs']
+    optimizePackageImports: ['@clerk/nextjs'],
+    turbo: false // Deshabilitar Turbopack explícitamente
   },
   webpack: (config) => {
     config.resolve.fallback = {

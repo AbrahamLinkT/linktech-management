@@ -54,15 +54,19 @@ export const useProjectManagers = () => {
     setError(null);
 
     try {
+      console.log('🔍 Fetching project managers...');
+      console.log('Department heads URL:', buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS));
+      console.log('Workers URL:', buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS));
+      
       // Obtener department-heads y workers en paralelo
       const [departmentHeadsResponse, workersResponse] = await Promise.all([
         axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS), {
           headers: { 'Content-Type': 'application/json' },
-          timeout: 30000,
+          timeout: 10000, // Reducir timeout a 10 segundos
         }),
         axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
           headers: { 'Content-Type': 'application/json' },
-          timeout: 30000,
+          timeout: 10000, // Reducir timeout a 10 segundos
         })
       ]);
 

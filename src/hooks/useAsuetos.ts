@@ -17,7 +17,7 @@ interface CreateAsuetoResponse {
 
 // Interfaz para la respuesta del GET
 export interface AsuetoResponse {
-  id: string;
+  id: string | number; // Puede ser string o número dependiendo de la API
   employee_id: number;
   startDate: string;
   endDate: string;
@@ -41,7 +41,7 @@ export const useAsuetos = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        timeout: 30000,
+        timeout: 10000, // Reducir timeout a 10 segundos
       });
 
       console.log('Asueto created successfully:', response.data);
@@ -91,8 +91,23 @@ export const useAsuetos = () => {
         timeout: 30000,
       });
       
-      console.log('✅ Asuetos obtenidos:', response.data);
-      return response.data || [];
+      console.log('✅ Respuesta cruda de asuetos:', response.data);
+      
+      // Verificar si la respuesta es un array directamente o viene en una estructura paginada
+      let asuetoData: AsuetoResponse[] = [];
+      
+      if (Array.isArray(response.data)) {
+        asuetoData = response.data;
+        console.log('📋 Datos como array directo:', asuetoData.length, 'asuetos');
+      } else if (response.data && Array.isArray(response.data.content)) {
+        asuetoData = response.data.content;
+        console.log('📋 Datos en estructura paginada:', asuetoData.length, 'asuetos');
+      } else if (response.data) {
+        console.log('📋 Estructura de datos desconocida:', response.data);
+      }
+      
+      console.log('📊 Primer asueto como ejemplo:', asuetoData[0]);
+      return asuetoData || [];
     } catch (err) {
       console.error('❌ Error obteniendo asuetos:', err);
       throw err;
@@ -113,7 +128,7 @@ export const useAsuetos = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        timeout: 30000,
+        timeout: 10000, // Reducir timeout a 10 segundos
       });
 
       console.log('Asueto updated successfully:', response.data);
@@ -154,9 +169,64 @@ export const useAsuetos = () => {
     }
   };
 
+  // Función para eliminar un asueto
+  const deleteAsueto = async (id: string): Promise<CreateAsuetoResponse> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log('🗑️ Deleting asueto with ID:', id);
+
+      const response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS)}/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        timeout: 10000, // Reducir timeout a 10 segundos
+      });
+
+      console.log('Asueto deleted successfully:', response.data);
+      
+      setIsLoading(false);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      console.error('Full error object:', err);
+      
+      // Log detalles específicos del error Axios
+      if (axios.isAxiosError(err)) {
+        console.error('Axios error details:');
+        console.error('Status:', err.response?.status);
+        console.error('Status text:', err.response?.statusText);
+        console.error('Response data:', err.response?.data);
+        console.error('Request config:', err.config);
+      }
+      
+      let errorMessage = 'Error deleting asueto';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+        errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error deleting asueto';
+      }
+      
+      setError(errorMessage);
+      setIsLoading(false);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
+
   return {
     createAsueto,
     updateAsueto,
+    deleteAsueto,
     getAsuetos,
     isLoading,
     error,
@@ -176,11 +246,26 @@ export const useAutoLoadAsuetos = () => {
         console.log('📥 Obteniendo asuetos desde:', buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS));
         
         const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS), {
-          timeout: 30000,
+          timeout: 10000, // Reducir timeout a 10 segundos
         });
         
-        console.log('✅ Asuetos obtenidos:', response.data?.length || 0, 'asuetos');
-        setAsuetos(response.data || []);
+        console.log('✅ Respuesta cruda autoload:', response.data);
+        
+        // Verificar si la respuesta es un array directamente o viene en una estructura paginada
+        let asuetoData: AsuetoResponse[] = [];
+        
+        if (Array.isArray(response.data)) {
+          asuetoData = response.data;
+          console.log('📋 Autoload - datos como array directo:', asuetoData.length, 'asuetos');
+        } else if (response.data && Array.isArray(response.data.content)) {
+          asuetoData = response.data.content;
+          console.log('📋 Autoload - datos en estructura paginada:', asuetoData.length, 'asuetos');
+        } else if (response.data) {
+          console.log('📋 Autoload - estructura de datos desconocida:', response.data);
+        }
+        
+        console.log('📊 Autoload - primer asueto:', asuetoData[0]);
+        setAsuetos(asuetoData || []);
         setError(null);
       } catch (err) {
         console.error('❌ Error cargando asuetos:', err);

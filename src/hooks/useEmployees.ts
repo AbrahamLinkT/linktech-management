@@ -40,7 +40,7 @@ export const useEmployees = () => {
       
       const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 30000,
+        timeout: 10000, // Reducir timeout a 10 segundos
       });
 
       console.log('Employees API Response:', response.data);
@@ -121,7 +121,7 @@ export const useAutoLoadEmployees = () => {
         
         const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS), {
           headers: { 'Content-Type': 'application/json' },
-          timeout: 30000,
+          timeout: 10000, // Reducir timeout a 10 segundos
         });
 
         console.log('Employees API Response status:', response.status);
