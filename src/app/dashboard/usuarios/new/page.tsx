@@ -1,110 +1,128 @@
 "use client";
-
-import { Btn_data } from "@/components/buttons/buttons"; // Eliminado: no usado
+import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
-import { ArrowLeft } from "lucide-react"; // Eliminado: no usado
-import { useRouter } from "next/navigation"; // Eliminado: no usado
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useUsuarios } from "@/hooks/useUsuarios";
+
 export default function New() {
-    const stylesInput = `
-        w-full border border-gray-600 rounded px-3 py-2 
-        hover:border-blue-600 
-        focus:border-blue-500 
-        focus:ring-2 focus:ring-blue-300 
-        focus:outline-none
-    `;
-    const router = useRouter()
-    const handleClickRoute = () => {
-        router.push("/dashboard/usuarios")
-    }
-    return (
-        <ContentBody title="Nuevo usuario"
-            btnReg={
-                <Btn_data
-                    icon={<ArrowLeft />}
-                    text={"Regresar"}
-                    styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
-                    Onclick={handleClickRoute}
-                />
-            }>
-            <div className="m-1">
-                <h2 className="text-2xl font-bold mb-6 ml-4"></h2>
-                <form className="space-y-10 ml-4 mr-4">
-                    <fieldset className="border border-gray-400 rounded-xl p-4">
-                        <legend className="text-lg font-semibold px-2 ml-2 mt-4">Lider de departamento</legend>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <label htmlFor="usuario" className="block font-medium mb-1">
-                                    Usuario
-                                </label>
-                                <select name="usuario" id="usuario" className={stylesInput}>
-                                    <option value="">Selecciona un usuario</option>
-                                    <option value="mr">Miriam</option>
-                                    <option value="sg">Santiago</option>
-                                </select>
-                            </div>
+  const router = useRouter();
+  const {
+    departments,
+    workers,
+    createDepartmentHead,
+    loading,
+    error,
+  } = useUsuarios();
 
-                            <div>
-                                <label htmlFor="acciones" className="block font-medium mb-1">
-                                    Tipo de Acciones
-                                </label>
-                                <select name="acciones" id="acciones" className={stylesInput}>
-                                    <option value="">Selecciona la accion</option>
-                                    <option value="indefinido">Administrador</option>
-                                    <option value="temporal">Consultor</option>
-                                    <option value="prácticas">Cliente</option>
-                                </select>
-                            </div>
+  const [form, setForm] = useState({
+    id_department: "",
+    id_worker: "",
+  });
 
-                            <div>
-                                <label htmlFor="estatus" className="block font-medium mb-1">
-                                    Estatus
-                                </label>
-                                <select name="estatus" id="estatus" className={stylesInput}>
-                                    <option value="">Selecciona la opción</option>
-                                    <option value="asimilado">Activo</option>
-                                    <option value="indeterminado">Inactivo</option>
-                                </select>
-                            </div>
+  const stylesInput = `
+    w-full border border-gray-600 rounded px-3 py-2 
+    hover:border-blue-600 
+    focus:border-blue-500 
+    focus:ring-2 focus:ring-blue-300 
+    focus:outline-none
+  `;
 
-                            <div>
-                                <label htmlFor="departamento" className="block font-medium mb-1">
-                                    Rol
-                                </label>
-                                <select name="departamento" id="departamento" className={stylesInput}>
-                                    <option value="">Selecciona la opción</option>
-                                    <option value="delivery">Visitante</option>
-                                    <option value="cobranza">Admin</option>
-                                    <option value="rh">PM</option>
-                                    <option value="programador">Delivery</option>
-                                </select>
-                            </div>
+  const handleClickRoute = () => {
+    router.push("/dashboard/usuarios");
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // validación básica
+    if (!form.id_department || !form.id_worker) return;
 
-                            <div className="md:col-span-2">
-                                <label htmlFor="descripcion" className="block font-medium mb-1">
-                                    Descripción
-                                </label>
-                                <textarea
-                                    id="descripcion"
-                                    name="descripcion"
-                                    rows={3}
-                                    className="w-full h-[70px] resize-none border border-gray-600 rounded px-3 py-2 
-                                                 hover:border-blue-600 focus:border-blue-500 
-                                                 focus:ring-2 focus:ring-blue-300 focus:outline-none"                                />
-                            </div>
-                        </div>
-                    </fieldset>
+    const payload = {
+      id_department: Number(form.id_department),
+      id_worker: Number(form.id_worker),
+    };
 
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
-                        >
-                            Guardar
-                        </button>
-                    </div>
-                </form>
+    const ok = await createDepartmentHead(payload);
+    if (ok) router.push("/dashboard/usuarios");
+  };
+
+  return (
+    <ContentBody
+      title="Nuevo líder"
+      btnReg={
+        <Btn_data
+          icon={<ArrowLeft />}
+          text={"Regresar"}
+          styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium transition hover:bg-blue-400 hover:text-white"
+          Onclick={handleClickRoute}
+        />
+      }
+    >
+      <div className="m-1">
+        <h2 className="text-2xl font-bold mb-6 ml-4">Líder de departamento</h2>
+        <form className="space-y-10 ml-4 mr-4" onSubmit={handleSubmit}>
+          <fieldset className="border border-gray-400 rounded-xl p-4">
+            <legend className="text-lg font-semibold px-2 ml-2 mt-4 bg-white">
+              Selección
+            </legend>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="departamento" className="block font-medium mb-1">
+                  Departamento
+                </label>
+                <select
+                  id="departamento"
+                  className={stylesInput}
+                  value={form.id_department}
+                  onChange={(e) =>
+                    setForm({ ...form, id_department: e.target.value })
+                  }
+                >
+                  <option value="">Selecciona un departamento</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="persona" className="block font-medium mb-1">
+                  Persona (Líder)
+                </label>
+                <select
+                  id="persona"
+                  className={stylesInput}
+                  value={form.id_worker}
+                  onChange={(e) => setForm({ ...form, id_worker: e.target.value })}
+                >
+                  <option value="">Selecciona una persona</option>
+                  {workers.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-        </ContentBody>
-    );
+          </fieldset>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
+            >
+              {loading ? "Guardando..." : "Guardar"}
+            </button>
+          </div>
+
+          {error && <p className="text-red-600">Error: {error}</p>}
+        </form>
+      </div>
+    </ContentBody>
+  );
 }
