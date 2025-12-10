@@ -14,6 +14,8 @@ export const API_CONFIG = {
     NON_WORKING_DAYS: '/Non-Working-Days',
     WORK_SCHEDULE: '/workSchedule',
     ASSIGNED_HOURS: '/assigned-hours',
+    LEVELS: '/level',
+    ROLES: '/roles',
   }
 };
 
