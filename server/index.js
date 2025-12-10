@@ -1,7 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/database');
+const isProduction = process.env.VERCEL === '1';
+const connectDB = isProduction 
+  ? require('./config/database-vercel') 
+  : require('./config/database');
 const permissionsRoutes = require('./routes/permissions');
 
 const app = express();
@@ -14,8 +17,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Conectar a MongoDB
-connectDB();
+// Conectar a MongoDB (solo en desarrollo)
+if (!isProduction) {
+  connectDB();
+}
 
 // Rutas
 app.get('/health', (req, res) => {
@@ -34,7 +39,7 @@ app.use((err, req, res, next) => {
 });
 
 // Para desarrollo local
-if (process.env.NODE_ENV !== 'production') {
+if (!isProduction) {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
