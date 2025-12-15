@@ -148,10 +148,11 @@ export default function AsuetosPage() {
         return (
             <ProtectedRoute requiredPermission="asuetos">
                 <ContentBody title="Asuetos">
-                <div className="flex justify-center items-center h-40">
-                    <p>Cargando asuetos...</p>
-                </div>
-            </ContentBody>
+                    <div className="flex justify-center items-center h-40">
+                        <p>Cargando asuetos...</p>
+                    </div>
+                </ContentBody>
+            </ProtectedRoute>
         );
     }
 
@@ -160,27 +161,28 @@ export default function AsuetosPage() {
         return (
             <ProtectedRoute requiredPermission="asuetos">
                 <ContentBody title="Asuetos">
-                <div className="flex justify-center items-center h-40">
-                    <p className="text-red-500">Error al cargar asuetos: {asuetoError}</p>
-                </div>
-            </ContentBody>
+                    <div className="flex justify-center items-center h-40">
+                        <p className="text-red-500">Error al cargar asuetos: {asuetoError}</p>
+                    </div>
+                </ContentBody>
+            </ProtectedRoute>
         );
     }
 
     return (
         <ProtectedRoute requiredPermission="asuetos">
             <ContentBody title="Asuetos">
-            <DataTable
-                data={data}
-                columns={columns}
-                menu={true}
-                actions={actions}
-                urlRouteAdd="/dashboard/asuetos/new"
-                urlRouteEdit="/dashboard/asuetos/edit?id="
-                rowSelection={rowSelection}
-                onRowSelectionChange={handleRowSelectionChange}
-                onDelete={handleDelete}
-            />
+                <DataTable
+                    data={data}
+                    columns={columns}
+                    menu={true}
+                    actions={actions}
+                    urlRouteAdd="/dashboard/asuetos/new"
+                    urlRouteEdit="/dashboard/asuetos/edit?id="
+                    rowSelection={rowSelection}
+                    onRowSelectionChange={handleRowSelectionChange}
+                    onDelete={handleDelete}
+                />
             </ContentBody>
         </ProtectedRoute>
     );
