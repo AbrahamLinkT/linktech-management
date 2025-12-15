@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { navbarLinks } from "@/constants";
 import { useHorasPorAprobar } from "@/store/horasPorAprobarStore";
+import { usePermissions } from "@/contexts/permissions-context";
+import { getRequiredPermission } from "@/constants/permissions-map";
 
 import logoLight from "@/assets/Linktech-light.png";
 import logoDark from "@/assets/Linktech-light.png";
@@ -21,6 +23,23 @@ interface SidebarProps {
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, ref) => {
   const pathname = usePathname();
   const horasPorAprobar = useHorasPorAprobar();
+  const { hasPermission, loading } = usePermissions();
+
+  // Filtrar links según permisos del usuario
+  const filteredNavbarLinks = useMemo(() => {
+    if (loading) return navbarLinks;
+
+    return navbarLinks.map((navbarLink) => ({
+      ...navbarLink,
+      links: navbarLink.links.filter((link) => {
+        const requiredPermission = getRequiredPermission(link.path);
+        // Si no requiere permiso específico, mostrar siempre
+        if (!requiredPermission) return true;
+        // Verificar si el usuario tiene el permiso
+        return hasPermission(requiredPermission);
+      }),
+    })).filter((navbarLink) => navbarLink.links.length > 0); // Ocultar categorías sin links
+  }, [loading, hasPermission]);
 
   return (
     <aside
@@ -43,7 +62,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed }, 
 
 
       <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:thin]">
-        {navbarLinks.map((navbarLink) => (
+        {filteredNavbarLinks.map((navbarLink) => (
           <nav
             key={navbarLink.title}
             className={cn("sidebar-group", collapsed && "md:items-center")}

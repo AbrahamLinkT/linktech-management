@@ -46,13 +46,25 @@ Todas las páginas del dashboard están ahora protegidas con el componente `Prot
    ```
 4. Valida si el usuario tiene el permiso requerido
 5. Si tiene permiso: muestra el contenido
-6. Si NO tiene permiso: redirige a `/dashboard` con advertencia en consola
+6. Si NO tiene permiso: muestra pantalla de "Permisos no habilitados"
 
 ### 3. Estados de Carga
 
 - **Loading**: Muestra spinner mientras valida permisos
 - **Authorized**: Renderiza el contenido de la página
-- **Unauthorized**: Redirige al dashboard principal
+- **Unauthorized**: Muestra pantalla de acceso denegado con mensaje:
+  - "Permisos no habilitados"
+  - "Comunícate con tu jefe de área"
+  - Botón para volver al dashboard
+
+### 4. Filtrado del Menú de Navegación
+
+El sidebar se actualiza dinámicamente según los permisos del usuario:
+
+- **Con permiso**: El link aparece en el menú
+- **Sin permiso**: El link NO aparece en el menú
+
+Esto previene que usuarios vean opciones a las que no tienen acceso.
 
 ## Estructura de Permisos en MongoDB
 
@@ -112,13 +124,22 @@ function MyComponent() {
 
 ## Ejemplo de Usuario con Permisos Limitados
 
-Si un usuario tiene `client: false`, al intentar acceder a `/dashboard/client`:
+Si un usuario tiene `client: false`:
 
+**En el Sidebar:**
+- ❌ NO verá el link "Clientes" en el menú
+- La sección completa está oculta
+
+**Si intenta acceder directamente a `/dashboard/client` por URL:**
 1. Ve el spinner de carga
 2. Se validan sus permisos
 3. Se detecta que NO tiene acceso
 4. Se muestra en consola: `⚠️ Usuario no tiene permiso para: client`
-5. Es redirigido a `/dashboard`
+5. Ve la pantalla de "Permisos no habilitados" con:
+   - Icono de escudo rojo
+   - Mensaje de acceso denegado
+   - Indicación de contactar al jefe de área
+   - Botón para volver al dashboard
 
 ## Testing
 
@@ -127,14 +148,20 @@ Para probar el sistema de permisos:
 1. **Login como admin**: `abraham.castaneda@linktech.com.mx`
    - Debe tener acceso a todas las páginas EXCEPTO `client`
 
-2. **Verificar redirección**:
-   - Navegar a `/dashboard/client`
-   - Debe redirigir a `/dashboard`
+2. **Verificar sidebar**:
+   - ✅ Debe ver: Proyección, Proyectos, Trabajadores, etc.
+   - ❌ NO debe ver: "Clientes" en el menú
 
-3. **Verificar páginas accesibles**:
+3. **Verificar pantalla de acceso denegado**:
+   - Navegar directamente a `/dashboard/client` en la URL
+   - ✅ Debe mostrar pantalla roja de "Permisos no habilitados"
+   - ✅ Debe mostrar mensaje de contactar al jefe de área
+   - ✅ Debe tener botón "Volver al Dashboard"
+
+4. **Verificar páginas accesibles**:
    - Navegar a `/dashboard/projects` → ✅ Debe mostrar contenido
    - Navegar a `/dashboard/workers` → ✅ Debe mostrar contenido
-   - etc.
+   - Los links deben aparecer en el sidebar
 
 ## API de Permisos
 
@@ -173,13 +200,16 @@ Para probar el sistema de permisos:
 - ✅ `src/app/dashboard/cargabilidad/page.tsx`
 - ✅ `src/app/dashboard/proyeccion/page.tsx`
 - ✅ `src/app/dashboard/disponibilidad/page.tsx`
-- ✅ `src/app/dashboard/departamento/page.tsx`
-- ✅ `src/app/dashboard/usuarios/page.tsx`
-- ✅ `src/app/dashboard/asuetos/page.tsx`
-- ✅ `src/app/dashboard/especialidades/page.tsx`
-- ✅ `src/app/dashboard/esquema-contratacion/page.tsx`
-- ✅ `src/app/dashboard/horas-contrato/page.tsx`
-- ✅ `src/app/dashboard/horas-por-aprobar/page.tsx`
+## Archivos de Infraestructura
+
+- `src/contexts/permissions-context.tsx` - Contexto global de permisos
+- `src/components/ProtectedRoute.tsx` - Componente de protección de rutas
+- `src/components/UnauthorizedAccess.tsx` - Pantalla de acceso denegado
+- `src/constants/permissions-map.ts` - Mapeo de rutas a permisos
+- `src/lib/permissions.ts` - Cliente API de permisos
+- `src/types/permissions.ts` - Tipos TypeScript
+- `src/app/dashboard/layout.tsx` - Provider de permisos
+- `src/layouts/sidebar.tsx` - Sidebar con filtrado de links
 - ✅ `src/app/dashboard/solicitud_horas/page.tsx`
 
 ## Archivos de Infraestructura
