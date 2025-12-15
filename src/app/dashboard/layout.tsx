@@ -2,7 +2,6 @@
 
 import { useMediaQuery } from "react-responsive";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { useUser, useAuth } from "@clerk/nextjs";
 import { Sidebar } from "@/layouts/sidebar";
 import { Header } from "@/layouts/header";
 import { cn } from "@/utils/cn";
@@ -12,8 +11,6 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-    const { user, isLoaded } = useUser();
-    const { getToken } = useAuth();
     const isDesktopDevice = useMediaQuery({ query: '(min-width: 768px)' });
 
     const [collapsed, setCollapsed] = useState(false);
@@ -23,26 +20,6 @@ const Layout = ({ children }: LayoutProps) => {
     useEffect(() => {
         setMounted(true);
     }, []);
-
-    // Obtener y mostrar datos de autenticación
-    useEffect(() => {
-        const logAuthData = async () => {
-            if (isLoaded && user) {
-                const token = await getToken();
-                
-                console.log('=== CLERK AUTHENTICATION DATA ===');
-                console.log('📧 Email:', user.primaryEmailAddress?.emailAddress);
-                console.log('👤 User ID:', user.id);
-                console.log('👤 Full Name:', user.fullName);
-                console.log('👤 First Name:', user.firstName);
-                console.log('👤 Last Name:', user.lastName);
-                console.log('🔑 JWT Token:', token);
-                console.log('================================');
-            }
-        };
-
-        logAuthData();
-    }, [isLoaded, user, getToken]);
 
     useEffect(() => {
         if (mounted) {
