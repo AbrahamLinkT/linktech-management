@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useEffect, useState } from "react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { ContentBody } from "@/components/containers/containers";
@@ -197,23 +198,25 @@ export default function Projects() {
   console.log('Current rowSelection state:', rowSelection);
 
   return (
-    <ContentBody
-      title="Proyectos"
-    >
-      <DataTable<ProjectTableRow>
-        //title_add="Agregar"
-        //ModalAdd={<h1>Agregar</h1>}
-        urlRoute="/dashboard/projects/show?id="
-        urlRouteAdd="/dashboard/projects/new"
-        urlRouteEdit="/dashboard/projects/edit/"
-        menu={true}
-        data={data}
-        columns={columns}
-        actions={{ edit: true, add: true }}
-        edit={true}
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
-      />
-    </ContentBody>
+    <ProtectedRoute requiredPermission="projects">
+      <ContentBody
+        title="Proyectos"
+      >
+        <DataTable<ProjectTableRow>
+          //title_add="Agregar"
+          //ModalAdd={<h1>Agregar</h1>}
+          urlRoute="/dashboard/projects/show?id="
+          urlRouteAdd="/dashboard/projects/new"
+          urlRouteEdit="/dashboard/projects/edit/"
+          menu={true}
+          data={data}
+          columns={columns}
+          actions={{ edit: true, add: true }}
+          edit={true}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+        />
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

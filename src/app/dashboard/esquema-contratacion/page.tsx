@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useEsquemaContratacion, type EsquemaItem } from "@/hooks/useEsquema-contratacion";
@@ -27,7 +28,8 @@ export default function EsquemaContratacionPage() {
   const actions = { edit: true, add: true, export: true, delete: true };
 
   return (
-    <ContentBody title="Esquema contractual">
+    <ProtectedRoute requiredPermission="esquemaContratacion">
+      <ContentBody title="Esquema contractual">
       {loading && <p>Cargando esquemas...</p>}
       {error && <p>Error: {error}</p>}
 
@@ -57,6 +59,7 @@ export default function EsquemaContratacionPage() {
           onDelete={(ids) => setIdsToDelete(ids)}
         />
       )}
-    </ContentBody>
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { ContentBody, ContentTable } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface HorasContrato {
   esquema: string;
@@ -43,7 +44,8 @@ export default function HorasContratoPage() {
   };
 
   return (
-    <ContentBody title="Horas por contrato">
+    <ProtectedRoute requiredPermission="horasContrato">
+      <ContentBody title="Horas por contrato">
       <ContentTable
         header={null}
         Body={
@@ -110,6 +112,7 @@ export default function HorasContratoPage() {
           </>
         }
       />
-    </ContentBody>
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

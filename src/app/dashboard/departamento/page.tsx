@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useDepartments, type DepartmentItem } from "@/hooks/useDepartments";
@@ -31,38 +32,40 @@ export default function DepartmentPage() {
   const actions = { edit: true, add: true, export: true, delete: true };
 
   return (
-    <ContentBody title="Departamentos">
-      {loading && <p>Cargando departamentos...</p>}
-      {error && <p>Error: {error}</p>}
+    <ProtectedRoute requiredPermission="departamentos">
+      <ContentBody title="Departamentos">
+        {loading && <p>Cargando departamentos...</p>}
+        {error && <p>Error: {error}</p>}
 
-      <ConfirmModal
-        isOpen={idsToDelete !== null}
-        message={`¿Eliminar ${idsToDelete?.length ?? 0} departamento(s)?`}
-        onCancel={() => setIdsToDelete(null)}
-        onConfirm={async () => {
-          if (idsToDelete) {
-            await deleteDepartments(idsToDelete);
-          }
-          setIdsToDelete(null);
-          setRowSelection({});
-        }}
-      />
-
-      {/* ================= TABLE ================= */}
-      {!loading && !error && (
-        <DataTable<DepartmentItem & { id: string }>
-          data={tableData}
-          edit={true}
-          columns={columns}
-          menu={true}
-          urlRouteEdit="/dashboard/departamento/edit?id="
-          urlRouteAdd="/dashboard/departamento/new"
-          actions={actions}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          onDelete={(ids) => setIdsToDelete(ids)}
+        <ConfirmModal
+          isOpen={idsToDelete !== null}
+          message={`¿Eliminar ${idsToDelete?.length ?? 0} departamento(s)?`}
+          onCancel={() => setIdsToDelete(null)}
+          onConfirm={async () => {
+            if (idsToDelete) {
+              await deleteDepartments(idsToDelete);
+            }
+            setIdsToDelete(null);
+            setRowSelection({});
+          }}
         />
-      )}
-    </ContentBody>
+
+        {/* ================= TABLE ================= */}
+        {!loading && !error && (
+          <DataTable<DepartmentItem & { id: string }>
+            data={tableData}
+            edit={true}
+            columns={columns}
+            menu={true}
+            urlRouteEdit="/dashboard/departamento/edit?id="
+            urlRouteAdd="/dashboard/departamento/new"
+            actions={actions}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            onDelete={(ids) => setIdsToDelete(ids)}
+          />
+        )}
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "@/components/buttons/buttons";
@@ -77,7 +78,8 @@ export default function HorasPorAprobar() {
     router.push("/dashboard/proyeccion");
   };
   return (
-    <ContentBody title="Horas por aprobar"
+    <ProtectedRoute requiredPermission="horasPorAprobar">
+      <ContentBody title="Horas por aprobar"
       btnReg={
         <Btn_data
           icon={<ArrowLeft />}
@@ -97,6 +99,7 @@ export default function HorasPorAprobar() {
           />
         </div>
       ))}
-    </ContentBody>
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

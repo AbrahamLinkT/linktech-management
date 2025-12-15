@@ -1,5 +1,6 @@
 "use client";
 
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ContentBody } from "@/components/containers/containers";
 import { useMemo, useState } from "react";
 import { DataTable } from "@/components/tables/table_master";
@@ -51,32 +52,34 @@ export default function Workers() {
   if (loading) return <div>Cargando...</div>;
 
   return (
-    <ContentBody title="Trabajadores">
-      <ConfirmModal
-        isOpen={idsToDelete !== null}
-        message={`¿Eliminar ${idsToDelete?.length ?? 0} trabajador(es)?`}
-        onCancel={() => setIdsToDelete(null)}
-        onConfirm={async () => {
-          if (idsToDelete && idsToDelete.length > 0) {
-            await deleteWorkers(idsToDelete);
-          }
-          setIdsToDelete(null);
-          setRowSelection({});
-        }}
-      />
+    <ProtectedRoute requiredPermission="workers">
+      <ContentBody title="Trabajadores">
+        <ConfirmModal
+          isOpen={idsToDelete !== null}
+          message={`¿Eliminar ${idsToDelete?.length ?? 0} trabajador(es)?`}
+          onCancel={() => setIdsToDelete(null)}
+          onConfirm={async () => {
+            if (idsToDelete && idsToDelete.length > 0) {
+              await deleteWorkers(idsToDelete);
+            }
+            setIdsToDelete(null);
+            setRowSelection({});
+          }}
+        />
 
-      <DataTable
-        data={data}
-        columns={columns}
-        menu={true}
-        actions={actions}
-        urlRoute="/dashboard/workers/show?id="
-        urlRouteAdd="/dashboard/workers/new"
-        urlRouteEdit="/dashboard/workers/edit?id="
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
-        onDelete={(ids: string[]) => setIdsToDelete(ids)}
-      />
-    </ContentBody>
+        <DataTable
+          data={data}
+          columns={columns}
+          menu={true}
+          actions={actions}
+          urlRoute="/dashboard/workers/show?id="
+          urlRouteAdd="/dashboard/workers/new"
+          urlRouteEdit="/dashboard/workers/edit?id="
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          onDelete={(ids: string[]) => setIdsToDelete(ids)}
+        />
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

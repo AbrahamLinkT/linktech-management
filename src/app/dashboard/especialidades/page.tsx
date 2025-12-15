@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 
@@ -31,7 +32,8 @@ export default function EspecialidadesPage() {
     const actions = { edit: true, add: true, export: true, delete: true }
 
     return (
-        <ContentBody title="Especialidades">
+        <ProtectedRoute requiredPermission="especialidades">
+            <ContentBody title="Especialidades">
             <DataTable
                 data={data}
                 columns={columns}
@@ -40,6 +42,7 @@ export default function EspecialidadesPage() {
                 urlRouteAdd="/dashboard/especialidades/new"
                 urlRouteEdit="/dashboard/especialidades/edit?id="
             />
-        </ContentBody>
+            </ContentBody>
+        </ProtectedRoute>
     );
 }

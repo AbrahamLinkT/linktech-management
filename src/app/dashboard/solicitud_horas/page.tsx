@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "@/components/buttons/buttons";
@@ -105,7 +106,8 @@ export default function SolicitudHoras() {
     router.push("/dashboard/proyeccion")
   }
   return (
-    <ContentBody title="Solicitud de horas pendientes"
+    <ProtectedRoute requiredPermission="solicitudHoras">
+      <ContentBody title="Solicitud de horas pendientes"
       btnReg={
         <Btn_data
           icon={<ArrowLeft />}
@@ -207,6 +209,7 @@ export default function SolicitudHoras() {
         </Box>
       )}
       
-    </ContentBody>
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

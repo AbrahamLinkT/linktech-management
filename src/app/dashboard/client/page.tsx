@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useClients, type ClientItem } from "@/hooks/useClients";
@@ -30,37 +31,39 @@ export default function ClientPage() {
   const actions = { edit: true, add: true, export: true, delete: true };
 
   return (
-    <ContentBody title="Clientes">
-      {loading && <p>Cargando clientes...</p>}
-      {error && <p>Error: {error}</p>}
+    <ProtectedRoute requiredPermission="client">
+      <ContentBody title="Clientes">
+        {loading && <p>Cargando clientes...</p>}
+        {error && <p>Error: {error}</p>}
 
-      <ConfirmModal
-        isOpen={idsToDelete !== null}
-        message={`¿Eliminar ${idsToDelete?.length ?? 0} cliente(s)?`}
-        onCancel={() => setIdsToDelete(null)}
-        onConfirm={async () => {
-          if (idsToDelete) {
-            await deleteClients(idsToDelete);
-          }
-          setIdsToDelete(null);
-          setRowSelection({});
-        }}
-      />
-
-      {!loading && !error && (
-        <DataTable<ClientItem & { id: string }>
-          data={tableData}
-          edit={true}
-          columns={columns}
-          menu={true}
-          urlRouteEdit="/dashboard/client/edit?id="
-          urlRouteAdd="/dashboard/client/new"
-          actions={actions}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          onDelete={(ids) => setIdsToDelete(ids)}
+        <ConfirmModal
+          isOpen={idsToDelete !== null}
+          message={`¿Eliminar ${idsToDelete?.length ?? 0} cliente(s)?`}
+          onCancel={() => setIdsToDelete(null)}
+          onConfirm={async () => {
+            if (idsToDelete) {
+              await deleteClients(idsToDelete);
+            }
+            setIdsToDelete(null);
+            setRowSelection({});
+          }}
         />
-      )}
-    </ContentBody>
+
+        {!loading && !error && (
+          <DataTable<ClientItem & { id: string }>
+            data={tableData}
+            edit={true}
+            columns={columns}
+            menu={true}
+            urlRouteEdit="/dashboard/client/edit?id="
+            urlRouteAdd="/dashboard/client/new"
+            actions={actions}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            onDelete={(ids) => setIdsToDelete(ids)}
+          />
+        )}
+      </ContentBody>
+    </ProtectedRoute>
   );
 }

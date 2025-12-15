@@ -1,6 +1,7 @@
 "use client";
 
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { MRT_ColumnDef } from "material-react-table";
 import { useMemo, useState, useEffect } from "react";
@@ -352,7 +353,7 @@ export default function ProyeccionPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute requiredPermission="proyeccion">
       <ContentBody
         title="Proyección"
         ContentBtn={
@@ -609,6 +610,6 @@ export default function ProyeccionPage() {
           title_add="Agregar consultor"
         />
       </ContentBody>
-    </>
+    </ProtectedRoute>
   )
 }

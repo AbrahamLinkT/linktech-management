@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Box, TextField, Typography, Autocomplete } from "@mui/material";
 import proyectosData from "@/data/Projects.json";
 
@@ -121,7 +122,8 @@ export default function DisponibilidadPage() {
   const weekDates = getWeekDates(startOfWeek);
 
   return (
-    <Box sx={{ p: 4 }}>
+    <ProtectedRoute requiredPermission="disponibilidad">
+      <Box sx={{ p: 4 }}>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         Disponibilidad de Consultores
       </Typography>
@@ -208,5 +210,6 @@ export default function DisponibilidadPage() {
         </table>
       </Box>
     </Box>
+    </ProtectedRoute>
   );
 }

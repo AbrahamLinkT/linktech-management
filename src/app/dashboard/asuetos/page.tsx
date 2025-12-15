@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useAutoLoadAsuetos, type AsuetoResponse, useAsuetos } from "@/hooks/useAsuetos";
@@ -145,7 +146,8 @@ export default function AsuetosPage() {
     // Mostrar loading si cualquiera de las cargas está en progreso
     if (asuetoLoading || employeeLoading) {
         return (
-            <ContentBody title="Asuetos">
+            <ProtectedRoute requiredPermission="asuetos">
+                <ContentBody title="Asuetos">
                 <div className="flex justify-center items-center h-40">
                     <p>Cargando asuetos...</p>
                 </div>
@@ -156,7 +158,8 @@ export default function AsuetosPage() {
     // Mostrar error si hay algún problema
     if (asuetoError) {
         return (
-            <ContentBody title="Asuetos">
+            <ProtectedRoute requiredPermission="asuetos">
+                <ContentBody title="Asuetos">
                 <div className="flex justify-center items-center h-40">
                     <p className="text-red-500">Error al cargar asuetos: {asuetoError}</p>
                 </div>
@@ -165,7 +168,8 @@ export default function AsuetosPage() {
     }
 
     return (
-        <ContentBody title="Asuetos">
+        <ProtectedRoute requiredPermission="asuetos">
+            <ContentBody title="Asuetos">
             <DataTable
                 data={data}
                 columns={columns}
@@ -177,6 +181,7 @@ export default function AsuetosPage() {
                 onRowSelectionChange={handleRowSelectionChange}
                 onDelete={handleDelete}
             />
-        </ContentBody>
+            </ContentBody>
+        </ProtectedRoute>
     );
 }

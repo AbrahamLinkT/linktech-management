@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { ContentBody } from "@/components/containers/containers";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -36,7 +37,8 @@ export default function UsersComponent() {
   const actions = { edit: true, add: true, export: true, delete: true };
 
   return (
-    <ContentBody title="Líderes de Departamento">
+    <ProtectedRoute requiredPermission="usuarios">
+      <ContentBody title="Líderes de Departamento">
       {loading && <p>Cargando líderes...</p>}
       {error && <p className="text-red-600">Error: {error}</p>}
 
@@ -66,6 +68,7 @@ export default function UsersComponent() {
           onDelete={(ids) => setIdsToDelete(ids)}
         />
       )}
-    </ContentBody>
+      </ContentBody>
+    </ProtectedRoute>
   );
 }
