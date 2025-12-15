@@ -5,7 +5,7 @@ export function ClerkAuthButtons() {
   return (
     <div className="flex items-center gap-4">
       <SignedOut>
-        <SignInButton mode="modal">
+        <SignInButton mode="modal" forceRedirectUrl="/dashboard">
           <button className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
             Iniciar Sesión
           </button>
