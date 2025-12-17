@@ -14,8 +14,8 @@ const userPermissionsSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'manager', 'employee', 'viewer'],
-    default: 'viewer'
+    enum: ['admin', 'manager', 'employee', 'viewer', 'worker'],
+    default: 'worker'
   },
   permissions: {
     // Módulos habilitados

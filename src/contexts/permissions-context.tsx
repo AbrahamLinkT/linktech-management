@@ -39,12 +39,17 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
       }
 
       const email = user.primaryEmailAddress?.emailAddress;
+      const name = user.fullName || email?.split('@')[0] || 'Usuario';
+      
       if (!email) {
         setLoading(false);
         return;
       }
 
       try {
+        console.log('🔐 Iniciando verificación de permisos para:', email);
+        
+        // Verificar si existe o crear nuevo usuario
         const response = await fetch(
           `https://linktech-ma-server-db.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
         );
@@ -52,11 +57,68 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.isActive) {
+            console.log('✅ Permisos encontrados para usuario existente');
             setPermissions(data);
+          }
+        } else if (response.status === 404) {
+          // Usuario no encontrado, crear nuevo
+          console.log('➕ Usuario no encontrado, creando nuevo usuario...');
+          
+          const newUser = {
+            email,
+            name,
+            role: 'worker',
+            permissions: {
+              dashboard: false,
+              projects: false,
+              consultants: false,
+              workers: false,
+              client: false,
+              billing: false,
+              metrics: false,
+              cargabilidad: false,
+              proyeccion: false,
+              disponibilidad: false,
+              departamentos: false,
+              usuarios: false,
+              analisis: false,
+              asuetos: false,
+              especialidades: false,
+              esquemaContratacion: false,
+              horasContrato: false,
+              horasPorAprobar: false,
+              solicitudHoras: false,
+              canCreate: false,
+              canEdit: false,
+              canDelete: false,
+              canExport: false,
+            },
+            isActive: true,
+          };
+
+          const createResponse = await fetch(
+            'https://linktech-ma-server-db.vercel.app/api/permissions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(newUser),
+            }
+          );
+
+          if (createResponse.ok) {
+            const createdData = await createResponse.json();
+            if (createdData.success) {
+              console.log('✅ Usuario creado exitosamente con permisos por defecto');
+              setPermissions(createdData);
+            }
+          } else {
+            console.error('❌ Error al crear usuario:', createResponse.status);
           }
         }
       } catch (error) {
-        console.error('Error fetching permissions:', error);
+        console.error('❌ Error en verificación/creación de permisos:', error);
       } finally {
         setLoading(false);
       }
