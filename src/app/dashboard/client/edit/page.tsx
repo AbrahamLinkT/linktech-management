@@ -19,6 +19,36 @@ export default function EditClient() {
     nombreCorto: "",
   });
 
+  // nuevos estados para validación
+  const [errors, setErrors] = useState<{ [k: string]: string }>({});
+  const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
+
+  const validate = (values: typeof form) => {
+    const errs: { [k: string]: string } = {};
+    const nombre = values.nombre?.trim();
+    const short = values.nombreCorto?.trim();
+
+    if (!nombre) errs.nombre = "El nombre es requerido";
+    else if (nombre.length < 3) errs.nombre = "Mínimo 3 caracteres";
+
+    if (!short) errs.nombreCorto = "El nombre corto es requerido";
+    else if (short.length > 50) errs.nombreCorto = "Máximo 50 caracteres";
+
+    return errs;
+  };
+
+  const handleChange = (field: string, value: string) => {
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+    const v = validate(updated);
+    setErrors((prev) => ({ ...prev, [field]: v[field] }));
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((t) => ({ ...t, [field]: true }));
+    setErrors(validate(form));
+  };
+
   // ===========================
   // CARGAR DATOS DEL REGISTRO
   // ===========================
@@ -42,9 +72,14 @@ export default function EditClient() {
     e.preventDefault();
     if (!id) return;
 
+    const v = validate(form);
+    setErrors(v);
+    setTouched({ nombre: true, nombreCorto: true });
+    if (Object.keys(v).length > 0) return;
+
     const payload = {
-      name: form.nombre,
-      short_name: form.nombreCorto,
+      name: form.nombre.trim(),
+      short_name: form.nombreCorto.trim(),
     };
 
     const ok = await updateClient(id, payload);
@@ -88,8 +123,14 @@ export default function EditClient() {
                   type="text"
                   className={stylesInput}
                   value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                  onChange={(e) => handleChange("nombre", e.target.value)}
+                  onBlur={() => handleBlur("nombre")}
+                  aria-invalid={!!errors.nombre}
+                  aria-describedby={errors.nombre ? "err-nombre" : undefined}
                 />
+                {touched.nombre && errors.nombre && (
+                  <p id="err-nombre" className="text-red-600 text-sm mt-1">{errors.nombre}</p>
+                )}
               </div>
 
               <div>
@@ -98,8 +139,14 @@ export default function EditClient() {
                   type="text"
                   className={stylesInput}
                   value={form.nombreCorto}
-                  onChange={(e) => setForm({ ...form, nombreCorto: e.target.value })}
+                  onChange={(e) => handleChange("nombreCorto", e.target.value)}
+                  onBlur={() => handleBlur("nombreCorto")}
+                  aria-invalid={!!errors.nombreCorto}
+                  aria-describedby={errors.nombreCorto ? "err-nombreCorto" : undefined}
                 />
+                {touched.nombreCorto && errors.nombreCorto && (
+                  <p id="err-nombreCorto" className="text-red-600 text-sm mt-1">{errors.nombreCorto}</p>
+                )}
               </div>
             </div>
           </fieldset>
@@ -107,7 +154,7 @@ export default function EditClient() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || Object.keys(errors).length > 0}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
             >
               {loading ? "Guardando..." : "Guardar"}

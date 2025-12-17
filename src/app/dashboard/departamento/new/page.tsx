@@ -17,6 +17,9 @@ export default function New() {
     description: "",
   });
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+
   const stylesInput = `
         w-full border border-gray-600 rounded px-3 py-2 
         hover:border-blue-600 
@@ -29,13 +32,51 @@ export default function New() {
     router.push("/dashboard/departamento");
   };
 
+  const validate = (values: typeof form) => {
+    const errs: { [key: string]: string } = {};
+    const nombre = values.departamento?.trim();
+    const short = values.short_name?.trim();
+    const desc = values.description ?? "";
+
+    if (!nombre) errs.departamento = "El nombre es requerido";
+    else if (nombre.length < 3) errs.departamento = "Mínimo 3 caracteres";
+
+    if (!short) errs.short_name = "El nombre corto es requerido";
+    else if (short.length > 15) errs.short_name = "Máximo 15 caracteres";
+
+    if (desc.length > 250) errs.description = "Máximo 250 caracteres";
+
+    return errs;
+  };
+
+  const handleChange = (field: string, value: string) => {
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+
+    // validate this field
+    const v = validate(updated);
+    setErrors((prev) => ({ ...prev, [field]: v[field] }));
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((t) => ({ ...t, [field]: true }));
+    const v = validate(form);
+    setErrors(v);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const v = validate(form);
+    setErrors(v);
+    setTouched({ departamento: true, short_name: true, description: true });
+
+    if (Object.keys(v).length > 0) return;
+
     const payload = {
-      name: form.departamento,
-      short_name: form.short_name,
-      description: form.description,
+      name: form.departamento.trim(),
+      short_name: form.short_name.trim(),
+      description: form.description.trim(),
     };
 
     const ok = await createDepartment(payload);
@@ -58,7 +99,11 @@ export default function New() {
       <div className="m-1">
         <h2 className="text-2xl font-bold mb-6 ml-4">Departamento</h2>
 
-        <form className="space-y-10 ml-4 mr-4" onSubmit={handleSubmit}>
+        <form
+          className="space-y-10 ml-4 mr-4"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <fieldset className="border border-gray-400 rounded-xl p-4">
             <legend className="text-lg font-semibold px-2 ml-2 mt-4 bg-white">
               Datos del departamento
@@ -72,9 +117,22 @@ export default function New() {
                   className={stylesInput}
                   value={form.departamento}
                   onChange={(e) =>
-                    setForm({ ...form, departamento: e.target.value })
+                    handleChange("departamento", e.target.value)
+                  }
+                  onBlur={() => handleBlur("departamento")}
+                  aria-invalid={!!errors.departamento}
+                  aria-describedby={
+                    errors.departamento ? "err-departamento" : undefined
                   }
                 />
+                {touched.departamento && errors.departamento && (
+                  <p
+                    id="err-departamento"
+                    className="text-red-600 text-sm mt-1"
+                  >
+                    {errors.departamento}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -83,10 +141,21 @@ export default function New() {
                   type="text"
                   className={stylesInput}
                   value={form.short_name}
-                  onChange={(e) =>
-                    setForm({ ...form, short_name: e.target.value })
+                  onChange={(e) => handleChange("short_name", e.target.value)}
+                  onBlur={() => handleBlur("short_name")}
+                  aria-invalid={!!errors.short_name}
+                  aria-describedby={
+                    errors.short_name ? "err-short_name" : undefined
                   }
                 />
+                {touched.short_name && errors.short_name && (
+                  <p
+                    id="err-short_name"
+                    className="text-red-600 text-sm mt-1"
+                  >
+                    {errors.short_name}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -95,10 +164,21 @@ export default function New() {
                   type="text"
                   className={stylesInput}
                   value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
+                  onChange={(e) => handleChange("description", e.target.value)}
+                  onBlur={() => handleBlur("description")}
+                  aria-invalid={!!errors.description}
+                  aria-describedby={
+                    errors.description ? "err-description" : undefined
                   }
                 />
+                {touched.description && errors.description && (
+                  <p
+                    id="err-description"
+                    className="text-red-600 text-sm mt-1"
+                  >
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
           </fieldset>
@@ -106,8 +186,8 @@ export default function New() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
+              disabled={loading || Object.keys(errors).length > 0}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:opacity-50"
             >
               {loading ? "Guardando..." : "Guardar"}
             </button>
