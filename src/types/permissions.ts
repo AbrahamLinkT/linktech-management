@@ -28,7 +28,7 @@ export interface UserPermissionsResponse {
   success: boolean;
   email: string;
   name: string;
-  role: 'admin' | 'manager' | 'employee' | 'viewer';
+  role: 'admin' | 'manager' | 'employee' | 'worker' | 'viewer';
   permissions: UserPermissions;
   isActive: boolean;
 }

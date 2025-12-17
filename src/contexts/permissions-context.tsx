@@ -38,36 +38,47 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
         return;
       }
 
+      // Extraer email y nombre desde Clerk
       const email = user.primaryEmailAddress?.emailAddress;
-      const name = user.fullName || email?.split('@')[0] || 'Usuario';
+      const name = user.fullName || user.firstName || email?.split('@')[0] || 'Usuario';
       
       if (!email) {
+        console.error('❌ No se pudo obtener el email del usuario de Clerk');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('🔐 Iniciando verificación de permisos para:', email);
+        console.log('🔐 Usuario autenticado con Clerk');
+        console.log('📧 Email:', email);
+        console.log('👤 Nombre:', name);
+        console.log('🔍 Verificando existencia en MongoDB...');
         
-        // Verificar si existe o crear nuevo usuario
-        const response = await fetch(
+        // Paso 1: Verificar si el usuario existe en MongoDB
+        const checkResponse = await fetch(
           `https://linktech-ma-server-db.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
         );
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.isActive) {
-            console.log('✅ Permisos encontrados para usuario existente');
-            setPermissions(data);
+        if (checkResponse.ok) {
+          // Usuario encontrado
+          const userData = await checkResponse.json();
+          if (userData.success && userData.isActive) {
+            console.log('✅ Usuario existente encontrado en MongoDB');
+            console.log('🔑 Permisos cargados:', Object.keys(userData.permissions).filter(k => userData.permissions[k]).join(', ') || 'ninguno');
+            setPermissions(userData);
+          } else if (!userData.isActive) {
+            console.warn('⚠️ Usuario inactivo');
+            setPermissions(null);
           }
-        } else if (response.status === 404) {
-          // Usuario no encontrado, crear nuevo
-          console.log('➕ Usuario no encontrado, creando nuevo usuario...');
+        } else if (checkResponse.status === 404) {
+          // Usuario NO encontrado - Crear nuevo
+          console.log('❌ Usuario no encontrado en MongoDB');
+          console.log('➕ Creando nuevo usuario con permisos por defecto...');
           
-          const newUser = {
+          const newUserData = {
             email,
             name,
-            role: 'worker',
+            role: 'worker' as const,
             permissions: {
               dashboard: false,
               projects: false,
@@ -96,6 +107,9 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
             isActive: true,
           };
 
+          console.log('📤 Enviando datos a MongoDB:', { email, name, role: 'worker' });
+
+          // Paso 2: Crear nuevo usuario en MongoDB
           const createResponse = await fetch(
             'https://linktech-ma-server-db.vercel.app/api/permissions',
             {
@@ -103,19 +117,34 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify(newUser),
+              body: JSON.stringify(newUserData),
             }
           );
 
           if (createResponse.ok) {
             const createdData = await createResponse.json();
             if (createdData.success) {
-              console.log('✅ Usuario creado exitosamente con permisos por defecto');
-              setPermissions(createdData);
+              console.log('✅ Usuario creado exitosamente en MongoDB');
+              console.log('🔒 Permisos iniciales: Todos en FALSE (requiere autorización de administrador)');
+              
+              // Configurar permisos en el estado (todos en false)
+              setPermissions({
+                success: true,
+                email: newUserData.email,
+                name: newUserData.name,
+                role: newUserData.role,
+                permissions: newUserData.permissions,
+                isActive: true,
+              });
+            } else {
+              console.error('❌ Error: La creación no fue exitosa', createdData);
             }
           } else {
-            console.error('❌ Error al crear usuario:', createResponse.status);
+            const errorData = await createResponse.json();
+            console.error('❌ Error al crear usuario en MongoDB:', createResponse.status, errorData);
           }
+        } else {
+          console.error('❌ Error inesperado al verificar usuario:', checkResponse.status);
         }
       } catch (error) {
         console.error('❌ Error en verificación/creación de permisos:', error);
