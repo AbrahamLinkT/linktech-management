@@ -56,7 +56,7 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
         
         // Paso 1: Verificar si el usuario existe en MongoDB
         const checkResponse = await fetch(
-          `https://linktech-ma-server-db.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
+          `https://linktech-management-a.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
         );
 
         if (checkResponse.ok) {
@@ -111,7 +111,7 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
 
           // Paso 2: Crear nuevo usuario en MongoDB
           const createResponse = await fetch(
-            'https://linktech-ma-server-db.vercel.app/api/permissions',
+            'https://linktech-management-a.vercel.app/api/permissions',
             {
               method: 'POST',
               headers: {

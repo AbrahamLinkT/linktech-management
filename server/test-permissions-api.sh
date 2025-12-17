@@ -3,7 +3,7 @@
 # Script de prueba para la API de permisos
 # Asegúrate de tener curl instalado
 
-API_URL="https://linktech-ma-server-db.vercel.app/api/permissions"
+API_URL="https://linktech-management-a.vercel.app/api/permissions"
 # Para local: API_URL="http://localhost:5000/api/permissions"
 
 echo "🧪 Testing Permissions API"

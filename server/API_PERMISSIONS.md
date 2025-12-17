@@ -2,7 +2,7 @@
 
 API para gestionar permisos de usuarios en MongoDB.
 
-**Base URL**: `https://linktech-ma-server-db.vercel.app/api/permissions`
+**Base URL**: `https://linktech-management-a.vercel.app/api/permissions`
 
 ---
 
@@ -243,7 +243,7 @@ API para gestionar permisos de usuarios en MongoDB.
 ### Ejemplo 1: Crear un nuevo usuario
 
 ```bash
-curl -X POST https://linktech-ma-server-db.vercel.app/api/permissions \
+curl -X POST https://linktech-management-a.vercel.app/api/permissions \
   -H "Content-Type: application/json" \
   -d '{
     "email": "juan.perez@linktech.com.mx",
@@ -255,7 +255,7 @@ curl -X POST https://linktech-ma-server-db.vercel.app/api/permissions \
 ### Ejemplo 2: Actualizar permisos de usuario
 
 ```bash
-curl -X PUT "https://linktech-ma-server-db.vercel.app/api/permissions?email=juan.perez@linktech.com.mx" \
+curl -X PUT "https://linktech-management-a.vercel.app/api/permissions?email=juan.perez@linktech.com.mx" \
   -H "Content-Type: application/json" \
   -d '{
     "permissions": {
@@ -270,19 +270,19 @@ curl -X PUT "https://linktech-ma-server-db.vercel.app/api/permissions?email=juan
 ### Ejemplo 3: Obtener permisos de usuario
 
 ```bash
-curl -X GET "https://linktech-ma-server-db.vercel.app/api/permissions?email=juan.perez@linktech.com.mx"
+curl -X GET "https://linktech-management-a.vercel.app/api/permissions?email=juan.perez@linktech.com.mx"
 ```
 
 ### Ejemplo 4: Listar todos los usuarios
 
 ```bash
-curl -X GET "https://linktech-ma-server-db.vercel.app/api/permissions"
+curl -X GET "https://linktech-management-a.vercel.app/api/permissions"
 ```
 
 ### Ejemplo 5: Eliminar usuario
 
 ```bash
-curl -X DELETE "https://linktech-ma-server-db.vercel.app/api/permissions?email=juan.perez@linktech.com.mx"
+curl -X DELETE "https://linktech-management-a.vercel.app/api/permissions?email=juan.perez@linktech.com.mx"
 ```
 
 ---

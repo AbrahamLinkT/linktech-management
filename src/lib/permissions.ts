@@ -1,6 +1,6 @@
 import { UserPermissionsResponse } from '@/types/permissions';
 
-const PERMISSIONS_API_URL = 'https://linktech-ma-server-db.vercel.app/api/permissions';
+const PERMISSIONS_API_URL = 'https://linktech-management-a.vercel.app/api/permissions';
 
 export async function getUserPermissions(email: string): Promise<UserPermissionsResponse | null> {
   try {

@@ -5,7 +5,7 @@
  * Simula el comportamiento del frontend después del login con Clerk
  */
 
-const API_URL = 'https://linktech-ma-server-db.vercel.app/api/permissions';
+const API_URL = 'https://linktech-management-a.vercel.app/api/permissions';
 
 // Colores para la consola
 const colors = {

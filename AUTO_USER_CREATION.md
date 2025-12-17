@@ -99,7 +99,7 @@ Para habilitar acceso a un usuario nuevo, un administrador debe:
 
 ### Opción 1: Actualizar vía API
 ```bash
-curl -X PUT "https://linktech-ma-server-db.vercel.app/api/permissions?email=usuario@email.com" \
+curl -X PUT "https://linktech-management-a.vercel.app/api/permissions?email=usuario@email.com" \
   -H "Content-Type: application/json" \
   -d '{
     "permissions": {

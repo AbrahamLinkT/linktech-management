@@ -42,7 +42,7 @@ Todas las páginas del dashboard están ahora protegidas con el componente `Prot
 2. El componente `ProtectedRoute` obtiene el email del usuario desde Clerk
 3. Hace una petición a la API para obtener los permisos del usuario:
    ```
-   GET https://linktech-ma-server-db.vercel.app/api/permissions?email=usuario@email.com
+   GET https://linktech-management-a.vercel.app/api/permissions?email=usuario@email.com
    ```
 4. Valida si el usuario tiene el permiso requerido
 5. Si tiene permiso: muestra el contenido
@@ -165,7 +165,7 @@ Para probar el sistema de permisos:
 
 ## API de Permisos
 
-**Endpoint**: `https://linktech-ma-server-db.vercel.app/api/permissions`
+**Endpoint**: `https://linktech-management-a.vercel.app/api/permissions`
 
 **Método**: GET
 
