@@ -28,7 +28,17 @@ export interface UserPermissionsResponse {
   success: boolean;
   email: string;
   name: string;
-  role: 'admin' | 'manager' | 'employee' | 'worker' | 'viewer';
+  role: 'admin' | 'lider' | 'worker' | 'manager' | 'employee' | 'viewer';
   permissions: UserPermissions;
   isActive: boolean;
+}
+
+export interface UserListItem {
+  _id?: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'lider' | 'worker';
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
