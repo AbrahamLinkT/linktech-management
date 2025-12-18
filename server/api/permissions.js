@@ -170,8 +170,9 @@ module.exports = async (req, res) => {
       // Si se proporcionan permisos, actualizar solo los especificados
       if (permissions !== undefined) {
         // Mantener permisos existentes y sobrescribir solo los enviados
+        const currentPermissions = existingUser.permissions ? existingUser.permissions.toObject ? existingUser.permissions.toObject() : existingUser.permissions : {};
         updateData.permissions = {
-          ...existingUser.permissions.toObject(),
+          ...currentPermissions,
           ...permissions
         };
       }
