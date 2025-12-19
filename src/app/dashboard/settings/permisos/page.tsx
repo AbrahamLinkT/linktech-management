@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { ContentBody } from "@/components/containers/containers";
-import { Autocomplete, TextField, Switch, FormControlLabel, Button, Box, Typography, Paper, Grid, Divider, Alert, Chip } from "@mui/material";
+import { Autocomplete, TextField, Switch, FormControlLabel, Button, Box, Typography, Paper, Divider, Alert, Chip } from "@mui/material";
 import { Save, RefreshCw, Shield } from "lucide-react";
 import type { UserPermissions } from "@/types/permissions";
 
@@ -292,9 +292,19 @@ export default function PermisosPage() {
 
         {permissions && !loading && (
           <>
-            <Grid container spacing={2}>
+            <Box 
+              sx={{ 
+                display: "grid",
+                gridTemplateColumns: { 
+                  xs: "1fr", 
+                  sm: "repeat(2, 1fr)", 
+                  lg: "repeat(3, 1fr)" 
+                },
+                gap: 2
+              }}
+            >
               {PERMISSION_CATEGORIES.map((category) => (
-                <Grid item xs={12} sm={6} lg={4} key={category.title}>
+                <Box key={category.title}>
                   <Paper 
                     variant="outlined" 
                     sx={{ 
@@ -381,9 +391,9 @@ export default function PermisosPage() {
                       ))}
                     </Box>
                   </Paper>
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             {/* Botón Guardar */}
             <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
