@@ -98,25 +98,51 @@ export default function ProyeccionPage() {
         const projectHours = allHours.filter(h => h.projectId === projectObj.id);
         console.log(`📊 Horas asignadas para proyecto ${projectObj.name}:`, projectHours);
 
-        // Obtener información de los trabajadores
-        const workers = await getWorkersForAssignedHours(projectHours);
-        console.log('👥 Trabajadores cargados:', workers);
-
-        // Transformar datos para la tabla
-        const tableData: RowData[] = projectHours.map(hour => {
-          const worker = workers.find(w => w.id === hour.assignedTo);
+        // Obtener información completa de los trabajadores desde el hook useWorkers
+        // que tiene todos los datos enriquecidos (con nombres de roles, esquemas, niveles)
+        console.log('👥 Workers disponibles:', workers);
+        
+        // Obtener workers únicos asignados al proyecto
+        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
+        console.log('👥 Workers únicos en el proyecto:', Array.from(uniqueWorkerIds));
+        
+        // Transformar datos para la tabla haciendo match con workers completos
+        // Una fila por worker único
+        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+          // Buscar el worker completo por ID
+          const worker = workers.find(w => w.id === workerId);
+          
+          // Obtener el primer registro de horas para este worker (para obtener nombres)
+          const firstHour = projectHours.find(h => h.assignedTo === workerId);
+          
+          // Calcular el total de horas sumando todos los registros de este worker
+          const totalHours = projectHours
+            .filter(h => h.assignedTo === workerId)
+            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+          
+          console.log(`Mapping worker ${workerId}:`, {
+            found: !!worker,
+            totalHours,
+            workerData: worker ? {
+              name: worker.name,
+              role: worker.roleName,
+              scheme: worker.schemeName,
+              level: worker.levelName,
+              location: worker.location
+            } : 'Not found'
+          });
           
           return {
-            id: String(hour.id),
-            consultor: hour.nameAssignedTo,
+            id: String(workerId),
+            consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
             departamento: worker?.roleName || 'N/A',
             tipoEmpleado: worker?.schemeName || 'N/A',
             esquema: worker?.levelName || 'N/A',
-            tiempo: String(hour.hoursData.total),
+            tiempo: String(totalHours),
             modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
-            proyecto: hour.projectName,
+            proyecto: firstHour?.projectName || '',
           };
         });
 
@@ -172,50 +198,66 @@ export default function ProyeccionPage() {
     if (ids.length === 0) return;
 
     const confirmed = window.confirm(
-      `¿Estás seguro de eliminar ${ids.length} registro(s)? Esta acción no se puede deshacer.`
+      `¿Estás seguro de eliminar ${ids.length} consultor(es)? Se eliminarán todas sus horas asignadas. Esta acción no se puede deshacer.`
     );
 
     if (!confirmed) return;
 
     try {
+      if (!selectedProject) return;
+      
+      const projectObj = projects.find(p => p.name === selectedProject);
+      if (!projectObj) return;
+      
+      // Los IDs ahora son workerIds, necesitamos obtener todos los registros de horas de esos workers
+      const allHours = await getAssignedHours();
+      const projectHours = allHours.filter(h => h.projectId === projectObj.id);
+      
+      // Encontrar todos los registros de horas de los workers seleccionados
+      const workerIds = ids.map(id => parseInt(id));
+      const hoursToDelete = projectHours.filter(h => workerIds.includes(h.assignedTo));
+      
+      console.log(`Eliminando ${hoursToDelete.length} registros de horas de ${workerIds.length} workers`);
+      
       // Eliminar cada hora asignada
-      const deletePromises = ids.map(id => deleteAssignedHour(parseInt(id)));
+      const deletePromises = hoursToDelete.map(hour => deleteAssignedHour(hour.id));
       const results = await Promise.all(deletePromises);
 
       // Verificar si todas las eliminaciones fueron exitosas
       const allSuccess = results.every(result => result === true);
 
       if (allSuccess) {
-        alert('Registros eliminados exitosamente');
+        alert('Consultores eliminados exitosamente');
         
         // Recargar datos del proyecto actual
-        if (selectedProject) {
-          const projectObj = projects.find(p => p.name === selectedProject);
-          if (projectObj) {
-            const allHours = await getAssignedHours();
-            const projectHours = allHours.filter(h => h.projectId === projectObj.id);
-            const workers = await getWorkersForAssignedHours(projectHours);
+        const updatedHours = await getAssignedHours();
+        const updatedProjectHours = updatedHours.filter(h => h.projectId === projectObj.id);
+        
+        // Obtener workers únicos
+        const uniqueWorkerIds = new Set(updatedProjectHours.map(h => h.assignedTo));
+        
+        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+          const worker = workers.find(w => w.id === workerId);
+          const firstHour = updatedProjectHours.find(h => h.assignedTo === workerId);
+          const totalHours = updatedProjectHours
+            .filter(h => h.assignedTo === workerId)
+            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+          
+          return {
+            id: String(workerId),
+            consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
+            departamento: worker?.roleName || 'N/A',
+            tipoEmpleado: worker?.schemeName || 'N/A',
+            esquema: worker?.levelName || 'N/A',
+            tiempo: String(totalHours),
+            modulo: 'N/A',
+            nivel: worker?.levelName || 'N/A',
+            ubicacion: worker?.location || 'N/A',
+            proyecto: firstHour?.projectName || '',
+          };
+        });
 
-            const tableData: RowData[] = projectHours.map(hour => {
-              const worker = workers.find(w => w.id === hour.assignedTo);
-              
-              return {
-                id: String(hour.id),
-                consultor: hour.nameAssignedTo,
-                departamento: worker?.roleName || 'N/A',
-                tipoEmpleado: worker?.schemeName || 'N/A',
-                esquema: worker?.levelName || 'N/A',
-                tiempo: String(hour.hoursData.total),
-                modulo: 'N/A',
-                nivel: worker?.levelName || 'N/A',
-                ubicacion: worker?.location || 'N/A',
-                proyecto: hour.projectName,
-              };
-            });
-
-            setTableDataFromApi(tableData);
-          }
-        }
+        setTableDataFromApi(tableData);
         
         // Limpiar selección
         setRowSelection({});
@@ -285,21 +327,28 @@ export default function ProyeccionPage() {
         // Recargar datos del proyecto
         const allHours = await getAssignedHours();
         const projectHours = allHours.filter(h => h.projectId === project.id);
-        const workers = await getWorkersForAssignedHours(projectHours);
         
-        const tableData: RowData[] = projectHours.map(hour => {
-          const worker = workers.find(w => w.id === hour.assignedTo);
+        // Obtener workers únicos
+        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
+        
+        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+          const worker = workers.find(w => w.id === workerId);
+          const firstHour = projectHours.find(h => h.assignedTo === workerId);
+          const totalHours = projectHours
+            .filter(h => h.assignedTo === workerId)
+            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+          
           return {
-            id: String(hour.id),
-            consultor: hour.nameAssignedTo,
+            id: String(workerId),
+            consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
             departamento: worker?.roleName || 'N/A',
             tipoEmpleado: worker?.schemeName || 'N/A',
             esquema: worker?.levelName || 'N/A',
-            tiempo: String(hour.hoursData.total),
+            tiempo: String(totalHours),
             modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
-            proyecto: hour.projectName,
+            proyecto: firstHour?.projectName || '',
           };
         });
         setTableDataFromApi(tableData);

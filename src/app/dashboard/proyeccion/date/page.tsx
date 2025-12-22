@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useProjects } from "@/hooks/useProjects";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
+import { buildApiUrl, API_CONFIG } from '@/config/api';
 
 // ---- Tipos ----
 type ProyeccionRow = {
@@ -19,11 +20,19 @@ type ProyeccionRow = {
   departamento: string;
   tipoEmpleado: string;
   esquema: string;
+  horasContrato: string; // Nuevo campo para horas contractuales
   tiempo: string;
   nivel: string;
   horas: string[]; // índice 0..14 (3 semanas * 5 días)
   fechaLibre: string;
 };
+
+interface SchemeItem {
+  id: number;
+  name: string;
+  description?: string;
+  hours?: string;
+}
 
 // ---- Datos de cabeceras por semana ----
 const semanas = [
@@ -61,8 +70,27 @@ function ProyeccionTablePage() {
   
   // Hooks para API
   const { projects, getProjects } = useProjects();
-  const { getAssignedHours, getWorkersForAssignedHours } = useAssignedHours();
+  const { getAssignedHours, getWorkersForAssignedHours, createAssignedHours } = useAssignedHours();
   const [isLoading, setIsLoading] = useState(true);
+  const [schemes, setSchemes] = useState<SchemeItem[]>([]);
+
+  // Cargar esquemas (schemes) al inicio
+  useEffect(() => {
+    const fetchSchemes = async () => {
+      try {
+        console.log('📋 Cargando esquemas desde:', buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE));
+        const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE));
+        if (!res.ok) throw new Error(`Error fetching schemes: ${res.status}`);
+        const json = await res.json();
+        const schemesData = Array.isArray(json) ? json : json.content || [];
+        console.log('✅ Esquemas cargados:', schemesData);
+        setSchemes(schemesData);
+      } catch (err) {
+        console.error('❌ Error fetching schemes', err);
+      }
+    };
+    fetchSchemes();
+  }, []);
 
   // Cargar proyectos al inicio
   useEffect(() => {
@@ -115,6 +143,103 @@ function ProyeccionTablePage() {
   const [registroSeleccionado, setRegistroSeleccionado] = useState<ProyeccionRow | null>(null);
 
   const [tableData, setTableData] = useState<ProyeccionRow[]>([]);
+  const [calculatedDates, setCalculatedDates] = useState<Array<{ inicial: string; fecha: string; fullDate: string }>>([]);
+  
+  // Función para obtener el department head del proyecto
+  const getDepartmentHead = async (projectId: number): Promise<number | null> => {
+    try {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS));
+      const departmentHeads = await response.json();
+      console.log('Department heads:', departmentHeads);
+      
+      // Por ahora retornamos el ID fijo 6, pero podrías hacer match con el proyecto
+      // const head = departmentHeads.find(h => h.id_department === project.departmentId);
+      return 6; // ID fijo según especificación
+    } catch (error) {
+      console.error('Error fetching department heads:', error);
+      return 6; // Fallback
+    }
+  };
+  
+  // Función para agrupar fechas por semanas
+  const groupDatesByWeeks = (dates: Array<{ inicial: string; fecha: string; fullDate: string }>) => {
+    const weeks: Array<{ weekStart: string; days: typeof dates }> = [];
+    let currentWeek: typeof dates = [];
+    
+    dates.forEach((date, index) => {
+      currentWeek.push(date);
+      
+      // Si es viernes o el último día, cerrar la semana
+      if (date.inicial === 'Vie' || index === dates.length - 1) {
+        // La semana se identifica por la fecha del primer día (lunes o inicio)
+        const weekStart = currentWeek[0].fullDate;
+        weeks.push({ weekStart, days: [...currentWeek] });
+        currentWeek = [];
+      }
+    });
+    
+    return weeks;
+  };
+  
+  // Función para calcular fechas basadas en la fecha de inicio y fin del proyecto
+  const calculateDatesFromStart = (startDate: string, endDate: string | null = null, numWeeks: number = 3) => {
+    const dates: Array<{ inicial: string; fecha: string; fullDate: string }> = [];
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+    
+    // Mapeo de días de la semana
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+    
+    let currentDate = new Date(start);
+    const startDayOfWeek = currentDate.getDay();
+    
+    // Si el proyecto empieza en fin de semana, avanzar al lunes siguiente
+    if (startDayOfWeek === 0) { // Domingo
+      currentDate.setDate(currentDate.getDate() + 1);
+    } else if (startDayOfWeek === 6) { // Sábado
+      currentDate.setDate(currentDate.getDate() + 2);
+    }
+    
+    // Agregar días desde el inicio hasta completar las semanas o llegar a la fecha de fin
+    let weeksCompleted = 0;
+    
+    while (weeksCompleted < numWeeks) {
+      const dayOfWeek = currentDate.getDay();
+      
+      // Verificar si hemos pasado la fecha de fin
+      if (end && currentDate > end) {
+        console.log(`🛑 Alcanzada fecha de fin del proyecto: ${end.toISOString().split('T')[0]}`);
+        break;
+      }
+      
+      // Solo agregar días laborables (1=Lun a 5=Vie)
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+        const day = currentDate.getDate();
+        const month = currentDate.getMonth() + 1;
+        const year = currentDate.getFullYear();
+        const shortYear = year.toString().slice(-2);
+        
+        dates.push({
+          inicial: dayNames[dayOfWeek],
+          fecha: `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${shortYear}`,
+          fullDate: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        });
+      }
+      
+      // Si llegamos al viernes, incrementar semanas completadas
+      if (dayOfWeek === 5) {
+        weeksCompleted++;
+        // Saltar el fin de semana (avanzar al lunes siguiente)
+        currentDate.setDate(currentDate.getDate() + 3);
+      } else {
+        // Avanzar al siguiente día
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+    
+    console.log(`📅 Fechas generadas: ${dates.length} días (${weeksCompleted} semanas completas)`);
+    return dates;
+  };
   
   // Cargar datos del proyecto desde el API
   useEffect(() => {
@@ -122,6 +247,7 @@ function ProyeccionTablePage() {
       console.log('=== INICIO DE CARGA ===');
       console.log('Project name from URL:', projectName);
       console.log('Projects available:', projects.length);
+      console.log('Schemes available:', schemes.length);
       
       if (!projectName) {
         console.log('❌ No hay nombre de proyecto en la URL');
@@ -133,12 +259,19 @@ function ProyeccionTablePage() {
         console.log('⏳ Esperando a que se carguen los proyectos...');
         return; // El otro useEffect se encargará de cargarlos
       }
+
+      if (schemes.length === 0) {
+        console.log('⏳ Esperando a que se carguen los esquemas...');
+        return; // Esperar a que se carguen los schemes
+      }
       
       try {
         setIsLoading(true);
         
         console.log('Total de proyectos:', projects.length);
         console.log('Proyectos:', projects.map(p => ({ id: p.id, name: p.name })));
+        console.log('Total de esquemas:', schemes.length);
+        console.log('Esquemas:', schemes.map(s => ({ id: s.id, name: s.name, hours: s.hours })));
         
         // Encontrar el proyecto por nombre
         const project = projects.find(p => p.name === projectName);
@@ -150,19 +283,46 @@ function ProyeccionTablePage() {
         }
         
         console.log('📊 Cargando datos para proyecto:', project.name, 'ID:', project.id);
+        console.log('📅 Fecha de inicio del proyecto:', project.start_date);
+        console.log('📅 Fecha de fin del proyecto:', project.end_date);
+        
+        // Calcular fechas basadas en la fecha de inicio y fin del proyecto
+        let calculatedDatesLocal: Array<{ inicial: string; fecha: string; fullDate: string }> = [];
+        if (project.start_date) {
+          calculatedDatesLocal = calculateDatesFromStart(
+            project.start_date, 
+            project.end_date, 
+            vistaSemanas
+          );
+          setCalculatedDates(calculatedDatesLocal);
+          console.log('📅 Fechas calculadas:', calculatedDatesLocal);
+        } else {
+          console.warn('⚠️ El proyecto no tiene fecha de inicio');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Agrupar fechas por semanas
+        const weeksData = groupDatesByWeeks(calculatedDatesLocal);
+        console.log('📅 Semanas agrupadas:', weeksData);
+        
+        // Obtener el department head para el proyecto
+        const assignedBy = await getDepartmentHead(project.id);
         
         // Obtener horas asignadas del proyecto
         console.log('🔍 Obteniendo todas las horas asignadas...');
         const allHours = await getAssignedHours();
         console.log('📊 Total de horas asignadas:', allHours.length);
-        console.log('Todas las horas:', allHours.map(h => ({ id: h.id, projectId: h.projectId, projectName: h.projectName })));
         
         const projectHours = allHours.filter(h => h.projectId === project.id);
         console.log(`🔍 Horas asignadas filtradas para proyecto ${project.id}:`, projectHours.length);
-        console.log('Horas del proyecto:', projectHours);
         
-        if (projectHours.length === 0) {
-          console.warn('⚠️ No hay horas asignadas para este proyecto');
+        // Obtener workers únicos asignados al proyecto
+        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
+        console.log('👥 Workers únicos en el proyecto:', Array.from(uniqueWorkerIds));
+        
+        if (uniqueWorkerIds.size === 0) {
+          console.warn('⚠️ No hay workers asignados para este proyecto');
           setTableData([]);
           setIsLoading(false);
           return;
@@ -172,49 +332,134 @@ function ProyeccionTablePage() {
         console.log('👥 Obteniendo información de workers...');
         const workers = await getWorkersForAssignedHours(projectHours);
         console.log('👥 Workers cargados:', workers.length);
-        console.log('Workers:', workers.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
+        
+        // Para cada worker, verificar que tenga horas asignadas para cada semana
+        const hoursToCreate: any[] = [];
+        
+        for (const workerId of Array.from(uniqueWorkerIds)) {
+          for (const week of weeksData) {
+            // Buscar si ya existe un registro para este worker en esta semana
+            const existingHour = projectHours.find(
+              h => h.assignedTo === workerId && h.hoursData.week === week.weekStart
+            );
+            
+            if (!existingHour) {
+              console.log(`📝 Creando registro para worker ${workerId} en semana ${week.weekStart}`);
+              hoursToCreate.push({
+                project_id: project.id,
+                assigned_to: workerId,
+                assigned_by: assignedBy,
+                hours_data: {
+                  monday: 0,
+                  tuesday: 0,
+                  wednesday: 0,
+                  thursday: 0,
+                  friday: 0,
+                  saturday: 0,
+                  sunday: 0,
+                  total: 0,
+                  week: week.weekStart
+                }
+              });
+            }
+          }
+        }
+        
+        // Crear los registros faltantes
+        let finalProjectHours = projectHours;
+        if (hoursToCreate.length > 0) {
+          console.log(`📝 Creando ${hoursToCreate.length} registros de horas...`);
+          await createAssignedHours(hoursToCreate);
+          
+          // Recargar las horas asignadas
+          const updatedHours = await getAssignedHours();
+          finalProjectHours = updatedHours.filter(h => h.projectId === project.id);
+          console.log('✅ Horas actualizadas:', finalProjectHours.length);
+        }
+        
+        // Agrupar horas por worker
+        const hoursByWorker = new Map<number, any[]>();
+        for (const hour of finalProjectHours) {
+          if (!hoursByWorker.has(hour.assignedTo)) {
+            hoursByWorker.set(hour.assignedTo, []);
+          }
+          hoursByWorker.get(hour.assignedTo)!.push(hour);
+        }
+        
+        console.log('📊 Horas agrupadas por worker:', Array.from(hoursByWorker.entries()).map(([id, hours]) => ({
+          workerId: id,
+          hoursCount: hours.length
+        })));
         
         // Transformar datos para la tabla
-        const tableData: ProyeccionRow[] = projectHours.map(hour => {
-          const worker = workers.find(w => w.id === hour.assignedTo);
-          console.log(`🔧 Mapeando hora ${hour.id}: worker ${hour.assignedTo} ->`, worker ? worker.name : 'No encontrado');
+        const tableData: ProyeccionRow[] = [];
+        
+        for (const [workerId, workerHours] of hoursByWorker.entries()) {
+          const worker = workers.find(w => w.id === workerId);
+          if (!worker) {
+            console.warn(`⚠️ Worker ${workerId} no encontrado`);
+            continue;
+          }
           
-          // Crear array de 15 días (3 semanas x 5 días)
-          // Usar los valores reales de hoursData
-          const horasArray = new Array(15).fill('0');
+          console.log(`🔧 Procesando worker ${workerId}: ${worker.name}`);
           
-          // Llenar la primera semana con los datos reales
-          const hoursData = hour.hoursData;
-          if (hoursData) {
-            // Día 0-4: Primera semana
-            horasArray[0] = hoursData.monday !== null ? String(hoursData.monday) : '0';
-            horasArray[1] = hoursData.tuesday !== null ? String(hoursData.tuesday) : '0';
-            horasArray[2] = hoursData.wednesday !== null ? String(hoursData.wednesday) : '0';
-            horasArray[3] = hoursData.thursday !== null ? String(hoursData.thursday) : '0';
-            horasArray[4] = hoursData.friday !== null ? String(hoursData.friday) : '0';
+          // Intentar obtener el scheme_id del worker
+          const workerSchemeId = worker?.schemeId || (worker as any)?.scheme_id;
+          const scheme = schemes.find(s => s.id === workerSchemeId);
+          const horasContrato = scheme?.hours || 'N/A';
+          
+          // Ordenar las horas por semana
+          const sortedHours = workerHours.sort((a, b) => 
+            a.hoursData.week.localeCompare(b.hoursData.week)
+          );
+          
+          // Construir array de horas basado en las fechas calculadas
+          const horasArray: string[] = [];
+          const dayMapping = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+          
+          for (const date of calculatedDatesLocal) {
+            // Encontrar la semana que corresponde a esta fecha
+            const weekRecord = sortedHours.find(h => {
+              const weekStart = new Date(h.hoursData.week);
+              const currentDate = new Date(date.fullDate);
+              // La fecha debe estar en la misma semana
+              const diffDays = Math.floor((currentDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
+              return diffDays >= 0 && diffDays < 7;
+            });
             
-            // Copiar la misma estructura para las siguientes semanas
-            for (let semana = 1; semana < 3; semana++) {
-              const offset = semana * 5;
-              horasArray[offset] = hoursData.monday !== null ? String(hoursData.monday) : '0';
-              horasArray[offset + 1] = hoursData.tuesday !== null ? String(hoursData.tuesday) : '0';
-              horasArray[offset + 2] = hoursData.wednesday !== null ? String(hoursData.wednesday) : '0';
-              horasArray[offset + 3] = hoursData.thursday !== null ? String(hoursData.thursday) : '0';
-              horasArray[offset + 4] = hoursData.friday !== null ? String(hoursData.friday) : '0';
+            if (weekRecord) {
+              // Obtener el día de la semana (0=Dom, 1=Lun, ..., 5=Vie)
+              const dateObj = new Date(date.fullDate);
+              const dayOfWeek = dateObj.getDay();
+              
+              // Mapear al campo correcto (1=Lun -> monday, 2=Mar -> tuesday, etc.)
+              if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                const dayField = dayMapping[dayOfWeek - 1] as keyof typeof weekRecord.hoursData;
+                const value = weekRecord.hoursData[dayField];
+                horasArray.push(value !== null ? String(value) : '0');
+              } else {
+                horasArray.push('0');
+              }
+            } else {
+              horasArray.push('0');
             }
           }
           
-          return {
-            consultor: hour.nameAssignedTo,
-            departamento: worker?.roleName || 'N/A',
-            tipoEmpleado: worker?.schemeName || 'N/A',
-            esquema: worker?.levelName || 'N/A',
-            tiempo: `${hour.hoursData.total}/sem`,
-            nivel: worker?.levelName || 'N/A',
+          // Calcular el total de horas por semana
+          const totalHours = sortedHours.reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+          
+          tableData.push({
+            consultor: worker.name,
+            departamento: worker.roleName || 'N/A',
+            tipoEmpleado: worker.schemeName || 'N/A',
+            esquema: worker.levelName || 'N/A',
+            horasContrato: horasContrato,
+            tiempo: `${totalHours}/total`,
+            nivel: worker.levelName || 'N/A',
             horas: horasArray,
             fechaLibre: 'N/A',
-          };
-        });
+          });
+        }
         
         console.log('✅ Datos transformados:', tableData);
         setTableData(tableData);
@@ -230,7 +475,7 @@ function ProyeccionTablePage() {
     loadProjectData();
     // Solo recargar cuando cambie el nombre del proyecto o los proyectos disponibles
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectName, projects.length]);
+  }, [projectName, projects.length, schemes.length]);
 
   // Función para abrir el modal y seleccionar el día
   const handleAbrirModal = (diaIdx: number) => {
@@ -249,22 +494,23 @@ function ProyeccionTablePage() {
   };
 
   // Función para guardar el rango de horas
-  const diasInfo = [
-    { inicial: "Lun", fecha: "01/08/25" },
-    { inicial: "Mar", fecha: "02/08/25" },
-    { inicial: "Mie", fecha: "03/08/25" },
-    { inicial: "Jue", fecha: "04/08/25" },
-    { inicial: "Vie", fecha: "05/08/25" },
-    { inicial: "Lun", fecha: "08/08/25" },
-    { inicial: "Mar", fecha: "09/08/25" },
-    { inicial: "Mie", fecha: "10/08/25" },
-    { inicial: "Jue", fecha: "11/08/25" },
-    { inicial: "Vie", fecha: "12/08/25" },
-    { inicial: "Lun", fecha: "15/08/25" },
-    { inicial: "Mar", fecha: "16/08/25" },
-    { inicial: "Mie", fecha: "17/08/25" },
-    { inicial: "Jue", fecha: "18/08/25" },
-    { inicial: "Vie", fecha: "19/08/25" },
+  // Usar fechas calculadas o fallback a fechas por defecto
+  const diasInfo = calculatedDates.length > 0 ? calculatedDates : [
+    { inicial: "Lun", fecha: "01/08/25", fullDate: "2025-08-01" },
+    { inicial: "Mar", fecha: "02/08/25", fullDate: "2025-08-02" },
+    { inicial: "Mie", fecha: "03/08/25", fullDate: "2025-08-03" },
+    { inicial: "Jue", fecha: "04/08/25", fullDate: "2025-08-04" },
+    { inicial: "Vie", fecha: "05/08/25", fullDate: "2025-08-05" },
+    { inicial: "Lun", fecha: "08/08/25", fullDate: "2025-08-08" },
+    { inicial: "Mar", fecha: "09/08/25", fullDate: "2025-08-09" },
+    { inicial: "Mie", fecha: "10/08/25", fullDate: "2025-08-10" },
+    { inicial: "Jue", fecha: "11/08/25", fullDate: "2025-08-11" },
+    { inicial: "Vie", fecha: "12/08/25", fullDate: "2025-08-12" },
+    { inicial: "Lun", fecha: "15/08/25", fullDate: "2025-08-15" },
+    { inicial: "Mar", fecha: "16/08/25", fullDate: "2025-08-16" },
+    { inicial: "Mie", fecha: "17/08/25", fullDate: "2025-08-17" },
+    { inicial: "Jue", fecha: "18/08/25", fullDate: "2025-08-18" },
+    { inicial: "Vie", fecha: "19/08/25", fullDate: "2025-08-19" },
   ];
 
   const parseFecha = (f: string) => {
@@ -275,7 +521,8 @@ function ProyeccionTablePage() {
       return new Date(f);
     }
     const [d, m, y] = f.split("/");
-    return new Date(`20${y.length === 2 ? y : y.slice(-2)}` + `-${m}-${d}`);
+    const fullYear = y.length === 2 ? `20${y}` : y;
+    return new Date(`${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
   };
 
   const handleGuardarHoras = () => {
@@ -288,7 +535,7 @@ function ProyeccionTablePage() {
             const desdeDate = parseFecha(rangoHoras.desde);
             const hastaDate = parseFecha(rangoHoras.hasta);
             for (let i = 0; i < diasInfo.length; i++) {
-              const colDate = parseFecha(diasInfo[i].fecha);
+              const colDate = parseFecha(diasInfo[i].fullDate || diasInfo[i].fecha);
               if (
                 desdeDate && hastaDate &&
                 colDate &&
@@ -346,6 +593,12 @@ function ProyeccionTablePage() {
         Header: () => <TitleOnlyHeader title="Esquema" />,
       },
       {
+        accessorKey: "horasContrato",
+        header: "Horas Contrato",
+        size: 120,
+        Header: () => <TitleOnlyHeader title="Horas Contrato" />,
+      },
+      {
         accessorKey: "tiempo",
         header: "Tiempo",
         size: 120,
@@ -359,35 +612,30 @@ function ProyeccionTablePage() {
       },
     ];
 
-      // Utilidad para obtener inicial y fecha corta
-      const diasInfo = [
-        { inicial: "Lun", fecha: "01/08/25" },
-        { inicial: "Mar", fecha: "02/08/25" },
-        { inicial: "Mie", fecha: "03/08/25" },
-        { inicial: "Jue", fecha: "04/08/25" },
-        { inicial: "Vie", fecha: "05/08/25" },
-        { inicial: "Lun", fecha: "08/08/25" },
-        { inicial: "Mar", fecha: "09/08/25" },
-        { inicial: "Mie", fecha: "10/08/25" },
-        { inicial: "Jue", fecha: "11/08/25" },
-        { inicial: "Vie", fecha: "12/08/25" },
-        { inicial: "Lun", fecha: "15/08/25" },
-        { inicial: "Mar", fecha: "16/08/25" },
-        { inicial: "Mie", fecha: "17/08/25" },
-        { inicial: "Jue", fecha: "18/08/25" },
-        { inicial: "Vie", fecha: "19/08/25" },
-      ];
-
-    const semanaGroups: MRT_ColumnDef<ProyeccionRow>[] = semanas.map((semana, sIdx) => ({
-      header: semana.nombre,
-      columns: semana.dias.map((dia, dIdx) => {
-        const idx = sIdx * 5 + dIdx;
-        const info = diasInfo[idx];
-        return {
-          id: `horas_${idx}`,
-          header: dia,
+    // Construir grupos de semanas dinámicamente basados en diasInfo
+    const semanaGroups: MRT_ColumnDef<ProyeccionRow>[] = [];
+    let weekIndex = 0;
+    let dayIndex = 0;
+    
+    while (dayIndex < diasInfo.length) {
+      const weekDays: MRT_ColumnDef<ProyeccionRow>[] = [];
+      const weekStart = dayIndex;
+      
+      // Agregar días hasta completar la semana o hasta que no haya más días
+      while (dayIndex < diasInfo.length && weekDays.length < 5) {
+        const info = diasInfo[dayIndex];
+        const currentIdx = dayIndex;
+        
+        // Si encontramos un Lunes y ya tenemos días, terminar la semana anterior
+        if (info.inicial === 'Lun' && weekDays.length > 0) {
+          break;
+        }
+        
+        weekDays.push({
+          id: `horas_${currentIdx}`,
+          header: info.inicial,
           size: 80,
-          accessorFn: (row) => row.horas?.[idx] ?? "",
+          accessorFn: (row) => row.horas?.[currentIdx] ?? "",
           muiTableHeadCellProps: {
             sx: {
               bgcolor: "#b6c6f7",
@@ -432,9 +680,24 @@ function ProyeccionTablePage() {
               </Box>
             );
           },
-        } as MRT_ColumnDef<ProyeccionRow>;
-      }),
-    }));
+        } as MRT_ColumnDef<ProyeccionRow>);
+        
+        dayIndex++;
+        
+        // Si llegamos al viernes, terminar la semana
+        if (info.inicial === 'Vie') {
+          break;
+        }
+      }
+      
+      if (weekDays.length > 0) {
+        semanaGroups.push({
+          header: `Semana ${weekIndex + 1}`,
+          columns: weekDays,
+        });
+        weekIndex++;
+      }
+    }
 
     const tailCol: MRT_ColumnDef<ProyeccionRow> = {
       accessorKey: "fechaLibre",
@@ -466,7 +729,7 @@ function ProyeccionTablePage() {
     };
 
     return [...baseCols, ...semanaGroups, tailCol];
-  }, []);
+  }, [calculatedDates, vistaSemanas]);
 
   return (
     <Box sx={{ p: 4, bgcolor: "#f7f8fa", minHeight: "100vh" }}>
@@ -487,7 +750,7 @@ function ProyeccionTablePage() {
       </Box>
 
       <MaterialReactTable
-        columns={columns.slice(0, 6).concat(columns.slice(6, 6 + vistaSemanas))}
+        columns={columns.slice(0, 7).concat(columns.slice(7, 7 + vistaSemanas))}
         data={tableData}
         enableFilters={true}
         enableColumnActions={true}
@@ -521,6 +784,7 @@ function ProyeccionTablePage() {
           columnVisibility: {
             consultor: true,
             departamento: true,
+            horasContrato: true,
             tiempo: true,
             tipoEmpleado: false,
             esquema: false,
@@ -528,7 +792,7 @@ function ProyeccionTablePage() {
             fechaLibre: false,
           },
           columnPinning: {
-            left: ["consultor", "departamento", "tiempo"],
+            left: ["consultor", "departamento", "horasContrato", "tiempo"],
           },
         }}
         renderTopToolbarCustomActions={() => (
