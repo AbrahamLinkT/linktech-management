@@ -9,7 +9,7 @@ export const navbarLinks = [
                 label: "Proyección",
                 icon: Presentation,
                 path: "/dashboard/proyeccion",
-                description: "Explora escenarios futuros y tendencias.",
+                description: "Consulta horas por trabajador",
             },
             {
                 label: "Proyectos",

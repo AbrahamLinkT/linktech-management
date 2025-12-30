@@ -21,8 +21,9 @@ const DashboardPage = () => {
                 return (
                   <div key={j} className="flex flex-col gap-2">
                     <h3 className="text-base font-semibold">{link.label}</h3>
-                    <Link href={link.path}>
-                      <div className="flex flex-col items-center justify-center rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md dark:bg-neutral-900 cursor-pointer">
+                    <Link href={link.path} aria-label={link.label}>
+                      {/* Fixed height card and ensure description placeholder when missing */}
+                      <div className="flex flex-col items-center justify-between rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md dark:bg-neutral-900 cursor-pointer h-30">
                         <div className="mb-3 text-blue-500 dark:text-blue-400">
                           <Icon size={32} />
                         </div>
