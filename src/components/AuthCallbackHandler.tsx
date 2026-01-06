@@ -1,16 +1,17 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 /**
  * Componente que verifica/crea el usuario en MongoDB después del login
- * y redirige al dashboard
+ * y redirige al dashboard SOLO si está en la página de inicio
  */
 export function AuthCallbackHandler() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,12 @@ export function AuthCallbackHandler() {
 
       // Si ya estamos procesando, no hacer nada
       if (isProcessing) return;
+
+      // SOLO redirigir si estamos en la home page
+      // Si ya estamos en /dashboard o sus subrutas, no hacer nada
+      if (pathname.startsWith('/dashboard') || pathname.startsWith('/settings')) {
+        return;
+      }
 
       setIsProcessing(true);
 
@@ -117,7 +124,7 @@ export function AuthCallbackHandler() {
     }
 
     handleAuthCallback();
-  }, [isLoaded, isSignedIn, user, isProcessing, router]);
+  }, [isLoaded, isSignedIn, user, isProcessing, router, pathname]);
 
   return null; // Este componente no renderiza nada
 }
