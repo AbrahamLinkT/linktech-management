@@ -49,10 +49,6 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
       }
 
       try {
-        console.log('🔐 Usuario autenticado con Clerk');
-        console.log('📧 Email:', email);
-        console.log('👤 Nombre:', name);
-        console.log('🔍 Verificando existencia en MongoDB...');
         
         // Paso 1: Verificar si el usuario existe en MongoDB
         const checkResponse = await fetch(
@@ -63,8 +59,6 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
           // Usuario encontrado
           const userData = await checkResponse.json();
           if (userData.success && userData.isActive) {
-            console.log('✅ Usuario existente encontrado en MongoDB');
-            console.log('🔑 Permisos cargados:', Object.keys(userData.permissions).filter(k => userData.permissions[k]).join(', ') || 'ninguno');
             setPermissions(userData);
           } else if (!userData.isActive) {
             console.warn('⚠️ Usuario inactivo');
@@ -72,8 +66,6 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
           }
         } else if (checkResponse.status === 404) {
           // Usuario NO encontrado - Crear nuevo
-          console.log('❌ Usuario no encontrado en MongoDB');
-          console.log('➕ Creando nuevo usuario con permisos por defecto...');
           
           const newUserData = {
             email,
@@ -107,8 +99,6 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
             isActive: true,
           };
 
-          console.log('📤 Enviando datos a MongoDB:', { email, name, role: 'worker' });
-
           // Paso 2: Crear nuevo usuario en MongoDB
           const createResponse = await fetch(
             'https://linktech-management-a.vercel.app/api/permissions',
@@ -124,8 +114,6 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
           if (createResponse.ok) {
             const createdData = await createResponse.json();
             if (createdData.success) {
-              console.log('✅ Usuario creado exitosamente en MongoDB');
-              console.log('🔒 Permisos iniciales: Todos en FALSE (requiere autorización de administrador)');
               
               // Configurar permisos en el estado (todos en false)
               setPermissions({

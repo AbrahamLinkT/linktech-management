@@ -85,7 +85,6 @@ export async function createUserPermissions(email: string, name: string): Promis
       return null;
     }
 
-    console.log('✅ Usuario creado exitosamente:', email);
     return data;
   } catch (error) {
     console.error('Error creating user permissions:', error);
@@ -95,18 +94,14 @@ export async function createUserPermissions(email: string, name: string): Promis
 
 export async function verifyOrCreateUser(email: string, name: string): Promise<UserPermissionsResponse | null> {
   try {
-    console.log('🔍 Verificando usuario:', email);
-    
     // Intentar obtener permisos existentes
     const existingPermissions = await getUserPermissions(email);
     
     if (existingPermissions) {
-      console.log('✅ Usuario existente encontrado:', email);
       return existingPermissions;
     }
 
     // Si no existe, crear nuevo usuario
-    console.log('➕ Usuario no encontrado, creando nuevo:', email);
     const newPermissions = await createUserPermissions(email, name);
     
     return newPermissions;

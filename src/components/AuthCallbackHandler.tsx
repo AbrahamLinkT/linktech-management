@@ -36,30 +36,22 @@ export function AuthCallbackHandler() {
           return;
         }
 
-        console.log('🔐 Usuario autenticado, procesando callback...');
-        console.log('📧 Email:', email);
-        console.log('👤 Nombre:', name);
-
         // Paso 1: Verificar si existe en MongoDB
-        console.log('🔍 Verificando en MongoDB...');
         const checkResponse = await fetch(
           `https://linktech-management-a.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
         );
 
         if (checkResponse.ok) {
           // Usuario existe
-          console.log('✅ Usuario encontrado en MongoDB');
           const userData = await checkResponse.json();
           
           if (userData.success && userData.isActive) {
-            console.log('✅ Usuario activo, redirigiendo al dashboard...');
             router.push('/dashboard');
           } else {
             console.warn('⚠️ Usuario inactivo');
           }
         } else if (checkResponse.status === 404) {
           // Usuario NO existe - Crear
-          console.log('❌ Usuario no encontrado, creando...');
           
           const newUserData = {
             email,
@@ -107,9 +99,6 @@ export function AuthCallbackHandler() {
           if (createResponse.ok) {
             const createdData = await createResponse.json();
             if (createdData.success) {
-              console.log('✅ Usuario creado exitosamente');
-              console.log('🔒 Permisos iniciales: Todos en FALSE');
-              console.log('➡️ Redirigiendo al dashboard...');
               router.push('/dashboard');
             } else {
               console.error('❌ Error al crear usuario:', createdData);
