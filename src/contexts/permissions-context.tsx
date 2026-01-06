@@ -146,6 +146,14 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
 
   const hasPermission = (module: string): boolean => {
     if (!permissions) return false;
+
+    const userRole = permissions.role;
+
+    // Reglas de rol: admin todo, líder todo excepto usuarios
+    if (userRole === 'admin') return true;
+    if (userRole === 'lider') return module !== 'usuarios';
+
+    // Por defecto usa permisos específicos del usuario
     return permissions.permissions[module as keyof typeof permissions.permissions] === true;
   };
 
