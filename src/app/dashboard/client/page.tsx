@@ -24,8 +24,20 @@ export default function ClientPage() {
   }, [data]);
 
   const columns = useMemo<MRT_ColumnDef<ClientItem>[]>(() => [
-    { accessorKey: "nombre", header: "Nombre" },
-    { accessorKey: "nombreCorto", header: "Nombre Corto" },
+    { accessorKey: "clientName", header: "Nombre" },
+    { accessorKey: "shortName", header: "Nombre Corto" },
+    { accessorKey: "clientCode", header: "Código" },
+    { accessorKey: "contactEmail", header: "Email" },
+    { accessorKey: "contactPhone", header: "Teléfono" },
+    { 
+      accessorKey: "active", 
+      header: "Estado",
+      Cell: ({ cell }) => (
+        <span className={cell.getValue() ? "text-green-600" : "text-red-600"}>
+          {cell.getValue() ? "Activo" : "Inactivo"}
+        </span>
+      ),
+    },
   ], []);
 
   const actions = { edit: true, add: true, export: true, delete: true };

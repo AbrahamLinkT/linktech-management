@@ -184,7 +184,7 @@ export default function NewProject() {
                                     <option value="">Seleccione un cliente</option>
                                     {clients.map((client) => (
                                         <option key={client.id} value={client.id}>
-                                            {client.nombre} {client.nombreCorto ? `- ${client.nombreCorto}` : ''}
+                                            {client.clientName} {client.shortName ? `- ${client.shortName}` : ''}
                                         </option>
                                     ))}
                                 </select>

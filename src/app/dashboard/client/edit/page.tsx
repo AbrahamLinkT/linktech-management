@@ -15,8 +15,12 @@ export default function EditClient() {
   const { data, updateClient, loading, error } = useClients();
 
   const [form, setForm] = useState({
-    nombre: "",
-    nombreCorto: "",
+    clientName: "",
+    shortName: "",
+    clientCode: "",
+    contactEmail: "",
+    contactPhone: "",
+    active: true,
   });
 
   // nuevos estados para validación
@@ -25,20 +29,35 @@ export default function EditClient() {
 
   const validate = (values: typeof form) => {
     const errs: { [k: string]: string } = {};
-    const nombre = values.nombre?.trim();
-    const short = values.nombreCorto?.trim();
+    const clientName = values.clientName?.trim();
+    const shortName = values.shortName?.trim();
+    const clientCode = values.clientCode?.trim();
+    const email = values.contactEmail?.trim();
 
-    if (!nombre) errs.nombre = "El nombre es requerido";
-    else if (nombre.length < 3) errs.nombre = "Mínimo 3 caracteres";
+    if (!clientName) errs.clientName = "El nombre es requerido";
+    else if (clientName.length < 3) errs.clientName = "Mínimo 3 caracteres";
+    else if (clientName.length > 250) errs.clientName = "Máximo 250 caracteres";
 
-    if (!short) errs.nombreCorto = "El nombre corto es requerido";
-    else if (short.length > 50) errs.nombreCorto = "Máximo 50 caracteres";
+    if (!shortName) errs.shortName = "El nombre corto es requerido";
+    else if (shortName.length > 100) errs.shortName = "Máximo 100 caracteres";
+
+    if (!clientCode) errs.clientCode = "El código es requerido";
+    else if (clientCode.length > 50) errs.clientCode = "Máximo 50 caracteres";
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errs.contactEmail = "Email inválido";
+    }
 
     return errs;
   };
 
   const handleChange = (field: string, value: string) => {
-    const updated = { ...form, [field]: value };
+    let updated: typeof form;
+    if (field === "active") {
+      updated = { ...form, active: value === "true" };
+    } else {
+      updated = { ...form, [field]: value };
+    }
     setForm(updated);
     const v = validate(updated);
     setErrors((prev) => ({ ...prev, [field]: v[field] }));
@@ -58,8 +77,12 @@ export default function EditClient() {
     const client = data.find((d) => d.id === id);
     if (client) {
       setForm({
-        nombre: client.nombre,
-        nombreCorto: client.nombreCorto,
+        clientName: client.clientName,
+        shortName: client.shortName,
+        clientCode: client.clientCode,
+        contactEmail: client.contactEmail,
+        contactPhone: client.contactPhone,
+        active: client.active,
       });
     }
   }, [id, data]);
@@ -74,12 +97,22 @@ export default function EditClient() {
 
     const v = validate(form);
     setErrors(v);
-    setTouched({ nombre: true, nombreCorto: true });
+    setTouched({ 
+      clientName: true, 
+      shortName: true, 
+      clientCode: true,
+      contactEmail: true,
+      contactPhone: true
+    });
     if (Object.keys(v).length > 0) return;
 
     const payload = {
-      name: form.nombre.trim(),
-      short_name: form.nombreCorto.trim(),
+      client_name: form.clientName.trim(),
+      short_name: form.shortName.trim(),
+      client_code: form.clientCode.trim(),
+      contact_email: form.contactEmail.trim() || undefined,
+      contact_phone: form.contactPhone.trim() || undefined,
+      active: form.active,
     };
 
     const ok = await updateClient(id, payload);
@@ -118,35 +151,104 @@ export default function EditClient() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block font-medium mb-1">Nombre</label>
+                <label className="block font-medium mb-1">
+                  Nombre del Cliente <span className="text-red-600">*</span>
+                </label>
                 <input
                   type="text"
                   className={stylesInput}
-                  value={form.nombre}
-                  onChange={(e) => handleChange("nombre", e.target.value)}
-                  onBlur={() => handleBlur("nombre")}
-                  aria-invalid={!!errors.nombre}
-                  aria-describedby={errors.nombre ? "err-nombre" : undefined}
+                  value={form.clientName}
+                  onChange={(e) => handleChange("clientName", e.target.value)}
+                  onBlur={() => handleBlur("clientName")}
+                  aria-invalid={!!errors.clientName}
+                  aria-describedby={errors.clientName ? "err-clientName" : undefined}
+                  maxLength={250}
                 />
-                {touched.nombre && errors.nombre && (
-                  <p id="err-nombre" className="text-red-600 text-sm mt-1">{errors.nombre}</p>
+                {touched.clientName && errors.clientName && (
+                  <p id="err-clientName" className="text-red-600 text-sm mt-1">{errors.clientName}</p>
                 )}
               </div>
 
               <div>
-                <label className="block font-medium mb-1">Nombre corto</label>
+                <label className="block font-medium mb-1">
+                  Nombre Corto <span className="text-red-600">*</span>
+                </label>
                 <input
                   type="text"
                   className={stylesInput}
-                  value={form.nombreCorto}
-                  onChange={(e) => handleChange("nombreCorto", e.target.value)}
-                  onBlur={() => handleBlur("nombreCorto")}
-                  aria-invalid={!!errors.nombreCorto}
-                  aria-describedby={errors.nombreCorto ? "err-nombreCorto" : undefined}
+                  value={form.shortName}
+                  onChange={(e) => handleChange("shortName", e.target.value)}
+                  onBlur={() => handleBlur("shortName")}
+                  aria-invalid={!!errors.shortName}
+                  aria-describedby={errors.shortName ? "err-shortName" : undefined}
+                  maxLength={100}
                 />
-                {touched.nombreCorto && errors.nombreCorto && (
-                  <p id="err-nombreCorto" className="text-red-600 text-sm mt-1">{errors.nombreCorto}</p>
+                {touched.shortName && errors.shortName && (
+                  <p id="err-shortName" className="text-red-600 text-sm mt-1">{errors.shortName}</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">
+                  Código del Cliente <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  className={stylesInput}
+                  value={form.clientCode}
+                  onChange={(e) => handleChange("clientCode", e.target.value)}
+                  onBlur={() => handleBlur("clientCode")}
+                  aria-invalid={!!errors.clientCode}
+                  aria-describedby={errors.clientCode ? "err-clientCode" : undefined}
+                  maxLength={50}
+                  placeholder="Ej: LT-001"
+                />
+                {touched.clientCode && errors.clientCode && (
+                  <p id="err-clientCode" className="text-red-600 text-sm mt-1">{errors.clientCode}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Email de Contacto</label>
+                <input
+                  type="email"
+                  className={stylesInput}
+                  value={form.contactEmail}
+                  onChange={(e) => handleChange("contactEmail", e.target.value)}
+                  onBlur={() => handleBlur("contactEmail")}
+                  aria-invalid={!!errors.contactEmail}
+                  aria-describedby={errors.contactEmail ? "err-contactEmail" : undefined}
+                  maxLength={250}
+                  placeholder="email@ejemplo.com"
+                />
+                {touched.contactEmail && errors.contactEmail && (
+                  <p id="err-contactEmail" className="text-red-600 text-sm mt-1">{errors.contactEmail}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Teléfono de Contacto</label>
+                <input
+                  type="tel"
+                  className={stylesInput}
+                  value={form.contactPhone}
+                  onChange={(e) => handleChange("contactPhone", e.target.value)}
+                  onBlur={() => handleBlur("contactPhone")}
+                  maxLength={30}
+                  placeholder="81 1234 5678"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Estado</label>
+                <select
+                  className={stylesInput}
+                  value={form.active ? "true" : "false"}
+                  onChange={(e) => handleChange("active", e.target.value === "true" ? "true" : "false")}
+                >
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
               </div>
             </div>
           </fieldset>

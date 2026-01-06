@@ -4,19 +4,33 @@ import { buildApiUrl, API_CONFIG } from "../config/api";
 
 export interface ClientItem {
   id: string;
-  nombre: string;
-  nombreCorto: string;
+  clientName: string;
+  shortName: string;
+  clientCode: string;
+  contactEmail: string;
+  contactPhone: string;
+  active: boolean;
 }
 
 interface ClientApiResponse {
-  id: number;
-  name: string;
+  client_id: number;
+  client_name: string;
   short_name: string;
+  client_code: string;
+  contact_email: string;
+  contact_phone: string;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface CreateClientDto {
-  name: string;
+  client_name: string;
   short_name: string;
+  client_code: string;
+  contact_email?: string;
+  contact_phone?: string;
+  active?: boolean;
 }
 
 export function useClients() {
@@ -40,9 +54,13 @@ export function useClients() {
       const json: ClientApiResponse[] = await res.json();
 
       const mapped: ClientItem[] = json.map((item) => ({
-        id: item.id.toString(),
-        nombre: item.name,
-        nombreCorto: item.short_name,
+        id: item.client_id.toString(),
+        clientName: item.client_name,
+        shortName: item.short_name,
+        clientCode: item.client_code,
+        contactEmail: item.contact_email || '',
+        contactPhone: item.contact_phone || '',
+        active: item.active,
       }));
 
       setData(mapped);
