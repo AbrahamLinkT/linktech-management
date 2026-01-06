@@ -67,12 +67,21 @@ export function useClients() {
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || 
+          errorData?.details || 
+          `Error HTTP: ${res.status}`
+        );
+      }
 
       await fetchClients();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      const message = err instanceof Error ? err.message : "Error desconocido";
+      setError(message);
+      console.error('createClient error:', message);
       return false;
     } finally {
       setLoading(false);

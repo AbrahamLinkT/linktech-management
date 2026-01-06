@@ -53,7 +53,14 @@ export async function POST(
   try {
     const resolvedParams = await params;
     const path = resolvedParams.path.join('/');
-    const body = await request.json();
+    let body;
+    
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+    
     const url = `${BACKEND_URL}/${path}`;
     
     const response = await fetch(url, {
@@ -64,14 +71,23 @@ export async function POST(
       body: JSON.stringify(body),
     });
 
+    // Leer el body de la respuesta
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      data = { raw: responseText };
+    }
+
+    // Si el backend devuelve error, log completo para debug
     if (!response.ok) {
+      console.error(`Backend error ${response.status} for POST ${path}:`, data);
       return NextResponse.json(
-        { error: 'Backend request failed' },
+        { error: `Backend request failed: ${response.status}`, details: data },
         { status: response.status }
       );
     }
-
-    const data = await response.json();
     
     return NextResponse.json(data, {
       status: response.status,
@@ -84,7 +100,7 @@ export async function POST(
   } catch (error) {
     console.error('Proxy POST error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
