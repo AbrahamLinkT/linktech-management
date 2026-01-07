@@ -19,9 +19,16 @@ export default function EsquemaContratacionPage() {
   }, [data]);
 
   const columns = useMemo<MRT_ColumnDef<EsquemaItem>[]>(() => [
-    { accessorKey: "name", header: "Nombre", size: 200 },
-    { accessorKey: "description", header: "Descripción", size: 300 },
-    { accessorKey: "hours", header: "Horas", size: 100 },
+    { accessorKey: "name", header: "Nombre", size: 250 },
+    { accessorKey: "description", header: "Descripción", size: 400 },
+    { accessorKey: "hours", header: "Horas", size: 150 },
+    { accessorKey: "working_days", header: "Días", size: 300 },
+    {
+      accessorKey: "active",
+      header: "Activo",
+      size: 150,
+      Cell: ({ cell }) => (cell.getValue() ? "Sí" : "No"),
+    },
   ], []);
 
   const actions = { edit: true, add: true, export: true, delete: true };
