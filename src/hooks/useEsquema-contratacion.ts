@@ -7,6 +7,8 @@ export interface EsquemaItem {
   name: string;
   description: string;
   hours: string;
+  working_days?: string;
+  active?: boolean;
 }
 
 interface EsquemaApiResponse {
@@ -14,12 +16,16 @@ interface EsquemaApiResponse {
   name: string;
   description: string;
   hours: string;
+  working_days?: string;
+  active?: boolean;
 }
 
 interface CreateEsquemaDto {
   name: string;
   description: string;
   hours: string;
+  working_days?: string;
+  active?: boolean;
 }
 
 export function useEsquemaContratacion() {
@@ -47,6 +53,8 @@ export function useEsquemaContratacion() {
         name: item.name,
         description: item.description,
         hours: item.hours,
+        working_days: item.working_days ?? "",
+        active: item.active ?? true,
       }));
 
       setData(mapped);
