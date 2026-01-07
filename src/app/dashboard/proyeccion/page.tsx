@@ -85,7 +85,7 @@ export default function ProyeccionPage() {
 
       try {
         // Encontrar el proyecto seleccionado para obtener su ID
-        const projectObj = projects.find(p => p.name === selectedProject);
+        const projectObj = projects.find(p => p.project_name === selectedProject);
         if (!projectObj) {
           console.error('Proyecto no encontrado');
           return;
@@ -95,8 +95,8 @@ export default function ProyeccionPage() {
         const allHours = await getAssignedHours();
         
         // Filtrar por proyecto ID
-        const projectHours = allHours.filter(h => h.projectId === projectObj.id);
-        console.log(`📊 Horas asignadas para proyecto ${projectObj.name}:`, projectHours);
+        const projectHours = allHours.filter(h => h.projectId === projectObj.project_id);
+        console.log(`📊 Horas asignadas para proyecto ${projectObj.project_name}:`, projectHours);
 
         // Obtener información completa de los trabajadores desde el hook useWorkers
         // que tiene todos los datos enriquecidos (con nombres de roles, esquemas, niveles)
@@ -163,7 +163,7 @@ export default function ProyeccionPage() {
     if (!projects || !Array.isArray(projects)) {
       return [];
     }
-    return Array.from(new Set(projects.map(project => project.name || project.name).filter(Boolean)));
+    return Array.from(new Set(projects.map(project => project.project_name || project.project_name).filter(Boolean)));
   }, [projects]);
 
   // -------------------  Toolbar: OI/Proyecto y botones -----------------
@@ -206,12 +206,12 @@ export default function ProyeccionPage() {
     try {
       if (!selectedProject) return;
       
-      const projectObj = projects.find(p => p.name === selectedProject);
+      const projectObj = projects.find(p => p.project_name === selectedProject);
       if (!projectObj) return;
       
       // Los IDs ahora son workerIds, necesitamos obtener todos los registros de horas de esos workers
       const allHours = await getAssignedHours();
-      const projectHours = allHours.filter(h => h.projectId === projectObj.id);
+      const projectHours = allHours.filter(h => h.projectId === projectObj.project_id);
       
       // Encontrar todos los registros de horas de los workers seleccionados
       const workerIds = ids.map(id => parseInt(id));
@@ -231,7 +231,7 @@ export default function ProyeccionPage() {
         
         // Recargar datos del proyecto actual
         const updatedHours = await getAssignedHours();
-        const updatedProjectHours = updatedHours.filter(h => h.projectId === projectObj.id);
+        const updatedProjectHours = updatedHours.filter(h => h.projectId === projectObj.project_id);
         
         // Obtener workers únicos
         const uniqueWorkerIds = new Set(updatedProjectHours.map(h => h.assignedTo));
@@ -293,7 +293,7 @@ export default function ProyeccionPage() {
     }
 
     // Obtener el ID del proyecto seleccionado
-    const project = projects.find(p => p.name === selectedProject);
+    const project = projects.find(p => p.project_name === selectedProject);
     if (!project) {
       alert('Proyecto no encontrado');
       return;
@@ -302,7 +302,7 @@ export default function ProyeccionPage() {
     try {
       // Crear el payload para el POST
       const payload = selectedWorkers.map(worker => ({
-        project_id: project.id,
+        project_id: project.project_id,
         assigned_to: worker.id,
         assigned_by: 6, // ID fijo según especificación
         hours_data: {
@@ -326,7 +326,7 @@ export default function ProyeccionPage() {
         
         // Recargar datos del proyecto
         const allHours = await getAssignedHours();
-        const projectHours = allHours.filter(h => h.projectId === project.id);
+        const projectHours = allHours.filter(h => h.projectId === project.project_id);
         
         // Obtener workers únicos
         const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));

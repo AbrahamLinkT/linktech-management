@@ -4,35 +4,44 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { ContentBody } from "@/components/containers/containers";
-import { useProjectManagers } from "@/hooks/useProjectManagers";
+import { useClients } from "@/hooks/useClients";
+import { useWorkers } from "@/hooks/useWorkers";
 import { buildApiUrl, API_CONFIG } from '../../../config/api';
 
-// Definimos el tipo de cada proyecto basado en la respuesta del API
+// Define el tipo del proyecto desde la API
 type Project = {
-  id: number;
-  name: string;
-  description: string;
-  status: boolean;
+  project_id: number;
+  project_name: string;
+  project_code: string;
+  order_int: number;
+  project_description: string;
+  client_id: number;
+  employee_id: number;
+  status: string;
+  project_type: string;
+  estimated_hours: number;
+  budget_amount: number;
   start_date: string;
   end_date: string;
-  oi: string;
-  id_project_manager: number | null;
-  client_id: number | null;
+  active: boolean;
   created_at?: string;
   updated_at?: string;
 };
 
-// Tipo para la tabla (adaptado para la visualización)
+// Type for table display
 type ProjectTableRow = {
   id: string;
-  ordenInterna: string;
-  titulo: string;
-  cliente: string;
-  descripcion: string;
-  fechaIn: string;
-  fechaFn: string;
-  estatus: string;
-  responsable: string;
+  projectCode: string;
+  projectName: string;
+  clientName: string;
+  employeeName: string;
+  type: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  hours: number;
+  budget: number;
+  active: string;
 };
 
 export default function Projects() {
@@ -41,32 +50,27 @@ export default function Projects() {
   const [error, setError] = useState<string | null>(null);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   
-  // Hook para obtener project managers
-  const { projectManagers, useAutoLoadProjectManagers } = useProjectManagers();
-  
-  // Cargar project managers automáticamente
-  useAutoLoadProjectManagers();
+  // Hooks para obtener datos
+  const { data: clients } = useClients();
+  const { data: workers } = useWorkers();
 
-  // Log cuando cambie la selección
+  // Log when selection changes
   useEffect(() => {
-    console.log('Row selection changed:', rowSelection);
     const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
     console.log('Selected project IDs:', selectedIds);
   }, [rowSelection]);
 
-  // Cargar proyectos al montar el componente
+  // Load projects on component mount
   useEffect(() => {
     const fetchProjects = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        console.log('Fetching projects from:', buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS));
-        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/dto'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -78,28 +82,14 @@ export default function Projects() {
         
         clearTimeout(timeoutId);
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Raw projects data received:', data);
-        console.log('Data type:', typeof data);
-        console.log('Is array:', Array.isArray(data));
         
-        // Verificar si data es un array directamente o está anidado
-        let projectsArray = data;
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          // Si no es array, buscar el array de proyectos en las propiedades
-          if (data.projects) projectsArray = data.projects;
-          else if (data.data) projectsArray = data.data;
-          else if (data.results) projectsArray = data.results;
-        }
-        
-        console.log('Final projects array:', projectsArray);
+        // Handle both array and object responses
+        let projectsArray = Array.isArray(data) ? data : data?.data || data?.projects || [];
         
         if (Array.isArray(projectsArray)) {
           setProjects(projectsArray);
@@ -119,60 +109,50 @@ export default function Projects() {
     fetchProjects();
   }, []);
 
-  // Columnas de la tabla
+  // Table columns
   const columns = useMemo<MRT_ColumnDef<ProjectTableRow>[]>(() => [
-    { accessorKey: "ordenInterna", header: "Orden Interna" },
-    { accessorKey: "titulo", header: "Nombre" },
-    { accessorKey: "cliente", header: "Cliente" },
-    { accessorKey: "descripcion", header: "Descripción" },
-    {
-      accessorKey: "fechaIn",
-      header: "Fecha Inicio",
-    },
-    {
-      accessorKey: "fechaFn",
-      header: "Fecha Fin",
-    },
-    { accessorKey: "estatus", header: "Estatus" },
-    { accessorKey: "responsable", header: "Responsable" },
+    { accessorKey: "projectCode", header: "Código" },
+    { accessorKey: "projectName", header: "Nombre" },
+    { accessorKey: "clientName", header: "Cliente" },
+    { accessorKey: "employeeName", header: "Responsable" },
+    { accessorKey: "type", header: "Tipo" },
+    { accessorKey: "status", header: "Estado" },
+    { accessorKey: "startDate", header: "Inicio" },
+    { accessorKey: "endDate", header: "Fin" },
+    { accessorKey: "hours", header: "Horas Est." },
+    { accessorKey: "budget", header: "Presupuesto" },
+    { accessorKey: "active", header: "Activo" },
   ], []);
 
-  // Transformar los datos del API al formato que espera la tabla
+  // Transform API data to table format
   const data: ProjectTableRow[] = useMemo(() => {
-    console.log('Transforming projects data:', projects);
-    console.log('Available project managers:', projectManagers);
-    
-    const transformedData = projects.map(project => {
-      // Buscar el project manager por ID
-      const projectManager = projectManagers.find(pm => pm.id === project.id_project_manager);
-      const responsableName = projectManager ? projectManager.name : 
-                             project.id_project_manager ? `PM ${project.id_project_manager}` : 'Sin asignar';
-      
-      console.log(`Project ${project.name} - PM ID: ${project.id_project_manager}, Found PM: ${projectManager?.name || 'Not found'}`);
+    return projects.map(project => {
+      const client = clients.find(c => parseInt(c.id as any) === project.client_id);
+      const employee = workers?.find(w => w.id === project.employee_id);
       
       return {
-        id: project.id.toString(),
-        ordenInterna: project.oi || '',
-        titulo: project.name,
-        cliente: project.client_id ? `Cliente ${project.client_id}` : 'Sin asignar',
-        descripcion: project.description || '',
-        fechaIn: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
-        fechaFn: project.end_date ? new Date(project.end_date).toLocaleDateString() : '',
-        estatus: project.status ? 'Activo' : 'Inactivo',
-        responsable: responsableName,
+        id: project.project_id.toString(),
+        projectCode: project.project_code,
+        projectName: project.project_name,
+        clientName: client?.clientName || 'Sin cliente',
+        employeeName: employee?.name || 'Sin asignar',
+        type: project.project_type === 'CLIENT' ? 'Cliente' : project.project_type === 'INTERNAL' ? 'Interno' : 'Investigación',
+        status: project.status === 'PLANNED' ? 'Planeado' : project.status === 'IN_PROGRESS' ? 'En Progreso' : project.status === 'COMPLETED' ? 'Completado' : 'Cancelado',
+        startDate: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
+        endDate: project.end_date ? new Date(project.end_date).toLocaleDateString() : '',
+        hours: project.estimated_hours,
+        budget: project.budget_amount,
+        active: project.active ? 'Sí' : 'No',
       };
     });
-    console.log('Transformed data:', transformedData);
-    console.log('IDs for selection:', transformedData.map(item => item.id));
-    return transformedData;
-  }, [projects, projectManagers]); // Agregar projectManagers como dependencia
+  }, [projects, clients, workers]);
 
-  // Mostrar loading o error
+  // Show loading or error
   if (isLoading) {
     return (
       <ContentBody title="Proyectos">
         <div className="flex justify-center items-center p-8">
-          <div className="text-lg">Cargando proyectos... ({projects.length} encontrados)</div>
+          <div className="text-lg">Cargando proyectos...</div>
         </div>
       </ContentBody>
     );
@@ -194,17 +174,12 @@ export default function Projects() {
     );
   }
 
-  console.log('Rendering table with projects:', projects.length, 'data rows:', data.length);
-  console.log('Current rowSelection state:', rowSelection);
-
   return (
     <ProtectedRoute requiredPermission="projects">
       <ContentBody
         title="Proyectos"
       >
         <DataTable<ProjectTableRow>
-          //title_add="Agregar"
-          //ModalAdd={<h1>Agregar</h1>}
           urlRoute="/dashboard/projects/show?id="
           urlRouteAdd="/dashboard/projects/new"
           urlRouteEdit="/dashboard/projects/edit/"

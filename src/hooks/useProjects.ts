@@ -2,20 +2,45 @@ import { useState } from 'react';
 import axios from 'axios';
 import { buildApiUrl, API_CONFIG } from '../config/api';
 
-// Interfaz para el payload del proyecto según el endpoint
+// Interfaz para el payload del proyecto según el nuevo endpoint
 interface ProjectPayload {
-  name: string;
-  description: string;
-  status: boolean;
-  start_date: string; // ISO string format with milliseconds
-  end_date: string; // ISO string format with milliseconds
-  oi: string; // Orden interna
-  id_project_manager: number | null;
-  client_id: number; // Requerido, no puede ser null
+  project_name: string;
+  project_code: string;
+  order_int: number;
+  project_description: string;
+  client_id: number;
+  employee_id: number;
+  status: string; // "PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"
+  project_type: string; // "CLIENT", "INTERNAL", "RESEARCH"
+  estimated_hours: number;
+  budget_amount: number;
+  start_date: string; // ISO string format
+  end_date: string; // ISO string format
+  active: boolean;
 }
 
-// Interfaz para el proyecto que viene del GET
+// Interfaz para el proyecto que viene del GET (/projects/dto)
 interface Project {
+  project_id: number;
+  project_name: string;
+  project_code: string;
+  order_int: number;
+  project_description: string;
+  client_id: number;
+  employee_id: number;
+  status: string;
+  project_type: string;
+  estimated_hours: number;
+  budget_amount: number;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Para compatibilidad con código antiguo
+interface LegacyProject {
   id: number;
   name: string;
   description: string;
@@ -25,13 +50,11 @@ interface Project {
   oi: string;
   id_project_manager: number | null;
   client_id: number | null;
-  created_at?: string;
-  updated_at?: string;
 }
 
 interface CreateProjectResponse {
   success: boolean;
-  data?: unknown;
+  data?: Project;
   error?: string;
 }
 
@@ -49,7 +72,14 @@ interface GetProjectResponse {
 
 interface UpdateProjectResponse {
   success: boolean;
-  data?: unknown;
+  data?: Project;
+  error?: string;
+}
+
+interface DeleteProjectResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
   error?: string;
 }
 
@@ -58,25 +88,23 @@ export const useProjects = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para obtener todos los proyectos
+  // Función para obtener todos los proyectos en formato DTO
   const getProjects = async (): Promise<GetProjectsResponse> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('Fetching projects from:', buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS));
-      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
+      // Usar /projects/dto para obtener todos los proyectos en formato DTO
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/dto'), {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 segundos timeout
+        timeout: 30000,
       });
-
-      console.log('API Response:', response.data);
       
-      // Guardar proyectos en el estado
       const projectsData = Array.isArray(response.data) ? response.data : [];
       setProjects(projectsData);
       
@@ -112,24 +140,27 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      // Limpiar datos antes de enviar - convertir 0 a null para evitar problemas de FK
-      // Ajustar formato de fechas para incluir milisegundos
       const cleanedData = {
-        name: projectData.name,
-        description: projectData.description,
+        project_name: projectData.project_name,
+        project_code: projectData.project_code,
+        order_int: projectData.order_int || 0,
+        project_description: projectData.project_description || '',
+        client_id: projectData.client_id,
+        employee_id: projectData.employee_id,
         status: projectData.status,
+        project_type: projectData.project_type,
+        estimated_hours: projectData.estimated_hours || 0,
+        budget_amount: projectData.budget_amount || 0,
         start_date: projectData.start_date ? new Date(projectData.start_date).toISOString() : new Date().toISOString(),
         end_date: projectData.end_date ? new Date(projectData.end_date).toISOString() : new Date().toISOString(),
-        oi: projectData.oi,
-        id_project_manager: projectData.id_project_manager === 0 ? null : projectData.id_project_manager,
-        client_id: projectData.client_id, // No convertir a null, debe ser un ID válido
+        active: projectData.active ?? true,
       };
 
       const response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), cleanedData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 segundos timeout
+        timeout: 30000,
       });
 
       setIsLoading(false);
@@ -161,7 +192,7 @@ export const useProjects = () => {
     }
   };
 
-  // Función para obtener un proyecto por ID
+  // Get project by ID
   const getProjectById = async (id: string): Promise<GetProjectResponse> => {
     setIsLoadingProject(true);
     setError(null);
@@ -171,7 +202,7 @@ export const useProjects = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 segundos timeout
+        timeout: 30000,
       });
 
       setIsLoadingProject(false);
@@ -199,29 +230,33 @@ export const useProjects = () => {
     }
   };
 
-  // Función para actualizar un proyecto
+  // Update project
   const updateProject = async (id: string, projectData: ProjectPayload): Promise<UpdateProjectResponse> => {
     setIsUpdating(true);
     setError(null);
 
     try {
-      // Limpiar datos antes de enviar
       const cleanedData = {
-        name: projectData.name,
-        description: projectData.description,
+        project_name: projectData.project_name,
+        project_code: projectData.project_code,
+        order_int: projectData.order_int || 0,
+        project_description: projectData.project_description || '',
+        client_id: projectData.client_id,
+        employee_id: projectData.employee_id,
         status: projectData.status,
+        project_type: projectData.project_type,
+        estimated_hours: projectData.estimated_hours || 0,
+        budget_amount: projectData.budget_amount || 0,
         start_date: projectData.start_date ? new Date(projectData.start_date).toISOString() : new Date().toISOString(),
         end_date: projectData.end_date ? new Date(projectData.end_date).toISOString() : new Date().toISOString(),
-        oi: projectData.oi,
-        id_project_manager: projectData.id_project_manager === 0 ? null : projectData.id_project_manager,
-        client_id: projectData.client_id, // No convertir a null, debe ser un ID válido
+        active: projectData.active ?? true,
       };
 
       const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, cleanedData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 segundos timeout
+        timeout: 30000,
       });
 
       setIsUpdating(false);
@@ -253,14 +288,54 @@ export const useProjects = () => {
     }
   };
 
+  // Delete project
+  const deleteProject = async (id: string): Promise<DeleteProjectResponse> => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      });
+
+      setIsDeleting(false);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      let errorMessage = 'Error deleting project';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+        errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error deleting project';
+      }
+      
+      setError(errorMessage);
+      setIsDeleting(false);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
+
   return {
     createProject,
     getProjects,
     getProjectById,
     updateProject,
+    deleteProject,
     isLoading,
     isLoadingProject,
     isUpdating,
+    isDeleting,
     error,
     projects,
   };

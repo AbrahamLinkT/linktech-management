@@ -269,20 +269,20 @@ function ProyeccionTablePage() {
         setIsLoading(true);
         
         console.log('Total de proyectos:', projects.length);
-        console.log('Proyectos:', projects.map(p => ({ id: p.id, name: p.name })));
+        console.log('Proyectos:', projects.map(p => ({ id: p.project_id, name: p.project_name })));
         console.log('Total de esquemas:', schemes.length);
         console.log('Esquemas:', schemes.map(s => ({ id: s.id, name: s.name, hours: s.hours })));
         
         // Encontrar el proyecto por nombre
-        const project = projects.find(p => p.name === projectName);
+        const project = projects.find(p => p.project_name === projectName);
         if (!project) {
           console.error('❌ Proyecto no encontrado:', projectName);
-          console.log('Nombres de proyectos disponibles:', projects.map(p => p.name));
+          console.log('Nombres de proyectos disponibles:', projects.map(p => p.project_name));
           setIsLoading(false);
           return;
         }
         
-        console.log('📊 Cargando datos para proyecto:', project.name, 'ID:', project.id);
+        console.log('📊 Cargando datos para proyecto:', project.project_name, 'ID:', project.project_id);
         console.log('📅 Fecha de inicio del proyecto:', project.start_date);
         console.log('📅 Fecha de fin del proyecto:', project.end_date);
         
@@ -307,15 +307,15 @@ function ProyeccionTablePage() {
         console.log('📅 Semanas agrupadas:', weeksData);
         
         // Obtener el department head para el proyecto
-        const assignedBy = await getDepartmentHead(project.id);
+        const assignedBy = await getDepartmentHead(project.project_id);
         
         // Obtener horas asignadas del proyecto
         console.log('🔍 Obteniendo todas las horas asignadas...');
         const allHours = await getAssignedHours();
         console.log('📊 Total de horas asignadas:', allHours.length);
         
-        const projectHours = allHours.filter(h => h.projectId === project.id);
-        console.log(`🔍 Horas asignadas filtradas para proyecto ${project.id}:`, projectHours.length);
+        const projectHours = allHours.filter(h => h.projectId === project.project_id);
+        console.log(`🔍 Horas asignadas filtradas para proyecto ${project.project_id}:`, projectHours.length);
         
         // Obtener workers únicos asignados al proyecto
         const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
@@ -346,7 +346,7 @@ function ProyeccionTablePage() {
             if (!existingHour) {
               console.log(`📝 Creando registro para worker ${workerId} en semana ${week.weekStart}`);
               hoursToCreate.push({
-                project_id: project.id,
+                project_id: project.project_id,
                 assigned_to: workerId,
                 assigned_by: assignedBy,
                 hours_data: {
@@ -373,7 +373,7 @@ function ProyeccionTablePage() {
           
           // Recargar las horas asignadas
           const updatedHours = await getAssignedHours();
-          finalProjectHours = updatedHours.filter(h => h.projectId === project.id);
+          finalProjectHours = updatedHours.filter(h => h.projectId === project.project_id);
           console.log('✅ Horas actualizadas:', finalProjectHours.length);
         }
         
