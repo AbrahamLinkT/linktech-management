@@ -13,7 +13,7 @@ export default function EditWorker() {
   const idParam = searchParams.get("id");
   const id = idParam ? Number(idParam) : null;
 
-  const { getWorkerById, updateWorker, levels, schemes, roles, fetchLevels, fetchSchemes, fetchRoles } = useWorkers();
+  const { getWorkerById, updateWorker, levels, schemes, roles, managers, fetchLevels, fetchSchemes, fetchRoles, fetchWorkers } = useWorkers();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -28,6 +28,17 @@ export default function EditWorker() {
     level_id: "",
     scheme_id: "",
     role_id: "",
+    // include new fields
+    // note: initialized together to preserve shape
+    // ... keep as string-based for selects and dates
+    // manager_id uses "" for no manager
+    // active and status use "1"/"0"
+    // we'll merge when worker loads
+    employee_code: "",
+    hire_date: "",
+    termination_date: "",
+    active: "1",
+    manager_id: "",
   });
 
   // validation state
@@ -77,6 +88,7 @@ export default function EditWorker() {
     fetchLevels();
     fetchSchemes();
     fetchRoles();
+    fetchWorkers();
   }, []);
 
   useEffect(() => {
@@ -102,6 +114,11 @@ export default function EditWorker() {
           level_id: worker.level_id ? String(worker.level_id) : "",
           scheme_id: worker.scheme_id ? String(worker.scheme_id) : "",
           role_id: worker.role_id ? String(worker.role_id) : "",
+          employee_code: worker.employee_code ?? "",
+          hire_date: worker.hire_date ?? "",
+          termination_date: worker.termination_date ?? "",
+          active: worker.active ? "1" : "0",
+          manager_id: worker.manager_id ? String(worker.manager_id) : "",
         });
       } catch (err) {
         console.error(err);
@@ -144,6 +161,12 @@ export default function EditWorker() {
       level_id: form.level_id === "" ? null : Number(form.level_id),
       scheme_id: form.scheme_id === "" ? null : Number(form.scheme_id),
       role_id: form.role_id === "" ? null : Number(form.role_id),
+      // new fields
+      employee_code: (form as any).employee_code?.trim() || undefined,
+      hire_date: (form as any).hire_date === "" ? null : (form as any).hire_date,
+      termination_date: (form as any).termination_date === "" ? null : (form as any).termination_date,
+      active: (form as any).active === "1",
+      manager_id: (form as any).manager_id === "" ? null : Number((form as any).manager_id),
     };
 
     try {
@@ -203,6 +226,11 @@ export default function EditWorker() {
                   aria-describedby={errors.name ? "err-name" : undefined}
                 />
                 {touched.name && errors.name && <p id="err-name" className="text-red-600 text-sm mt-1">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Código empleado</label>
+                <input type="text" name="employee_code" className={stylesInput} value={(form as any).employee_code || ''} onChange={handleChange} />
               </div>
 
               <div>
@@ -333,6 +361,35 @@ export default function EditWorker() {
                 </select>
                 {touched.role_id && errors.role_id && <p id="err-role" className="text-red-600 text-sm mt-1">{errors.role_id}</p>}
               </div>
+
+              <div>
+                <label className="block font-medium mb-1">Fecha de ingreso</label>
+                <input type="date" name="hire_date" className={stylesInput} value={(form as any).hire_date || ''} onChange={handleChange} />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Fecha de terminación</label>
+                <input type="date" name="termination_date" className={stylesInput} value={(form as any).termination_date || ''} onChange={handleChange} />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Manager</label>
+                <select name="manager_id" value={(form as any).manager_id || ''} onChange={handleChange} className={stylesInput}>
+                  <option value="">Sin manager</option>
+                  {managers && managers.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">Activo</label>
+                <select name="active" value={(form as any).active || '1'} onChange={handleChange} className={stylesInput}>
+                  <option value="1">Sí</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+
             </div>
           </fieldset>
 
