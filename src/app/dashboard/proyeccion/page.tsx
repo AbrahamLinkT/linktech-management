@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProjects";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { useWorkers } from "@/hooks/useWorkers";
+import { useUser } from "@clerk/nextjs";
 
 
 // =================== TIPOS ===================
@@ -42,6 +43,7 @@ export default function ProyeccionPage() {
     createAssignedHours
   } = useAssignedHours();
   const { data: workers } = useWorkers();
+  const { isLoaded, isSignedIn, user } = useUser();
   
   // ------------------- STATE ------------------
   const [selectedModalRows, setSelectedModalRows] = useState<Record<number, boolean>>({});
@@ -300,11 +302,25 @@ export default function ProyeccionPage() {
     }
 
     try {
+      // Resolver assigned_by desde la sesión de Clerk (email -> worker.id)
+      const currentEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress;
+      if (!isLoaded || !isSignedIn || !currentEmail) {
+        alert('No se pudo obtener la sesión de usuario (Clerk). Inicia sesión e intenta de nuevo.');
+        return;
+      }
+
+      const creator = workers.find(w => (w.email ?? '').toLowerCase() === currentEmail.toLowerCase());
+      if (!creator) {
+        alert('No se encontró un trabajador con tu email en el sistema. Verifica que tu usuario tenga un worker con ese email.');
+        return;
+      }
+
+      const assignedById = creator.id;
       // Crear el payload para el POST
       const payload = selectedWorkers.map(worker => ({
         project_id: project.project_id,
         assigned_to: worker.id,
-        assigned_by: 6, // ID fijo según especificación
+        assigned_by: assignedById,
         hours_data: {
           monday: 0,
           tuesday: 0,
