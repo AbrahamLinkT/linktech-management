@@ -344,6 +344,11 @@ export function useWorkers() {
     }
   };
 
+  // Carga inicial de workers y catálogos relacionados
+  useEffect(() => {
+    fetchWorkers();
+  }, []);
+
   return {
     data,
     loading,
