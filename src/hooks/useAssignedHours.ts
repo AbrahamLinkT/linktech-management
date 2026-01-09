@@ -197,33 +197,68 @@ export const useAssignedHours = () => {
   const createAssignedHours = async (payload: CreateAssignedHourPayload[]): Promise<boolean> => {
     try {
       console.log('Creating assigned hours:', payload);
-      await axios.post(
-        buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS),
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
+
+      // Some backends expect a single object, not an array.
+      const items = Array.isArray(payload) ? payload : [payload as any];
+
+      // Fallback week if empty string
+      const ensureWeek = (week: string) => {
+        if (week && week.trim().length > 0) return week;
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`; // default to today's date
+      };
+
+      // Post items individually to match API expectations
+      for (const item of items) {
+        const body = {
+          project_id: item.project_id,
+          assigned_to: item.assigned_to,
+          assigned_by: item.assigned_by,
+          hours_data: {
+            monday: item.hours_data.monday ?? 0,
+            tuesday: item.hours_data.tuesday ?? 0,
+            wednesday: item.hours_data.wednesday ?? 0,
+            thursday: item.hours_data.thursday ?? 0,
+            friday: item.hours_data.friday ?? 0,
+            saturday: item.hours_data.saturday ?? 0,
+            sunday: item.hours_data.sunday ?? 0,
+            total: item.hours_data.total ?? 0,
+            week: ensureWeek(item.hours_data.week ?? ''),
           },
-          timeout: 30000,
+        };
+
+        const res = await axios.post(
+          buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS),
+          body,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            timeout: 30000,
+          }
+        );
+
+        if (res.status < 200 || res.status >= 300) {
+          throw new Error(`HTTP ${res.status}`);
         }
-      );
+      }
+
       console.log('✅ Assigned hours created successfully');
       return true;
     } catch (err: unknown) {
       console.error('Error creating assigned hours:', err);
       let errorMessage = 'Error creating assigned hours';
 
-      if (err instanceof Error) {
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || err.message;
+      } else if (err instanceof Error) {
         errorMessage = err.message;
       } else {
-        const errorObj = err as {
-          response?: { data?: { message?: string }; status?: number };
-          message?: string;
-        };
-        errorMessage =
-          errorObj?.response?.data?.message ||
-          errorObj?.message ||
-          'Error creating assigned hours';
+        const errorObj = err as { message?: string };
+        errorMessage = errorObj?.message || 'Error creating assigned hours';
       }
 
       setError(errorMessage);
