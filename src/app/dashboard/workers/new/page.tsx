@@ -18,7 +18,7 @@ export default function NewWorker() {
 
     const router = useRouter();
 
-    const { createWorker, levels, schemes, roles, fetchLevels, fetchSchemes, fetchRoles } = useWorkers();
+    const { createWorker, levels, schemes, roles, managers, fetchLevels, fetchSchemes, fetchRoles, fetchWorkers } = useWorkers();
 
     const [form, setForm] = useState({
         name: "",
@@ -30,6 +30,12 @@ export default function NewWorker() {
         level_id: "",
         scheme_id: "",
         role_id: "",
+        // new fields
+        employee_code: "",
+        hire_date: "",
+        termination_date: "",
+        active: "1",
+        manager_id: "",
     });
 
     // validation state
@@ -88,6 +94,8 @@ export default function NewWorker() {
         fetchLevels();
         fetchSchemes();
         fetchRoles();
+        // fetch current workers to populate manager list
+        fetchWorkers();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -107,6 +115,12 @@ export default function NewWorker() {
             level_id: form.level_id === "" ? null : Number(form.level_id),
             scheme_id: form.scheme_id === "" ? null : Number(form.scheme_id),
             role_id: form.role_id === "" ? null : Number(form.role_id),
+            // new fields
+            employee_code: form.employee_code.trim() || undefined,
+            hire_date: form.hire_date === "" ? null : form.hire_date,
+            termination_date: form.termination_date === "" ? null : form.termination_date,
+            active: form.active === "1",
+            manager_id: form.manager_id === "" ? null : Number(form.manager_id),
         };
 
         setSubmitting(true);
@@ -150,6 +164,11 @@ export default function NewWorker() {
                                 <label className="block font-medium mb-1">Nombre</label>
                                 <input type="text" name="name" className={stylesInput} value={form.name} onChange={handleChange} onBlur={handleBlur} aria-invalid={!!errors.name} aria-describedby={errors.name ? 'err-name' : undefined} />
                                 {touched.name && errors.name && <p id="err-name" className="text-red-600 text-sm mt-1">{errors.name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block font-medium mb-1">Código empleado</label>
+                                <input type="text" name="employee_code" className={stylesInput} value={form.employee_code} onChange={handleChange} onBlur={handleBlur} />
                             </div>
 
                             <div>
@@ -216,6 +235,34 @@ export default function NewWorker() {
                                     ))}
                                 </select>
                                 {touched.role_id && errors.role_id && <p id="err-role" className="text-red-600 text-sm mt-1">{errors.role_id}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block font-medium mb-1">Fecha de ingreso</label>
+                                <input type="date" name="hire_date" className={stylesInput} value={form.hire_date} onChange={handleChange} />
+                            </div>
+
+                            <div>
+                                <label className="block font-medium mb-1">Fecha de terminación</label>
+                                <input type="date" name="termination_date" className={stylesInput} value={form.termination_date} onChange={handleChange} />
+                            </div>
+
+                            <div>
+                                <label className="block font-medium mb-1">Manager</label>
+                                <select name="manager_id" value={form.manager_id} onChange={handleChange} className={stylesInput}>
+                                    <option value="">Sin manager</option>
+                                    {managers && managers.map(m => (
+                                        <option key={m.id} value={m.id}>{m.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block font-medium mb-1">Activo</label>
+                                <select name="active" value={form.active} onChange={handleChange} className={stylesInput}>
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
                             </div>
 
                         </div>

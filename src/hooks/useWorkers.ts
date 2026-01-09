@@ -14,6 +14,15 @@ export interface WorkerData {
   level_id?: number | null;
   scheme_id?: number | null;
   role_id?: number | null;
+  // new fields
+  employee_code?: string;
+  hire_date?: string | null;
+  termination_date?: string | null;
+  active?: boolean;
+  manager_id?: number | null;
+  managerName?: string;
+  createdAt?: string;
+  updatedAt?: string;
   roleName?: string;
   schemeName?: string;
   levelName?: string;
@@ -29,6 +38,12 @@ export interface WorkerPayload {
   level_id?: number | null;
   scheme_id?: number | null;
   role_id?: number | null;
+  // new optional fields for API
+  employee_code?: string;
+  hire_date?: string | null;
+  termination_date?: string | null;
+  active?: boolean;
+  manager_id?: number | null;
 }
 
 export interface LevelItem { id: number; name: string; short_name?: string; description?: string }
@@ -44,6 +59,8 @@ export function useWorkers() {
   const [levels, setLevels] = useState<LevelItem[]>([]);
   const [schemes, setSchemes] = useState<SchemeItem[]>([]);
   const [roles, setRoles] = useState<RoleItem[]>([]);
+  // list of possible managers (id + name)
+  const [managers, setManagers] = useState<{ id: number; name: string }[]>([]);
 
   // =====================================
   // Helpers to fetch auxiliary lists
@@ -112,6 +129,14 @@ export function useWorkers() {
       setSchemes(sch);
       setRoles(rls);
 
+      // build id->name map to resolve manager names
+      const idNameMap: Record<number, string> = {};
+      rawWorkers.forEach((rw: any) => {
+        const wid = Number(rw.id ?? rw.worker);
+        const wname = rw.name ?? rw.worker_name ?? rw.workerName ?? '';
+        if (!Number.isNaN(wid)) idNameMap[wid] = wname;
+      });
+
       // map workers into WorkerData
       const mapped: WorkerData[] = rawWorkers.map((w: any) => {
         // API may return different field names, handle common cases
@@ -121,10 +146,18 @@ export function useWorkers() {
         const level_id = w.level_id ?? w.levelId ?? null;
         const scheme_id = w.scheme_id ?? w.schemeId ?? null;
         const role_id = w.role_id ?? w.roleId ?? w.role ?? null;
+        const employee_code = w.employee_code ?? w.employeeCode ?? undefined;
+        const hire_date = w.hire_date ?? w.hireDate ?? null;
+        const termination_date = w.termination_date ?? w.terminationDate ?? null;
+        const active = typeof w.active === 'boolean' ? w.active : (w.active === 1 || w.active === '1');
+        const manager_id = w.manager_id ?? w.managerId ?? w.manager ?? null;
+        const createdAt = w.createdAt ?? w.created_at ?? undefined;
+        const updatedAt = w.updatedAt ?? w.updated_at ?? undefined;
 
         const levelName = level_id ? (lvls.find((x: any) => x.id === level_id)?.name ?? String(level_id)) : undefined;
         const schemeName = scheme_id ? (sch.find((x: any) => x.id === scheme_id)?.name ?? String(scheme_id)) : undefined;
         const roleName = role_id ? (rls.find((x: any) => x.id === role_id)?.name ?? String(role_id)) : undefined;
+        const managerName = manager_id ? (idNameMap[Number(manager_id)] ?? String(manager_id)) : undefined;
 
         return {
           id: Number(id),
@@ -134,9 +167,17 @@ export function useWorkers() {
           status: status ?? false,
           location: w.location ?? undefined,
           description: w.description ?? undefined,
+          employee_code,
+          hire_date,
+          termination_date,
+          active,
           level_id,
           scheme_id,
           role_id,
+          manager_id,
+          managerName,
+          createdAt,
+          updatedAt,
           levelName,
           schemeName,
           roleName,
@@ -144,6 +185,8 @@ export function useWorkers() {
       });
 
       setData(mapped);
+      // populate managers list (allow selecting another worker as manager)
+      setManagers(mapped.map(m => ({ id: m.id, name: m.name })));
     } catch (e) {
       console.error('Error cargando workers:', e);
       setError(e instanceof Error ? e.message : 'Error desconocido');
@@ -170,6 +213,13 @@ export function useWorkers() {
       const level_id = found.level_id ?? found.levelId ?? null;
       const scheme_id = found.scheme_id ?? found.schemeId ?? null;
       const role_id = found.role_id ?? found.roleId ?? found.role ?? null;
+      const employee_code = found.employee_code ?? found.employeeCode ?? undefined;
+      const hire_date = found.hire_date ?? found.hireDate ?? null;
+      const termination_date = found.termination_date ?? found.terminationDate ?? null;
+      const active = typeof found.active === 'boolean' ? found.active : (found.active === 1 || found.active === '1');
+      const manager_id = found.manager_id ?? found.managerId ?? found.manager ?? null;
+      const createdAt = found.createdAt ?? found.created_at ?? undefined;
+      const updatedAt = found.updatedAt ?? found.updated_at ?? undefined;
 
       const worker: WorkerData = {
         id: Number(found.id ?? found.worker),
@@ -179,9 +229,17 @@ export function useWorkers() {
         status: typeof found.status === 'boolean' ? found.status : (found.status === 1 || found.status === '1'),
         location: found.location ?? undefined,
         description: found.description ?? undefined,
+        employee_code,
+        hire_date,
+        termination_date,
+        active,
         level_id,
         scheme_id,
         role_id,
+        manager_id,
+        managerName: manager_id ? (data.find(l => l.id === manager_id)?.name ?? String(manager_id)) : undefined,
+        createdAt,
+        updatedAt,
         levelName: level_id ? (levels.find(l => l.id === level_id)?.name ?? String(level_id)) : undefined,
         schemeName: scheme_id ? (schemes.find(s => s.id === scheme_id)?.name ?? String(scheme_id)) : undefined,
         roleName: role_id ? (roles.find(r => r.id === role_id)?.name ?? String(role_id)) : undefined,
@@ -207,6 +265,12 @@ export function useWorkers() {
         level_id: payload.level_id ?? null,
         scheme_id: payload.scheme_id ?? null,
         role_id: payload.role_id ?? null,
+        // new fields
+        employee_code: (payload as any).employee_code ?? undefined,
+        hire_date: (payload as any).hire_date ?? null,
+        termination_date: (payload as any).termination_date ?? null,
+        active: (payload as any).active ?? true,
+        manager_id: (payload as any).manager_id ?? null,
       };
 
       const response = await axios.post(
@@ -237,6 +301,12 @@ export function useWorkers() {
         level_id: payload.level_id ?? null,
         scheme_id: payload.scheme_id ?? null,
         role_id: payload.role_id ?? null,
+        // new fields
+        employee_code: (payload as any).employee_code ?? undefined,
+        hire_date: (payload as any).hire_date ?? null,
+        termination_date: (payload as any).termination_date ?? null,
+        active: (payload as any).active ?? true,
+        manager_id: (payload as any).manager_id ?? null,
       };
 
       await axios.put(
@@ -282,6 +352,8 @@ export function useWorkers() {
     levels,
     schemes,
     roles,
+    managers,
+    fetchWorkers,
     fetchLevels,
     fetchSchemes,
     fetchRoles,
