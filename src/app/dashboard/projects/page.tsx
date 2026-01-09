@@ -127,15 +127,17 @@ export default function Projects() {
   // Transform API data to table format
   const data: ProjectTableRow[] = useMemo(() => {
     return projects.map(project => {
-      const client = clients.find(c => parseInt(c.id as any) === project.client_id);
-      const employee = workers?.find(w => w.id === project.employee_id);
+      const clientId = Number(project.client_id);
+      const employeeId = Number(project.employee_id);
+      const client = clients.find(c => Number(c.id) === clientId);
+      const employee = workers?.find(w => Number(w.id) === employeeId);
       
       return {
         id: project.project_id.toString(),
         projectCode: project.project_code,
         projectName: project.project_name,
-        clientName: client?.clientName || 'Sin cliente',
-        employeeName: employee?.name || 'Sin asignar',
+        clientName: client?.clientName || (clients.length === 0 ? 'Cargando...' : 'Sin cliente'),
+        employeeName: employee?.name || (workers?.length ? 'Sin asignar' : 'Cargando...'),
         type: project.project_type === 'CLIENT' ? 'Cliente' : project.project_type === 'INTERNAL' ? 'Interno' : 'Investigación',
         status: project.status === 'PLANNED' ? 'Planeado' : project.status === 'IN_PROGRESS' ? 'En Progreso' : project.status === 'COMPLETED' ? 'Completado' : 'Cancelado',
         startDate: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
