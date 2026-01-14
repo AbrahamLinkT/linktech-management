@@ -21,6 +21,7 @@ export const navbarLinks = [
                 label: "Disponibilidad",
                 icon: UserCheck,
                 path: "/dashboard/disponibilidad",
+                description: "Consulta la disponibilidad de los trabajadores.",
             },
         ],
     },
@@ -43,7 +44,7 @@ export const navbarLinks = [
                 label: "Departamento",
                 icon: Users,
                 path: "/dashboard/departamento",
-                description: "Visualiza la organización por áreas.",
+                description: "Visualiza los distintos departamentos",
             },
             {
                 label: "Esquema contractual",
@@ -61,7 +62,7 @@ export const navbarLinks = [
                 label: "Asuetos",
                 icon: UserCheck,
                 path: "/dashboard/asuetos",
-                description: "Gestiona los días festivos y permisos.",
+                description: "Gestiona los días festivos y permisos de cada trabajador.",
             },
             {
                 label: "Horas por aprobar",
@@ -84,7 +85,7 @@ export const navbarLinks = [
                 label: "Clientes",
                 icon: Users,
                 path: "/dashboard/client",
-                description: "Consulta y gestiona la cartera de clientes.",
+                description: "Consulta y gestiona la información de los clientes.",
             },
         ],
     },
@@ -101,7 +102,7 @@ export const navbarLinks = [
                 label: "Permisos",
                 icon: Settings,
                 path: "/dashboard/settings/permisos",
-                description: "Configura niveles de acceso y seguridad.",
+                description: "Configura niveles de acceso y seguridad a la aplicación.",
             },
             {
                 label: "Configuracion",
