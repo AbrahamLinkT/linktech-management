@@ -6,26 +6,29 @@ import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAsuetos } from "@/hooks/useAsuetos";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useAutoLoadEmployees } from "@/hooks/useEmployees";
 
 interface FormData {
   employee_id: number | null;
   startDate: string;
   endDate: string;
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  approved_by?: number | null;
+  reason?: string;
 }
 
 export default function New() {
     const router = useRouter();
     const { createAsueto, isLoading, error } = useAsuetos();
-    const { employees, useAutoLoadEmployees } = useEmployees();
-    
-    // Cargar empleados automáticamente
-    useAutoLoadEmployees();
+    const { employees, isLoading: employeesLoading } = useAutoLoadEmployees();
     
     const [formData, setFormData] = useState<FormData>({
         employee_id: null,
         startDate: '',
-        endDate: ''
+        endDate: '',
+        status: 'REQUESTED',
+        approved_by: null,
+        reason: ''
     });
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -42,11 +45,11 @@ export default function New() {
         router.push("/dashboard/asuetos");
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target as HTMLInputElement;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'employee_id' 
+            [name]: name === 'employee_id' || name === 'approved_by' 
                 ? (value === '' ? null : parseInt(value))
                 : value
         }));
@@ -54,7 +57,7 @@ export default function New() {
 
     const date = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Solo actualizar el estado del formulario sin restricciones de día
-        handleInputChange(e);
+        handleInputChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -83,12 +86,13 @@ export default function New() {
             const asuetoData = {
                 employee_id: formData.employee_id,
                 startDate: startDateTime,
-                endDate: endDateTime
+                endDate: endDateTime,
+                status: formData.status,
+                approved_by: formData.approved_by ?? null,
+                reason: formData.reason ?? null,
             };
 
             console.log('Asueto data to be sent:', asuetoData);
-            console.log('Start date formatted:', startDateTime);
-            console.log('End date formatted:', endDateTime);
 
             const result = await createAsueto(asuetoData);
             
@@ -98,7 +102,10 @@ export default function New() {
                 setFormData({
                     employee_id: null,
                     startDate: '',
-                    endDate: ''
+                    endDate: '',
+                    status: 'REQUESTED',
+                    approved_by: null,
+                    reason: ''
                 });
                 
                 // Redirect after 2 seconds
@@ -195,9 +202,32 @@ export default function New() {
                                     required
                                 />
                             </div>
-                            <div className="col-span-2">
-                                {/* Campos eliminados: tiempo y descripción ya no son requeridos */}
+
+                            <div>
+                                <label htmlFor="status" className="block font-medium mb-1">Estado</label>
+                                <select name="status" value={formData.status} onChange={handleInputChange} className={stylesInput}>
+                                    <option value="REQUESTED">REQUESTED</option>
+                                    <option value="APPROVED">APPROVED</option>
+                                    <option value="REJECTED">REJECTED</option>
+                                    <option value="CANCELLED">CANCELLED</option>
+                                </select>
                             </div>
+
+                            <div>
+                                <label htmlFor="approved_by" className="block font-medium mb-1">Aprobado por (opcional)</label>
+                                <select name="approved_by" value={formData.approved_by || ''} onChange={handleInputChange} className={stylesInput}>
+                                    <option value="">-- Ninguno --</option>
+                                    {employees.map((employee) => (
+                                        <option key={employee.id} value={employee.id}>{employee.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="md:col-span-3">
+                                <label htmlFor="reason" className="block font-medium mb-1">Motivo</label>
+                                <textarea name="reason" id="reason" value={formData.reason} onChange={handleInputChange} className={`${stylesInput} h-24`} />
+                            </div>
+
                         </div>
                     </fieldset>
 

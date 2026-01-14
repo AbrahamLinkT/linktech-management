@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { buildApiUrl, API_CONFIG } from '../config/api';
 
-// Interfaz para el formulario de asueto (nueva estructura simplificada)
+// Interfaz para el formulario de asueto (ahora con nuevos campos opcionales)
 interface AsuetoFormData {
   employee_id: number;
-  startDate: string; // ISO string format
-  endDate: string; // ISO string format
+  startDate?: string; // ISO string format (POST)
+  endDate?: string; // ISO string format (POST)
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  approved_by?: number | null;
+  reason?: string | null;
 }
 
 interface CreateAsuetoResponse {
@@ -15,12 +18,19 @@ interface CreateAsuetoResponse {
   error?: string;
 }
 
-// Interfaz para la respuesta del GET
+// Interfaz para la respuesta del GET, nueva estructura completa
 export interface AsuetoResponse {
-  id: string | number; // Puede ser string o número dependiendo de la API
-  employee_id: number;
+  id: string | number;
+  employee_id?: number;
+  name?: string; // El API ahora puede devolver name directamente
   startDate: string;
   endDate: string;
+  reason?: string | null;
+  approvedByName?: string | null;
+  approvedAt?: string | null;
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const useAsuetos = () => {
@@ -123,7 +133,13 @@ export const useAsuetos = () => {
       console.log('📝 Updating asueto with ID:', id, 'and data:', asuetoData);
       console.log('JSON stringified data:', JSON.stringify(asuetoData, null, 2));
 
-      const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS)}/${id}`, asuetoData, {
+      // El endpoint PUT ahora espera el id en el payload junto con employee_id, status, approved_by y reason
+      const payload = {
+        id: Number(id),
+        ...asuetoData,
+      };
+
+      const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.NON_WORKING_DAYS)}/${id}`, payload, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

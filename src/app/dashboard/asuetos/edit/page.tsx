@@ -12,13 +12,21 @@ interface FormData {
   employee_id: number | null;
   startDate: string;
   endDate: string;
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  approved_by?: number | null;
+  reason?: string | null;
 }
 
 interface AsuetoData {
   id: string | number;
-  employee_id: number;
+  employee_id?: number;
+  name?: string;
   startDate: string;
   endDate: string;
+  reason?: string | null;
+  approvedByName?: string | null;
+  approvedAt?: string | null;
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 }
 
 export default function EditAsueto() {
@@ -32,7 +40,10 @@ export default function EditAsueto() {
   const [formData, setFormData] = useState<FormData>({
     employee_id: null,
     startDate: '',
-    endDate: ''
+    endDate: '',
+    status: 'REQUESTED',
+    approved_by: null,
+    reason: null,
   });
   
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -77,14 +88,26 @@ export default function EditAsueto() {
           const asuetoData: AsuetoData = await response.json();
           console.log('✅ Asueto encontrado:', asuetoData);
           
+          // Intentar mapear employee_id: usar employee_id si viene, sino intentar buscar por name en la lista de empleados
+          let mappedEmployeeId: number | null = null;
+          if (asuetoData.employee_id) {
+            mappedEmployeeId = asuetoData.employee_id;
+          } else if (asuetoData.name && employees.length > 0) {
+            const found = employees.find(e => e.name === asuetoData.name);
+            mappedEmployeeId = found ? found.id : null;
+          }
+
           setFormData({
-            employee_id: asuetoData.employee_id,
+            employee_id: mappedEmployeeId,
             startDate: asuetoData.startDate ? asuetoData.startDate.split('T')[0] : '',
-            endDate: asuetoData.endDate ? asuetoData.endDate.split('T')[0] : ''
+            endDate: asuetoData.endDate ? asuetoData.endDate.split('T')[0] : '',
+            status: asuetoData.status || 'REQUESTED',
+            approved_by: null, // no tenemos id de approver, solo nombre; se puede mapear si existe
+            reason: asuetoData.reason ?? null,
           });
           
           // Establecer el nombre del empleado
-          setEmployeeName(findEmployeeName(asuetoData.employee_id));
+          setEmployeeName(asuetoData.name || (mappedEmployeeId ? findEmployeeName(mappedEmployeeId) : 'Empleado no encontrado'));
         } else if (response.status === 404) {
           console.error('❌ Asueto no encontrado con ID:', asuetoId);
           alert('El asueto no fue encontrado');
@@ -103,7 +126,7 @@ export default function EditAsueto() {
     };
 
     loadAsuetoData();
-  }, [asuetoId, router, findEmployeeName]);
+  }, [asuetoId, router, findEmployeeName, employees]);
 
   // Actualizar el nombre del empleado cuando se cargan los empleados
   useEffect(() => {
@@ -112,17 +135,17 @@ export default function EditAsueto() {
     }
   }, [formData.employee_id, employees, findEmployeeName]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'employee_id' || name === 'approved_by' ? (value === '' ? null : parseInt(value)) : value
     }));
   };
 
   const date = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Solo actualizar el estado del formulario sin restricciones de día
-    handleInputChange(e);
+    handleInputChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -151,14 +174,16 @@ export default function EditAsueto() {
       const endDateTime = new Date(formData.endDate + 'T23:59:59').toISOString();
 
       const updateData = {
+        id: Number(asuetoId),
         employee_id: formData.employee_id,
         startDate: startDateTime,
-        endDate: endDateTime
+        endDate: endDateTime,
+        status: formData.status,
+        approved_by: formData.approved_by ?? null,
+        reason: formData.reason ?? null,
       };
 
       console.log('Update data to be sent:', updateData);
-      console.log('Start date formatted:', startDateTime);
-      console.log('End date formatted:', endDateTime);
 
       const result = await updateAsueto(asuetoId, updateData);
       
@@ -233,9 +258,12 @@ export default function EditAsueto() {
                   Empleado
                 </label>
                 <div className="flex items-center gap-4">
-                  <div className={`${stylesInput} bg-gray-100 cursor-not-allowed`}>
-                    {employeesLoading ? 'Cargando empleados...' : employeeName || 'Empleado no encontrado'}
-                  </div>
+                  <select name="employee_id" value={formData.employee_id || ''} onChange={handleInputChange} className={stylesInput} required>
+                    <option value="">Seleccione empleado</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.id}>{emp.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -268,10 +296,32 @@ export default function EditAsueto() {
                   required
                 />
               </div>
-              
-              <div className="col-span-2">
-                {/* Espacio adicional si se necesita */}
+
+              <div>
+                <label htmlFor="status" className="block font-medium mb-1">Estado</label>
+                <select name="status" value={formData.status} onChange={handleInputChange} className={stylesInput}>
+                  <option value="REQUESTED">REQUESTED</option>
+                  <option value="APPROVED">APPROVED</option>
+                  <option value="REJECTED">REJECTED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
               </div>
+
+              <div>
+                <label htmlFor="approved_by" className="block font-medium mb-1">Revisado por (opcional)</label>
+                <select name="approved_by" value={formData.approved_by || ''} onChange={handleInputChange} className={stylesInput}>
+                  <option value="">-- Ninguno --</option>
+                  {employees.map((employee) => (
+                    <option key={employee.id} value={employee.id}>{employee.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-3">
+                <label htmlFor="reason" className="block font-medium mb-1">Motivo</label>
+                <textarea name="reason" id="reason" value={formData.reason ?? ''} onChange={handleInputChange} className={`${stylesInput} h-24`} />
+              </div>
+
             </div>
           </fieldset>
 

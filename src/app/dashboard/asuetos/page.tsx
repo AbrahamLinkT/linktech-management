@@ -112,6 +112,38 @@ export default function AsuetosPage() {
                 header: "Fecha fin",
                 size: 170,
             },
+            {
+                accessorKey: "status",
+                header: "Estado",
+                size: 150,
+                Cell: ({ cell }: any) => {
+                    const raw = cell.getValue();
+                    const value = (raw ?? '').toString().toUpperCase();
+
+                    // Colores por estado
+                    let bg = 'bg-gray-100 text-gray-800';
+                    if (value === 'REQUESTED') bg = 'bg-yellow-100 text-yellow-800';
+                    else if (value === 'APPROVED') bg = 'bg-green-100 text-green-800';
+                    else if (value === 'REJECTED') bg = 'bg-red-100 text-red-800';
+                    else if (value === 'CANCELLED') bg = 'bg-slate-100 text-slate-800';
+
+                    return (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${bg}`}>
+                            {value}
+                        </span>
+                    );
+                }
+            },
+            {
+                accessorKey: "reason",
+                header: "Motivo",
+                size: 300,
+            },
+            {
+                accessorKey: "approvedByName",
+                header: "Revisado por",
+                size: 200,
+            },
         ],
         []
     );
@@ -120,15 +152,15 @@ export default function AsuetosPage() {
     const data = useMemo(() => {
         console.log('🔄 Transformando', asuetos.length, 'asuetos para la tabla');
         const transformedData = asuetos.map((asueto, idx) => {
-            const empleadoName = employeeMap.get(asueto.employee_id);
-            if (!empleadoName) {
-                console.warn(`⚠️ No se encontró empleado para employee_id: ${asueto.employee_id}`);
-            }
-            
+            // Obtener nombre del empleado: preferir employee_id mapeado, si existe usar name devuelto por API
+            const empleadoNameFromMap = asueto.employee_id ? employeeMap.get((asueto.employee_id as number)) : undefined;
+            const empleadoNameFromApi = (asueto as any).name as string | undefined;
+            const empleadoName = empleadoNameFromApi || empleadoNameFromMap || `ID: ${asueto.employee_id ?? asueto.id}`;
+
             const transformedItem = {
                 ...asueto,
                 id: asueto.id ? asueto.id.toString() : idx.toString(), // Asegurar que el ID sea string
-                empleado: empleadoName || `ID: ${asueto.employee_id}`,
+                empleado: empleadoName,
                 fechaInicio: formatDate(asueto.startDate),
                 fechaFin: formatDate(asueto.endDate),
             };
