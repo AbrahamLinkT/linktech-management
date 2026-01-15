@@ -94,9 +94,9 @@ export function useUsuarios() {
             id_worker: item.worker,
             departmentName: item.department_name,
             workerName: item.worker_name,
-            start_date: item.start_date ?? null,
-            end_date: item.end_date ?? null,
-            active: item.active ?? true,
+            start_date: (item as any).start_date ?? (item as any).startDate ?? null,
+            end_date: (item as any).end_date ?? (item as any).endDate ?? null,
+            active: (item as any).active ?? (item as any).isActive ?? true,
           }));
         } else {
           throw new Error(`DTO no disponible: ${resDto.status}`);
@@ -120,6 +120,27 @@ export function useUsuarios() {
             active: undefined,
           };
         });
+
+        // Intentar enriquecer con detalle por ID para obtener fechas/activo
+        mapped = await Promise.all(
+          mapped.map(async (m) => {
+            try {
+              const url = `${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS)}/${m.id}`;
+              const res = await fetch(url);
+              if (!res.ok) return m;
+              const json = await res.json();
+              const item = Array.isArray(json) ? json[0] : json;
+              return {
+                ...m,
+                start_date: item?.start_date ?? item?.startDate ?? null,
+                end_date: item?.end_date ?? item?.endDate ?? null,
+                active: item?.active ?? item?.isActive ?? true,
+              } as DepartmentHeadItem;
+            } catch {
+              return m;
+            }
+          })
+        );
       }
 
       setData(mapped);
@@ -259,9 +280,9 @@ export function useUsuarios() {
         id: Number(item.id),
         id_department: Number(item.id_department),
         id_worker: Number(item.id_worker),
-        start_date: item.start_date ?? null,
-        end_date: item.end_date ?? null,
-        active: item.active ?? true,
+        start_date: item.start_date ?? item.startDate ?? null,
+        end_date: item.end_date ?? item.endDate ?? null,
+        active: item.active ?? item.isActive ?? true,
       };
     } catch (err) {
       console.error('Error fetching department head by id:', err);
