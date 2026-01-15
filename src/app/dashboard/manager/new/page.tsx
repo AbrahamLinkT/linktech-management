@@ -54,7 +54,15 @@ export default function ManagerNew() {
 		const updated = { ...form, [field]: value };
 		setForm(updated);
 		const v = validate(updated);
-		setErrors((prev) => ({ ...prev, [field]: v[field] }));
+		setErrors((prev) => {
+			const next = { ...prev };
+			if (v[field]) {
+				next[field] = v[field] as string;
+			} else {
+				delete next[field];
+			}
+			return next;
+		});
 	};
 
 	const handleBlur = (field: string) => {
@@ -67,7 +75,7 @@ export default function ManagerNew() {
 		e.preventDefault();
 		const v = validate(form);
 		setErrors(v);
-		setTouched({ id_department: true, id_worker: true });
+		setTouched({ id_department: true, id_worker: true, start_date: true });
 		if (Object.keys(v).length > 0) return;
 
 		const payload = {
@@ -204,7 +212,9 @@ export default function ManagerNew() {
 						<div className="flex justify-end">
 							<button
 								type="submit"
-								disabled={loading || Object.keys(errors).length > 0}
+								disabled={
+									loading || Object.keys(validate(form)).length > 0
+								}
 								className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded disabled:opacity-50"
 							>
 								{loading ? "Guardando..." : "Guardar"}
