@@ -10,12 +10,20 @@ export interface DepartmentHeadItem {
   workerName?: string;
 }
 
-interface DepartmentHeadApiResponse {
+// Respuesta DTO enriquecida
+interface DepartmentHeadDto {
   id: number;
   department: number;
   department_name: string;
   worker: number;
   worker_name: string;
+}
+
+// Respuesta mínima sin DTO
+interface DepartmentHeadRaw {
+  id: number;
+  id_department: number;
+  id_worker: number;
 }
 
 interface DepartmentApiItem {
@@ -55,23 +63,40 @@ export function useUsuarios() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS+"/dto"));
-      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-      const json: DepartmentHeadApiResponse[] = await res.json();
-
-      // ensure departments and workers are loaded (names) to map; if not available map with empty strings
-      const mapped: DepartmentHeadItem[] = json.map((item) => {
-        //Esto usualmente se rellena despues de hacer el editar o crear
-        //const dept = departments.find((d) => d.id === item.department);
-        //const worker = workers.find((w) => w.id === item.worker);
-        return {
-          id: item.id.toString(),
-          id_department: item.department,
-          id_worker: item.worker,
-          departmentName: item.department_name,
-          workerName: item.worker_name,
-        };
-      });
+      // Intentar DTO primero
+      let mapped: DepartmentHeadItem[] = [];
+      const dtoUrl = buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS+"/dto");
+      try {
+        const resDto = await fetch(dtoUrl);
+        if (resDto.ok) {
+          const json: DepartmentHeadDto[] = await resDto.json();
+          mapped = json.map((item) => ({
+            id: item.id.toString(),
+            id_department: item.department,
+            id_worker: item.worker,
+            departmentName: item.department_name,
+            workerName: item.worker_name,
+          }));
+        } else {
+          throw new Error(`DTO no disponible: ${resDto.status}`);
+        }
+      } catch (_) {
+        // Fallback a respuesta mínima
+        const resRaw = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS));
+        if (!resRaw.ok) throw new Error(`Error HTTP: ${resRaw.status}`);
+        const raw: DepartmentHeadRaw[] = await resRaw.json();
+        mapped = raw.map((item) => {
+          const dept = departments.find((d) => d.id === item.id_department);
+          const worker = workers.find((w) => w.id === item.id_worker);
+          return {
+            id: item.id.toString(),
+            id_department: item.id_department,
+            id_worker: item.id_worker,
+            departmentName: dept?.name,
+            workerName: worker?.name,
+          };
+        });
+      }
 
       setData(mapped);
     } catch (err) {

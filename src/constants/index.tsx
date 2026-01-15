@@ -73,8 +73,8 @@ export const navbarLinks = [
             {
                 label: "Lider de departamentos",
                 icon: Users,
-                path: "/dashboard/usuarios",
-                description: "Administra accesos y perfiles de usuario.",
+                path: "/dashboard/manager",
+                description: "Administra accesos y lideres.",
             },
         ],
     },

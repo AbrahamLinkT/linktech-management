@@ -2,12 +2,14 @@
 import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { useUsuarios } from "@/hooks/useUsuarios";
 
 export default function New() {
   const router = useRouter();
+  const pathname = usePathname();
+  const returnTo = pathname.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
   const {
     departments,
     workers,
@@ -33,7 +35,7 @@ export default function New() {
   `;
 
   const handleClickRoute = () => {
-    router.push("/dashboard/usuarios");
+    router.push(returnTo);
   };
 
   const validate = (values: typeof form) => {
@@ -74,7 +76,7 @@ export default function New() {
     };
 
     const ok = await createDepartmentHead(payload);
-    if (ok) router.push("/dashboard/usuarios");
+    if (ok) router.push(returnTo);
   };
 
   return (

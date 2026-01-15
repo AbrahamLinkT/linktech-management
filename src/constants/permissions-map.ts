@@ -14,6 +14,7 @@ export const routePermissionsMap: Record<string, string> = {
   "/dashboard/asuetos": "asuetos",
   "/dashboard/horas-por-aprobar": "horasPorAprobar",
   "/dashboard/usuarios": "usuarios",
+  "/dashboard/manager": "usuarios",
   "/dashboard/client": "client",
   "/dashboard/consultants": "consultants",
   "/dashboard/billing": "billing",

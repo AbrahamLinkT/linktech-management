@@ -3,12 +3,14 @@
 import { Btn_data } from "@/components/buttons/buttons";
 import { ContentBody } from "@/components/containers/containers";
 import { ArrowLeft } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUsuarios } from "@/hooks/useUsuarios";
 
 export default function Edit() {
   const router = useRouter();
+  const pathname = usePathname();
+  const returnTo = pathname.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
@@ -53,7 +55,7 @@ export default function Edit() {
         focus:outline-none
     `;
   const handleClickRoute = () => {
-    router.push("/dashboard/usuarios");
+    router.push(returnTo);
   };
 
   const validate = (values: typeof form) => {
@@ -95,7 +97,7 @@ export default function Edit() {
     };
 
     const ok = await updateDepartmentHead(id, payload);
-    if (ok) router.push("/dashboard/usuarios");
+    if (ok) router.push(returnTo);
   };
 
   return (
