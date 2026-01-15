@@ -30,6 +30,9 @@ interface DepartmentHeadRaw {
   id: number;
   id_department: number;
   id_worker: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  active?: boolean;
 }
 
 interface DepartmentApiItem {
@@ -115,32 +118,40 @@ export function useUsuarios() {
             id_worker: item.id_worker,
             departmentName: dept?.name,
             workerName: worker?.name,
-            start_date: undefined,
-            end_date: undefined,
-            active: undefined,
+            start_date: (item as any).start_date ?? (item as any).startDate ?? null,
+            end_date: (item as any).end_date ?? (item as any).endDate ?? null,
+            active: (item as any).active ?? (item as any).isActive,
           };
         });
 
-        // Intentar enriquecer con detalle por ID para obtener fechas/activo
-        mapped = await Promise.all(
-          mapped.map(async (m) => {
-            try {
-              const url = `${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS)}/${m.id}`;
-              const res = await fetch(url);
-              if (!res.ok) return m;
-              const json = await res.json();
-              const item = Array.isArray(json) ? json[0] : json;
-              return {
-                ...m,
-                start_date: item?.start_date ?? item?.startDate ?? null,
-                end_date: item?.end_date ?? item?.endDate ?? null,
-                active: item?.active ?? item?.isActive ?? true,
-              } as DepartmentHeadItem;
-            } catch {
-              return m;
-            }
-          })
+        // Intentar enriquecer con detalle por ID solo si faltan valores
+        const needsEnrichment = mapped.some(
+          (m) => m.start_date === undefined && m.end_date === undefined && m.active === undefined
         );
+        if (needsEnrichment) {
+          mapped = await Promise.all(
+            mapped.map(async (m) => {
+              if (m.start_date !== undefined || m.end_date !== undefined || m.active !== undefined) {
+                return m;
+              }
+              try {
+                const url = `${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS)}/${m.id}`;
+                const res = await fetch(url);
+                if (!res.ok) return m;
+                const json = await res.json();
+                const item = Array.isArray(json) ? json[0] : json;
+                return {
+                  ...m,
+                  start_date: item?.start_date ?? item?.startDate ?? null,
+                  end_date: item?.end_date ?? item?.endDate ?? null,
+                  active: item?.active ?? item?.isActive ?? true,
+                } as DepartmentHeadItem;
+              } catch {
+                return m;
+              }
+            })
+          );
+        }
       }
 
       setData(mapped);
