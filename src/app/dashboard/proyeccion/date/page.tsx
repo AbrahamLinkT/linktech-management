@@ -525,6 +525,12 @@ function ProyeccionTablePage() {
     return new Date(`${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
   };
 
+  // Normaliza la fecha a entero AAAAMMDD para evitar problemas de zona horaria
+  const toIntDate = (date: Date | null) => {
+    if (!date || isNaN(date.getTime())) return NaN;
+    return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+  };
+
   const handleGuardarHoras = () => {
     if (registroSeleccionado) {
       setTableData((prev) =>
@@ -534,15 +540,19 @@ function ProyeccionTablePage() {
             // Mapear fechas de columnas a índices
             const desdeDate = parseFecha(rangoHoras.desde);
             const hastaDate = parseFecha(rangoHoras.hasta);
+            const desdeInt = toIntDate(desdeDate);
+            const hastaInt = toIntDate(hastaDate);
+            const cantidadStr = (rangoHoras.cantidad ?? '').trim();
+            if (!cantidadStr) {
+              return row; // no actualizar si cantidad vacía
+            }
             for (let i = 0; i < diasInfo.length; i++) {
               const colDate = parseFecha(diasInfo[i].fullDate || diasInfo[i].fecha);
-              if (
-                desdeDate && hastaDate &&
-                colDate &&
-                colDate >= desdeDate &&
-                colDate <= hastaDate
-              ) {
-                nuevasHoras[i] = `${rangoHoras.cantidad}*`;
+              const colInt = toIntDate(colDate);
+              if (!isNaN(desdeInt) && !isNaN(hastaInt) && !isNaN(colInt)) {
+                if (colInt >= desdeInt && colInt <= hastaInt) {
+                  nuevasHoras[i] = `${cantidadStr}*`;
+                }
               }
             }
             return { ...row, horas: nuevasHoras };
@@ -555,7 +565,9 @@ function ProyeccionTablePage() {
       setTableData((prev) =>
         prev.map((row) => {
           const nuevasHoras = [...row.horas];
-          nuevasHoras[diaSeleccionado] = `${rangoHoras.cantidad}*`;
+          const cantidadStr = (rangoHoras.cantidad ?? '').trim();
+          if (!cantidadStr) return row;
+          nuevasHoras[diaSeleccionado] = `${cantidadStr}*`;
           return { ...row, horas: nuevasHoras };
         })
       );
