@@ -45,6 +45,18 @@ interface WorkerItem {
 interface CreateDepartmentHeadDto {
   id_department: number;
   id_worker: number;
+  start_date?: string; // YYYY-MM-DD
+  end_date?: string | null; // YYYY-MM-DD or null
+  active?: boolean;
+}
+
+interface DepartmentHeadDetail {
+  id: number;
+  id_department: number;
+  id_worker: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  active?: boolean;
 }
 
 export function useUsuarios() {
@@ -221,6 +233,30 @@ export function useUsuarios() {
     }
   };
 
+  // =====================================
+  // GET por ID (detalle)
+  // =====================================
+  const fetchDepartmentHeadById = async (id: string): Promise<DepartmentHeadDetail | null> => {
+    try {
+      const res = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS)}/${id}`);
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+      const json = await res.json();
+      // Aceptar tanto objeto directo como envuelto
+      const item = Array.isArray(json) ? json[0] : json;
+      return {
+        id: Number(item.id),
+        id_department: Number(item.id_department),
+        id_worker: Number(item.id_worker),
+        start_date: item.start_date ?? null,
+        end_date: item.end_date ?? null,
+        active: item.active ?? true,
+      };
+    } catch (err) {
+      console.error('Error fetching department head by id:', err);
+      return null;
+    }
+  };
+
   // Cargar datos iniciales: primero departments & workers (para nombres), luego heads
   useEffect(() => {
     (async () => {
@@ -243,5 +279,6 @@ export function useUsuarios() {
     deleteDepartmentHeads,
     updateDepartmentHead,
     fetchDepartmentHeads,
+    fetchDepartmentHeadById,
   };
 }

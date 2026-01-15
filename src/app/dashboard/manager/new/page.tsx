@@ -20,6 +20,9 @@ export default function ManagerNew() {
 	const [form, setForm] = useState({
 		id_department: "",
 		id_worker: "",
+		start_date: "",
+		end_date: "",
+		active: true,
 	});
 
 	const [errors, setErrors] = useState<{ [k: string]: string }>({});
@@ -43,6 +46,7 @@ export default function ManagerNew() {
 		if (!values.id_worker) errs.id_worker = "Selecciona una persona";
 		if (values.id_department && Number.isNaN(Number(values.id_department))) errs.id_department = "Departamento inválido";
 		if (values.id_worker && Number.isNaN(Number(values.id_worker))) errs.id_worker = "Persona inválida";
+		if (!values.start_date) errs.start_date = "Selecciona fecha de inicio";
 		return errs;
 	};
 
@@ -69,6 +73,9 @@ export default function ManagerNew() {
 		const payload = {
 			id_department: Number(form.id_department),
 			id_worker: Number(form.id_worker),
+			start_date: form.start_date,
+			end_date: form.end_date?.trim() ? form.end_date : null,
+			active: form.active,
 		};
 
 		const ok = await createDepartmentHead(payload);
@@ -145,6 +152,51 @@ export default function ManagerNew() {
 									{touched.id_worker && errors.id_worker && (
 										<p id="err-persona" className="text-red-600 text-sm mt-1">{errors.id_worker}</p>
 									)}
+								</div>
+
+								<div>
+									<label htmlFor="start_date" className="block font-medium mb-1">
+										Fecha de inicio
+									</label>
+									<input
+										id="start_date"
+										type="date"
+										className={stylesInput}
+										value={form.start_date}
+										onChange={(e) => handleChange("start_date", e.target.value)}
+										onBlur={() => handleBlur("start_date")}
+										aria-invalid={!!errors.start_date}
+										aria-describedby={errors.start_date ? "err-start_date" : undefined}
+									/>
+									{touched.start_date && errors.start_date && (
+										<p id="err-start_date" className="text-red-600 text-sm mt-1">{errors.start_date}</p>
+									)}
+								</div>
+
+								<div>
+									<label htmlFor="end_date" className="block font-medium mb-1">
+										Fecha de fin (opcional)
+									</label>
+									<input
+										id="end_date"
+										type="date"
+										className={stylesInput}
+										value={form.end_date}
+										onChange={(e) => handleChange("end_date", e.target.value)}
+									/>
+								</div>
+
+								<div className="col-span-1">
+									<label className="block font-medium mb-1">Activo</label>
+									<div className="flex items-center gap-3">
+										<input
+											id="active"
+											type="checkbox"
+											checked={form.active}
+											onChange={(e) => setForm({ ...form, active: e.target.checked })}
+										/>
+										<span>Activo</span>
+									</div>
 								</div>
 							</div>
 						</fieldset>

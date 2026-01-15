@@ -18,6 +18,7 @@ export default function ManagerEdit() {
 		departments,
 		workers,
 		updateDepartmentHead,
+		fetchDepartmentHeadById,
 		loading,
 		error,
 	} = useUsuarios();
@@ -25,21 +26,41 @@ export default function ManagerEdit() {
 	const [form, setForm] = useState({
 		id_department: "",
 		id_worker: "",
+		start_date: "",
+		end_date: "",
+		active: true,
 	});
 
 	const [errors, setErrors] = useState<{ [k: string]: string }>({});
 	const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
 
-	// Cargar el registro por id (ya que el hook mantiene `data` con todos los registros)
+	// Cargar el registro por id (detalle desde API)
 	useEffect(() => {
-		if (!id || data.length === 0) return;
-		const head = data.find((d) => d.id === id);
-		if (head) {
-			setForm({
-				id_department: String(head.id_department),
-				id_worker: String(head.id_worker),
-			});
-		}
+		(async () => {
+			if (!id) return;
+			const detail = await fetchDepartmentHeadById(id);
+			if (detail) {
+				setForm({
+					id_department: String(detail.id_department),
+					id_worker: String(detail.id_worker),
+					start_date: detail.start_date ?? "",
+					end_date: detail.end_date ?? "",
+					active: detail.active ?? true,
+				});
+			} else if (data.length > 0) {
+				// Fallback: usar lista mínima
+				const head = data.find((d) => d.id === id);
+				if (head) {
+					setForm({
+						id_department: String(head.id_department),
+						id_worker: String(head.id_worker),
+						start_date: "",
+						end_date: "",
+						active: true,
+					});
+				}
+			}
+		})();
 	}, [id, data]);
 
 	useEffect(() => {
@@ -66,6 +87,7 @@ export default function ManagerEdit() {
 			errs.id_department = "Departamento inválido";
 		if (values.id_worker && Number.isNaN(Number(values.id_worker)))
 			errs.id_worker = "Persona inválida";
+		if (!values.start_date) errs.start_date = "Selecciona fecha de inicio";
 
 		return errs;
 	};
@@ -93,6 +115,9 @@ export default function ManagerEdit() {
 		const payload = {
 			id_department: Number(form.id_department),
 			id_worker: Number(form.id_worker),
+			start_date: form.start_date,
+			end_date: form.end_date?.trim() ? form.end_date : null,
+			active: form.active,
 		};
 
 		const ok = await updateDepartmentHead(id, payload);
@@ -184,6 +209,53 @@ export default function ManagerEdit() {
 											{errors.id_worker}
 										</p>
 									)}
+								</div>
+
+								<div>
+									<label htmlFor="start_date" className="block font-medium mb-1">
+										Fecha de inicio
+									</label>
+									<input
+										id="start_date"
+										type="date"
+										className={stylesInput}
+										value={form.start_date}
+										onChange={(e) => handleChange("start_date", e.target.value)}
+										onBlur={() => handleBlur("start_date")}
+										aria-invalid={!!errors.start_date}
+										aria-describedby={errors.start_date ? "err-start_date" : undefined}
+									/>
+									{touched.start_date && errors.start_date && (
+										<p id="err-start_date" className="text-red-600 text-sm mt-1">
+											{errors.start_date}
+										</p>
+									)}
+								</div>
+
+								<div>
+									<label htmlFor="end_date" className="block font-medium mb-1">
+										Fecha de fin (opcional)
+									</label>
+									<input
+										id="end_date"
+										type="date"
+										className={stylesInput}
+										value={form.end_date}
+										onChange={(e) => handleChange("end_date", e.target.value)}
+									/>
+								</div>
+
+								<div className="col-span-1">
+									<label className="block font-medium mb-1">Activo</label>
+									<div className="flex items-center gap-3">
+										<input
+											id="active"
+											type="checkbox"
+											checked={form.active}
+											onChange={(e) => setForm({ ...form, active: e.target.checked })}
+										/>
+										<span>Activo</span>
+									</div>
 								</div>
 							</div>
 						</fieldset>
