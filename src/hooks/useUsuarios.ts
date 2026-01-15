@@ -101,6 +101,39 @@ export function useUsuarios() {
             end_date: (item as any).end_date ?? (item as any).endDate ?? null,
             active: (item as any).active ?? (item as any).isActive ?? true,
           }));
+
+          // Si el DTO no trae fechas/activo, fusionar con el raw para completarlos
+          const needsMerge = mapped.some(
+            (m) => (m.start_date == null && m.end_date == null) || m.active === undefined
+          );
+          if (needsMerge) {
+            try {
+              const resRaw = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENT_HEADS));
+              if (resRaw.ok) {
+                const rawList: DepartmentHeadRaw[] = await resRaw.json();
+                const rawMap = new Map(
+                  rawList.map((r) => [r.id.toString(), r])
+                );
+                mapped = mapped.map((m) => {
+                  const r = rawMap.get(m.id);
+                  if (!r) return m;
+                  return {
+                    ...m,
+                    start_date:
+                      m.start_date ?? (r as any).start_date ?? (r as any).startDate ?? null,
+                    end_date:
+                      m.end_date ?? (r as any).end_date ?? (r as any).endDate ?? null,
+                    active:
+                      m.active !== undefined
+                        ? m.active
+                        : (r as any).active ?? (r as any).isActive,
+                  } as DepartmentHeadItem;
+                });
+              }
+            } catch {
+              // ignorar merge si falla
+            }
+          }
         } else {
           throw new Error(`DTO no disponible: ${resDto.status}`);
         }
