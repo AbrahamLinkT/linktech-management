@@ -14,6 +14,9 @@ interface ManagerRow {
   lider: string;
   id_department: number;
   id_worker: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  active?: boolean;
 }
 
 export default function ManagerPage() {
@@ -29,12 +32,39 @@ export default function ManagerPage() {
       lider: d.workerName || String(d.id_worker),
       id_department: d.id_department,
       id_worker: d.id_worker,
+      start_date: d.start_date ?? null,
+      end_date: d.end_date ?? null,
+      active: d.active,
     }));
   }, [data]);
 
   const columns = useMemo<MRT_ColumnDef<ManagerRow>[]>(() => [
     { accessorKey: "departamento", header: "Departamento" },
     { accessorKey: "lider", header: "Líder" },
+    {
+      accessorKey: "start_date",
+      header: "Inicio",
+      Cell: ({ cell }) => {
+        const value = cell.getValue<string | null | undefined>();
+        return value ? new Date(value).toLocaleDateString() : "—";
+      },
+    },
+    {
+      accessorKey: "end_date",
+      header: "Fin",
+      Cell: ({ cell }) => {
+        const value = cell.getValue<string | null | undefined>();
+        return value ? new Date(value).toLocaleDateString() : "—";
+      },
+    },
+    {
+      accessorKey: "active",
+      header: "Activo",
+      Cell: ({ cell }) => {
+        const value = cell.getValue<boolean | undefined>();
+        return value === undefined ? "—" : value ? "Sí" : "No";
+      },
+    },
   ], []);
 
   const actions = { edit: true, add: true, export: true, delete: true };

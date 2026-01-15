@@ -8,6 +8,9 @@ export interface DepartmentHeadItem {
   id_worker: number;
   departmentName?: string;
   workerName?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  active?: boolean;
 }
 
 // Respuesta DTO enriquecida
@@ -17,6 +20,9 @@ interface DepartmentHeadDto {
   department_name: string;
   worker: number;
   worker_name: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  active?: boolean;
 }
 
 // Respuesta mínima sin DTO
@@ -88,6 +94,9 @@ export function useUsuarios() {
             id_worker: item.worker,
             departmentName: item.department_name,
             workerName: item.worker_name,
+            start_date: item.start_date ?? null,
+            end_date: item.end_date ?? null,
+            active: item.active ?? true,
           }));
         } else {
           throw new Error(`DTO no disponible: ${resDto.status}`);
@@ -106,6 +115,9 @@ export function useUsuarios() {
             id_worker: item.id_worker,
             departmentName: dept?.name,
             workerName: worker?.name,
+            start_date: undefined,
+            end_date: undefined,
+            active: undefined,
           };
         });
       }
