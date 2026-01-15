@@ -171,14 +171,24 @@ export default function SolicitudHoras() {
                 type="date"
                 value={rangoHoras.desde}
                 onChange={e => setRangoHoras(r => ({ ...r, desde: e.target.value }))}
-                style={{ width: 140, padding: 4 }}
+                style={{
+                  width: 140,
+                  padding: 8,
+                  border: '1px solid rgba(0, 0, 0, 0.35)',
+                  borderRadius: 5
+                }}
               />
               <Typography variant="body2">Hasta:</Typography>
               <input
                 type="date"
                 value={rangoHoras.hasta}
                 onChange={e => setRangoHoras(r => ({ ...r, hasta: e.target.value }))}
-                style={{ width: 140, padding: 4 }}
+                style={{
+                  width: 140,
+                  padding: 8,
+                  border: '1px solid rgba(0, 0, 0, 0.35)',
+                  borderRadius: 5
+                }}
               />
               <Typography variant="body2">Cantidad de horas:</Typography>
               <input
@@ -187,7 +197,12 @@ export default function SolicitudHoras() {
                 max={24}
                 value={rangoHoras.cantidad}
                 onChange={e => setRangoHoras(r => ({ ...r, cantidad: Number(e.target.value) }))}
-                style={{ width: 80, padding: 4 }}
+                style={{
+                  width: 80,
+                  padding: 8,
+                  border: '1px solid rgba(0, 0, 0, 0.35)',
+                  borderRadius: 5
+                }}
               />
             </Box>
             <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
