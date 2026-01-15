@@ -955,46 +955,76 @@ function ProyeccionTablePage() {
                 <Typography variant="body2"><b>Nivel:</b> {registroSeleccionado.nivel}</Typography>
               </Box>
             )}
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', m: 2 }}>
-              <Typography variant="body2">Desde:</Typography>
-              <input
-                type="date"
-                value={rangoHoras.desde}
-                onChange={e => setRangoHoras(r => ({ ...r, desde: e.target.value }))}
-                style={{
-                  width: 140,
-                  padding: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.35)',
-                  borderRadius: 5
-                }}
-              />
-              <Typography variant="body2">Hasta:</Typography>
-              <input
-                type="date"
-                value={rangoHoras.hasta}
-                onChange={e => setRangoHoras(r => ({ ...r, hasta: e.target.value }))}
-                style={{
-                  width: 140,
-                  padding: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.35)',
-                  borderRadius: 5
-                }}
-              />
-              <Typography variant="body2">Cantidad de horas:</Typography>
-              <input
-                type="number"
-                min={0}
-                max={24}
-                value={rangoHoras.cantidad}
-                onChange={e => setRangoHoras(r => ({ ...r, cantidad: e.target.value }))}
-                style={{
-                  width: 80,
-                  padding: 8,
-                  border: '1px solid rgba(0, 0, 0, 0.35)',
-                  borderRadius: 5
-                }}
-              />
-            </Box>
+            {diaSeleccionado !== null ? (
+              <Box sx={{ display: 'flex', gap: 12, alignItems: 'center', m: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Typography variant="body2">Día seleccionado:</Typography>
+                  <Box sx={{
+                    px: 2, py: 1, borderRadius: 1,
+                    bgcolor: '#f3f4f6', border: '1px solid rgba(0,0,0,0.15)'
+                  }}>
+                    {diasInfo[diaSeleccionado]?.fecha || diasInfo[diaSeleccionado]?.fullDate}
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Typography variant="body2">Cantidad de horas:</Typography>
+                  <input
+                    type="number"
+                    min={0}
+                    max={24}
+                    value={rangoHoras.cantidad}
+                    onChange={e => setRangoHoras(r => ({ ...r, cantidad: e.target.value }))}
+                    style={{
+                      width: 100,
+                      padding: 8,
+                      border: '1px solid rgba(0, 0, 0, 0.35)',
+                      borderRadius: 5
+                    }}
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', m: 2 }}>
+                <Typography variant="body2">Desde:</Typography>
+                <input
+                  type="date"
+                  value={rangoHoras.desde}
+                  onChange={e => setRangoHoras(r => ({ ...r, desde: e.target.value }))}
+                  style={{
+                    width: 140,
+                    padding: 8,
+                    border: '1px solid rgba(0, 0, 0, 0.35)',
+                    borderRadius: 5
+                  }}
+                />
+                <Typography variant="body2">Hasta:</Typography>
+                <input
+                  type="date"
+                  value={rangoHoras.hasta}
+                  onChange={e => setRangoHoras(r => ({ ...r, hasta: e.target.value }))}
+                  style={{
+                    width: 140,
+                    padding: 8,
+                    border: '1px solid rgba(0, 0, 0, 0.35)',
+                    borderRadius: 5
+                  }}
+                />
+                <Typography variant="body2">Cantidad de horas:</Typography>
+                <input
+                  type="number"
+                  min={0}
+                  max={24}
+                  value={rangoHoras.cantidad}
+                  onChange={e => setRangoHoras(r => ({ ...r, cantidad: e.target.value }))}
+                  style={{
+                    width: 80,
+                    padding: 8,
+                    border: '1px solid rgba(0, 0, 0, 0.35)',
+                    borderRadius: 5
+                  }}
+                />
+              </Box>
+            )}
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Button variant="contained" color="primary" onClick={handleGuardarHoras}>
                 Guardar
