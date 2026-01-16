@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { buildApiUrl, API_CONFIG } from '../config/api';
 
@@ -112,7 +112,7 @@ export const useProjects = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Función para obtener todos los proyectos en formato DTO
-  const getProjects = async (): Promise<GetProjectsResponse> => {
+  const getProjects = useCallback(async (): Promise<GetProjectsResponse> => {
     setIsLoading(true);
     setError(null);
 
@@ -153,10 +153,10 @@ export const useProjects = () => {
         error: errorMessage,
       };
     }
-  };
+  }, []);
 
   // Filter projects by departmentId with pagination
-  const getProjectsFiltered = async (
+  const getProjectsFiltered = useCallback(async (
     departmentId?: number,
     page: number = 0,
     size: number = 20
@@ -204,7 +204,7 @@ export const useProjects = () => {
       setIsLoading(false);
       return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
   const createProject = async (projectData: ProjectPayload): Promise<CreateProjectResponse> => {
     setIsLoading(true);
