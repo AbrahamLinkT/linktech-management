@@ -6,7 +6,9 @@ import { type MRT_ColumnDef } from "material-react-table";
 import { ContentBody } from "@/components/containers/containers";
 import { useClients } from "@/hooks/useClients";
 import { useWorkers } from "@/hooks/useWorkers";
-import { buildApiUrl, API_CONFIG } from '../../../config/api';
+import { useDepartments } from "@/hooks/useDepartments";
+import { useProjects } from "@/hooks/useProjects";
+import ConfirmModal from "@/components/ConfirmModal";
 
 // Define el tipo del proyecto desde la API
 type Project = {
@@ -26,6 +28,10 @@ type Project = {
   active: boolean;
   created_at?: string;
   updated_at?: string;
+  client_name?: string;
+  employee_name?: string;
+  department_name?: string;
+  department_id?: number | null;
 };
 
 // Type for table display
@@ -35,6 +41,8 @@ type ProjectTableRow = {
   projectName: string;
   clientName: string;
   employeeName: string;
+  departmentName: string;
+  orderInt: number;
   type: string;
   status: string;
   startDate: string;
@@ -45,10 +53,11 @@ type ProjectTableRow = {
 };
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { projects, getProjects, getProjectsFiltered, deleteProject, isLoading, error } = useProjects();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [idsToDelete, setIdsToDelete] = useState<string[] | null>(null);
+  const { data: departments } = useDepartments();
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   
   // Hooks para obtener datos
   const { data: clients } = useClients();
@@ -60,54 +69,10 @@ export default function Projects() {
     console.log('Selected project IDs:', selectedIds);
   }, [rowSelection]);
 
-  // Load projects on component mount
+  // Load projects on component mount via hook
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/dto'), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // Handle both array and object responses
-        let projectsArray = Array.isArray(data) ? data : data?.data || data?.projects || [];
-        
-        if (Array.isArray(projectsArray)) {
-          setProjects(projectsArray);
-        } else {
-          console.error('Data is not an array:', projectsArray);
-          setProjects([]);
-        }
-        
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError(err instanceof Error ? err.message : 'Error desconocido al cargar proyectos');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+    getProjects();
+  }, [getProjects]);
 
   // Table columns
   const columns = useMemo<MRT_ColumnDef<ProjectTableRow>[]>(() => [
@@ -115,6 +80,8 @@ export default function Projects() {
     { accessorKey: "projectName", header: "Nombre" },
     { accessorKey: "clientName", header: "Cliente" },
     { accessorKey: "employeeName", header: "Responsable" },
+    { accessorKey: "departmentName", header: "Departamento" },
+    { accessorKey: "orderInt", header: "Orden" },
     { accessorKey: "type", header: "Tipo" },
     { accessorKey: "status", header: "Estado" },
     { accessorKey: "startDate", header: "Inicio" },
@@ -135,6 +102,9 @@ export default function Projects() {
 
       const client = clients.find(c => Number(c.id) === clientId);
       const employee = workers?.find(w => Number(w.id) === employeeId);
+      const departmentIdRaw = (project as any).department_id ?? (project as any).departmentId;
+      const departmentId = departmentIdRaw != null ? Number(departmentIdRaw) : undefined;
+      const department = departments?.find((d: any) => Number(d.id) === departmentId);
       
       return {
         id: project.project_id.toString(),
@@ -151,6 +121,8 @@ export default function Projects() {
           || (project as any).employeeName
           || (project as any).employee?.name
           || (workers?.length ? 'Sin asignar' : 'Cargando...'),
+        departmentName: (project as any).department_name || (project as any).departmentName || department?.departamento || '—',
+        orderInt: Number((project as any).order_int ?? (project as any).orderInt ?? 0),
         type: project.project_type === 'CLIENT' ? 'Cliente' : project.project_type === 'INTERNAL' ? 'Interno' : 'Investigación',
         status: project.status === 'PLANNED' ? 'Planeado' : project.status === 'IN_PROGRESS' ? 'En Progreso' : project.status === 'COMPLETED' ? 'Completado' : 'Cancelado',
         startDate: project.start_date ? new Date(project.start_date).toLocaleDateString() : '',
@@ -160,7 +132,7 @@ export default function Projects() {
         active: project.active ? 'Sí' : 'No',
       };
     });
-  }, [projects, clients, workers]);
+  }, [projects, clients, workers, departments]);
 
   // Show loading or error
   if (isLoading) {
@@ -194,6 +166,54 @@ export default function Projects() {
       <ContentBody
         title="Proyectos"
       >
+        <div className="mb-4 flex items-center gap-3">
+          <label className="font-medium">Departamento:</label>
+          <select
+            className="border rounded px-2 py-1"
+            value={selectedDepartment}
+            onChange={async (e) => {
+              const val = e.target.value;
+              setSelectedDepartment(val);
+              if (val) {
+                await getProjectsFiltered(Number(val), 0, 20);
+              } else {
+                await getProjects();
+              }
+            }}
+          >
+            <option value="">Todos</option>
+            {departments?.map((d: any) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
+          {selectedDepartment && (
+            <button
+              className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
+              onClick={async () => { setSelectedDepartment(""); await getProjects(); }}
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+        <ConfirmModal
+          isOpen={idsToDelete !== null}
+          message={`¿Eliminar ${idsToDelete?.length ?? 0} proyecto(s)?`}
+          onCancel={() => setIdsToDelete(null)}
+          onConfirm={async () => {
+            if (idsToDelete && idsToDelete.length > 0) {
+              for (const id of idsToDelete) {
+                await deleteProject(id);
+              }
+              setRowSelection({});
+              if (selectedDepartment) {
+                await getProjectsFiltered(Number(selectedDepartment), 0, 20);
+              } else {
+                await getProjects();
+              }
+            }
+            setIdsToDelete(null);
+          }}
+        />
         <DataTable<ProjectTableRow>
           urlRoute="/dashboard/projects/show?id="
           urlRouteAdd="/dashboard/projects/new"
@@ -201,10 +221,11 @@ export default function Projects() {
           menu={true}
           data={data}
           columns={columns}
-          actions={{ edit: true, add: true }}
+          actions={{ edit: true, add: true, delete: true, export: true }}
           edit={true}
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
+          onDelete={(ids) => setIdsToDelete(ids)}
         />
       </ContentBody>
     </ProtectedRoute>

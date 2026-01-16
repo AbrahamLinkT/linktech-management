@@ -83,6 +83,26 @@ interface DeleteProjectResponse {
   error?: string;
 }
 
+interface FilterPageable {
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+interface FilterProjectsResponse {
+  success: boolean;
+  data?: {
+    content: Project[];
+    pageable: FilterPageable;
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+  error?: string;
+}
+
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -132,6 +152,57 @@ export const useProjects = () => {
         success: false,
         error: errorMessage,
       };
+    }
+  };
+
+  // Filter projects by departmentId with pagination
+  const getProjectsFiltered = async (
+    departmentId?: number,
+    page: number = 0,
+    size: number = 20
+  ): Promise<FilterProjectsResponse> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params: Record<string, any> = { page, size };
+      if (departmentId) params.departmentId = departmentId;
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/filter'), {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+        params,
+      });
+
+      const payload = response.data;
+      const content: Project[] = Array.isArray(payload?.content) ? payload.content : [];
+      setProjects(content);
+      setIsLoading(false);
+      return {
+        success: true,
+        data: {
+          content,
+          pageable: {
+            pageNumber: payload?.pageable?.pageNumber ?? page,
+            pageSize: payload?.pageable?.pageSize ?? size,
+            totalElements: payload?.totalElements ?? content.length,
+            totalPages: payload?.totalPages ?? 1,
+          },
+          number: payload?.number ?? page,
+          size: payload?.size ?? size,
+          totalElements: payload?.totalElements ?? content.length,
+          totalPages: payload?.totalPages ?? 1,
+        },
+      };
+    } catch (err: unknown) {
+      let errorMessage = 'Error filtering projects';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+        errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error filtering projects';
+      }
+      setError(errorMessage);
+      setIsLoading(false);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -294,12 +365,28 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      const response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, {
+      let response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, {
         headers: {
           'Content-Type': 'application/json',
         },
         timeout: 30000,
+        validateStatus: () => true,
       });
+
+      // Fallback: algunos backends esperan DELETE /projects con body
+      if (response.status >= 400) {
+        response = await axios.delete(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          data: { project_id: Number(id) },
+          timeout: 30000,
+          validateStatus: () => true,
+        });
+        if (response.status >= 400) {
+          throw new Error(`Delete failed: status ${response.status}`);
+        }
+      }
 
       setIsDeleting(false);
       return {
@@ -329,6 +416,7 @@ export const useProjects = () => {
   return {
     createProject,
     getProjects,
+    getProjectsFiltered,
     getProjectById,
     updateProject,
     deleteProject,

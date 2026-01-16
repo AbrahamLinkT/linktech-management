@@ -1,131 +1,133 @@
 "use client";
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-/* Importacion de componenetes propios */
 import { ContentBody } from "@/components/containers/containers";
 import { Btn_data } from "@/components/buttons/buttons";
-/* impórtaciones de jsons */
-import Projects from "@/data/Projects.json";
-import staff from "@/data/staff_horas.json"
-import { DataTable } from "@/components/tables/table_master";
-import { type MRT_ColumnDef } from "material-react-table";
+import { useProjects } from "@/hooks/useProjects";
 
+type ProjectDetail = {
+    project_id: number;
+    project_name: string;
+    project_code: string;
+    order_int: string | number;
+    project_description: string;
+    status: string;
+    project_type: string;
+    estimated_hours: number;
+    budget_amount: number;
+    start_date: string;
+    end_date: string;
+    active: boolean;
+    created_at?: string | null;
+    updated_at?: string | null;
+    client_id?: number | null;
+    employee_id?: number | null;
+    department_id?: number | null;
+    client_name?: string;
+    employee_name?: string;
+    department_name?: string;
+};
 
-interface StaffItem {
-    id: string;
-    consultor: string;
-    especialidad: string;
-    nivel: string;
-    departamento: string;
-    esquema: string;
-    horas: string;
-    estatus: string;
-
-}
 export default function Project() {
-
-    // =============== Estados ================
-
-    // =============== ID PROYECTO ================
     const searchParams = useSearchParams();
-    const id = searchParams.get("id");
-    const route = useRouter();
-    const Proyecto = Projects.proyectos.find((p) => p.id == id);
+    const id = searchParams.get("id") || "";
+    const router = useRouter();
+    const { getProjectById } = useProjects();
+    const [project, setProject] = useState<ProjectDetail | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [err, setErr] = useState<string | null>(null);
 
-    // =============== MANEJO DE LOGICA DE LA TABLA PRINCIPAL ================
-    const columns = useMemo<MRT_ColumnDef<StaffItem>[]>(
-        () => [
-            { accessorKey: "consultor", header: "Empleado" },
-            { accessorKey: "especialidad", header: "Especialidad" },
-            { accessorKey: "departamento", header: "Departamento" },
-            { accessorKey: "nivel", header: "Nivel" },
-            { accessorKey: "estatus", header: "Estatus" },
-            { accessorKey: "esquema", header: "Esquema" },
-            { accessorKey: "fecha-inicio", header: "Fecha Inicio" },
-            { accessorKey: "fecha-fin", header: "Fecha Fin" },
-            { accessorKey: "horas", header: "Horas" },
-        ], []);
+    useEffect(() => {
+        const load = async () => {
+            if (!id) { setErr("ID de proyecto inválido"); setLoading(false); return; }
+            const res = await getProjectById(id);
+            if (res.success && res.data) {
+                setProject(res.data as ProjectDetail);
+            } else {
+                setErr(res.error || "Proyecto no encontrado");
+            }
+            setLoading(false);
+        };
+        load();
+    }, [id, getProjectById]);
 
-    const data: StaffItem[] = Array.isArray(staff.staff) ? staff.staff : [];
-    // =============== VALIDACION DE PROYECTO ================
-    if (!Proyecto) {
-        return <div className="p-6 text-red-600">Proyecto no encontrado</div>;
+    const handleClick = () => router.push("/dashboard/projects/");
+
+    if (loading) {
+        return (
+            <ContentBody title="Proyecto">
+                <div className="p-6">Cargando proyecto...</div>
+            </ContentBody>
+        );
     }
 
-    // =============== REDIRECCCIONAMIENTO ================
-    const handleClick = () => {
-        route.push("/dashboard/projects/");
-    };
-
-    // =============== MANEJO DE CAMBIOS DE TRABAJADORES ================
-
-
-    const actions = { edit: true, delete: true, add: true };
+    if (err || !project) {
+        return (
+            <ContentBody title="Proyecto">
+                <div className="p-6 text-red-600">{err || "Proyecto no encontrado"}</div>
+            </ContentBody>
+        );
+    }
 
     return (
-        <>
-            <ContentBody
-                title={`${Proyecto?.titulo}`}
-                btnReg={
-                    <Btn_data
-                        text="Regresar"
-                        icon={<ArrowLeft />}
-                        styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium hover:bg-blue-400 hover:text-white"
-                        Onclick={handleClick}
-                    />
-                }
-                subtitle={Proyecto?.nombre}
-                contentSubtitleComponent={
-                    <div className="pl-4 grid grid-cols-1 md:grid-cols-3 gap-4 w-full ">
-                        {/* Col 1 - Fila 1 */}
-                        <div className="">
-                            <h2>Descripción: </h2>
-                            <p>{Proyecto?.descripcion}</p>
-                        </div>
-
-                        {/* Col 2 - Fila 1 */}
-                        <div className="flex gap-8">
-                            <h2>Fecha de Inicio: </h2>
-                            <p>{Proyecto?.fechaIn}</p>
-                        </div>
-
-                        {/* Col 3 - Fila 1 y 2 (ocupa las dos filas) */}
-                        <div className="pr-3 bg-gray-400 md:row-span-2 flex items-center justify-center">
-                            <h2>LOGOTIPO</h2>
-                        </div>
-
-                        {/* Col 1 - Fila 2 */}
-                        <div className="flex gap-8">
-                            <h2>Orden interna: </h2>
-                            <p>{Proyecto?.ordenInterna}</p>
-                            <h2>Responsable: </h2>
-                            <p>{Proyecto?.responsable}</p>
-                        </div>
-
-                        {/* Col 2 - Fila 2 */}
-                        <div className=" flex gap-8">
-                            <h2>Fecha de Fin: </h2>
-                            <p>{Proyecto?.fechaFn}</p>
-                        </div>
-                    </div>
-                }
-            >
-                <DataTable
-                    menu={true}
-                    columns={columns}
-                    data={data}
-                    actions={actions}
-                    edit={true}
-                    urlRoute="/dashboard/proyeccion/date?id="
-                    title_add="Agregar Trabajador"
-                    ModalAdd={<h1>Aqui va el modal de agregar</h1>}
+        <ContentBody
+            title={project.project_name}
+            btnReg={
+                <Btn_data
+                    text="Regresar"
+                    icon={<ArrowLeft />}
+                    styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium hover:bg-blue-400 hover:text-white"
+                    Onclick={handleClick}
                 />
-
-
-            </ContentBody>
-
-        </>
+            }
+            subtitle={project.project_code}
+            contentSubtitleComponent={
+                <div className="pl-4 grid grid-cols-1 md:grid-cols-3 gap-4 w-full ">
+                    <div>
+                        <h2>Descripción:</h2>
+                        <p>{project.project_description}</p>
+                    </div>
+                    <div>
+                        <h2>Orden interna:</h2>
+                        <p>{String(project.order_int)}</p>
+                    </div>
+                    <div>
+                        <h2>Cliente:</h2>
+                        <p>{project.client_name || "—"}</p>
+                    </div>
+                    <div>
+                        <h2>Responsable:</h2>
+                        <p>{project.employee_name || "—"}</p>
+                    </div>
+                    <div>
+                        <h2>Departamento:</h2>
+                        <p>{project.department_name || "—"}</p>
+                    </div>
+                    <div>
+                        <h2>Estado / Tipo:</h2>
+                        <p>{project.status} / {project.project_type}</p>
+                    </div>
+                    <div>
+                        <h2>Inicio:</h2>
+                        <p>{project.start_date ? new Date(project.start_date).toLocaleString() : "—"}</p>
+                    </div>
+                    <div>
+                        <h2>Fin:</h2>
+                        <p>{project.end_date ? new Date(project.end_date).toLocaleString() : "—"}</p>
+                    </div>
+                    <div>
+                        <h2>Horas estimadas / Presupuesto:</h2>
+                        <p>{project.estimated_hours} h / ${project.budget_amount}</p>
+                    </div>
+                    <div>
+                        <h2>Activo:</h2>
+                        <p>{project.active ? "Sí" : "No"}</p>
+                    </div>
+                </div>
+            }
+        >
+            {/* Contenido adicional (timeline, asignaciones) puede ir aquí */}
+        </ContentBody>
     );
 }
