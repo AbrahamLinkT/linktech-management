@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProjects";
 import { useClients } from "@/hooks/useClients";
 import { useWorkers } from "@/hooks/useWorkers";
+import { useDepartments } from "@/hooks/useDepartments";
 
 interface FormData {
   project_name: string;
@@ -16,6 +17,7 @@ interface FormData {
   project_description: string;
   client_id: string;
   employee_id: string;
+  department_id: string;
   status: string;
   project_type: string;
   estimated_hours: number;
@@ -30,6 +32,7 @@ export default function NewProject() {
   const { createProject, isLoading, error } = useProjects();
   const { data: clients } = useClients();
   const { data: workers } = useWorkers();
+  const { data: departments } = useDepartments();
   
   const [formData, setFormData] = useState<FormData>({
     project_name: "",
@@ -38,6 +41,7 @@ export default function NewProject() {
     project_description: "",
     client_id: "",
     employee_id: "",
+    department_id: "",
     status: "PLANNED",
     project_type: "CLIENT",
     estimated_hours: 0,
@@ -96,6 +100,7 @@ export default function NewProject() {
       project_description: formData.project_description.trim(),
       client_id: parseInt(formData.client_id) || 0,
       employee_id: parseInt(formData.employee_id) || 0,
+      department_id: formData.department_id ? parseInt(formData.department_id) : undefined,
       status: formData.status as "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED",
       project_type: formData.project_type as "CLIENT" | "INTERNAL" | "RESEARCH",
       estimated_hours: formData.estimated_hours,
@@ -115,6 +120,7 @@ export default function NewProject() {
         project_description: "",
         client_id: "",
         employee_id: "",
+        department_id: "",
         status: "PLANNED",
         project_type: "CLIENT",
         estimated_hours: 0,
@@ -245,12 +251,12 @@ export default function NewProject() {
               </div>
             </fieldset>
 
-            {/* Client and Employee section */}
+            {/* Client, Employee and Department section */}
             <fieldset className="border border-gray-400 rounded-xl p-4">
               <legend className="text-lg font-semibold px-2 ml-2 mt-4 bg-white">
-                Cliente y Responsable
+                Cliente, Responsable y Departamento
               </legend>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="client_id" className="block font-medium mb-1">
                     Cliente *
@@ -288,6 +294,26 @@ export default function NewProject() {
                     {workers?.map((worker) => (
                       <option key={worker.id} value={worker.id}>
                         {worker.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="department_id" className="block font-medium mb-1">
+                    Departamento
+                  </label>
+                  <select 
+                    name="department_id" 
+                    id="department_id" 
+                    value={formData.department_id}
+                    onChange={handleInputChange}
+                    className={stylesInput}
+                  >
+                    <option value="">Seleccione un departamento</option>
+                    {departments?.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.departamento}
                       </option>
                     ))}
                   </select>

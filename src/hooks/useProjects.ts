@@ -10,6 +10,7 @@ interface ProjectPayload {
   project_description: string;
   client_id: number;
   employee_id: number;
+  department_id?: number | null;
   status: string; // "PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"
   project_type: string; // "CLIENT", "INTERNAL", "RESEARCH"
   estimated_hours: number;
@@ -28,6 +29,7 @@ interface Project {
   project_description: string;
   client_id: number;
   employee_id: number;
+  department_id?: number | null;
   status: string;
   project_type: string;
   estimated_hours: number;
@@ -37,6 +39,7 @@ interface Project {
   active: boolean;
   created_at?: string;
   updated_at?: string;
+  department_name?: string;
 }
 
 // Para compatibilidad con código antiguo
@@ -211,7 +214,7 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      const cleanedData = {
+      const cleanedData: Record<string, any> = {
         project_name: projectData.project_name,
         project_code: projectData.project_code,
         order_int: projectData.order_int || 0,
@@ -226,6 +229,11 @@ export const useProjects = () => {
         end_date: projectData.end_date ? new Date(projectData.end_date).toISOString() : new Date().toISOString(),
         active: projectData.active ?? true,
       };
+
+      // incluir department_id si se proporcionó
+      if (projectData.department_id != null) {
+        cleanedData.department_id = projectData.department_id;
+      }
 
       const response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), cleanedData, {
         headers: {
@@ -307,7 +315,7 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      const cleanedData = {
+      const cleanedData: Record<string, any> = {
         project_name: projectData.project_name,
         project_code: projectData.project_code,
         order_int: projectData.order_int || 0,
@@ -322,6 +330,11 @@ export const useProjects = () => {
         end_date: projectData.end_date ? new Date(projectData.end_date).toISOString() : new Date().toISOString(),
         active: projectData.active ?? true,
       };
+
+      // incluir department_id si se proporcionó
+      if (projectData.department_id != null) {
+        cleanedData.department_id = projectData.department_id;
+      }
 
       const response = await axios.put(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, cleanedData, {
         headers: {

@@ -183,7 +183,7 @@ export default function Projects() {
           >
             <option value="">Todos</option>
             {departments?.map((d: any) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+              <option key={d.id} value={d.id}>{d.departamento}</option>
             ))}
           </select>
           {selectedDepartment && (
