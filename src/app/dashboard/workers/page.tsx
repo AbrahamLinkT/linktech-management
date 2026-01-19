@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { useWorkers, WorkerData } from "@/hooks/useWorkers";
+import { useDepartments } from "@/hooks/useDepartments";
 import ConfirmModal from "@/components/ConfirmModal";
 
 interface StaffItem {
@@ -19,7 +20,9 @@ interface StaffItem {
 }
 
 export default function Workers() {
-  const { data: workers, loading, deleteWorkers } = useWorkers();
+  const { data: workers, loading, deleteWorkers, fetchWorkers, fetchWorkersFiltered } = useWorkers();
+  const { data: departments } = useDepartments();
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [idsToDelete, setIdsToDelete] = useState<string[] | null>(null);
@@ -29,7 +32,7 @@ export default function Workers() {
     consultor: w.name,
     especialidad: w.roleName ?? "-",
     nivel: w.levelName ?? "-",
-    departamento: w.location ?? "-",
+    departamento: w.departmentName ?? "-",
     esquema: w.schemeName ?? "-",
     estatus: w.status ? "Activo" : "Inactivo",
   }));
@@ -54,6 +57,32 @@ export default function Workers() {
   return (
     <ProtectedRoute requiredPermission="workers">
       <ContentBody title="Trabajadores">
+        <div className="mb-4 flex items-center gap-3">
+          <label className="font-medium">Departamento:</label>
+          <select
+            className="border rounded px-2 py-1"
+            value={selectedDepartment}
+            onChange={async (e) => {
+              const val = e.target.value;
+              setSelectedDepartment(val);
+              if (val) await fetchWorkersFiltered(Number(val), 0, 20);
+              else await fetchWorkers();
+            }}
+          >
+            <option value="">Todos</option>
+            {departments?.map((d) => (
+              <option key={d.id} value={d.id}>{d.departamento ?? d.name}</option>
+            ))}
+          </select>
+          {selectedDepartment && (
+            <button
+              className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
+              onClick={async () => { setSelectedDepartment(""); await fetchWorkers(); }}
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
         <ConfirmModal
           isOpen={idsToDelete !== null}
           message={`¿Eliminar ${idsToDelete?.length ?? 0} trabajador(es)?`}

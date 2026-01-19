@@ -11,6 +11,8 @@ export interface WorkerData {
   status: boolean;
   location?: string;
   description?: string;
+  department_id?: number | null;
+  departmentName?: string;
   level_id?: number | null;
   scheme_id?: number | null;
   role_id?: number | null;
@@ -35,6 +37,7 @@ export interface WorkerPayload {
   status: boolean;
   location?: string;
   description?: string;
+  department_id?: number | null;
   level_id?: number | null;
   scheme_id?: number | null;
   role_id?: number | null;
@@ -61,6 +64,7 @@ export function useWorkers() {
   const [roles, setRoles] = useState<RoleItem[]>([]);
   // list of possible managers (id + name)
   const [managers, setManagers] = useState<{ id: number; name: string }[]>([]);
+  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
 
   // =====================================
   // Helpers to fetch auxiliary lists
@@ -98,6 +102,19 @@ export function useWorkers() {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS));
+      if (!res.ok) throw new Error(`Error fetching departments: ${res.status}`);
+      const json = await res.json();
+      const arr = Array.isArray(json) ? json : (json.content || []);
+      const mapped = arr.map((d: any) => ({ id: Number(d.id), name: d.name ?? d.departamento ?? '' }));
+      setDepartments(mapped);
+    } catch (err) {
+      console.error('Error fetching departments', err);
+    }
+  };
+
   // =====================================
   // GET workers + enrich with names
   // =====================================
@@ -106,11 +123,12 @@ export function useWorkers() {
     setError(null);
     try {
       // fetch lists in parallel
-      const [workersRes, levelsRes, schemesRes, rolesRes] = await Promise.all([
+      const [workersRes, levelsRes, schemesRes, rolesRes, departmentsRes] = await Promise.all([
         fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS)),
         fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LEVELS)),
         fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE)),
         fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ROLES)),
+        fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS)),
       ]);
 
       // parse lists safely
@@ -118,16 +136,19 @@ export function useWorkers() {
       const levelsJson = levelsRes.ok ? await levelsRes.json() : [];
       const schemesJson = schemesRes.ok ? await schemesRes.json() : [];
       const rolesJson = rolesRes.ok ? await rolesRes.json() : [];
+      const departmentsJson = departmentsRes.ok ? await departmentsRes.json() : [];
 
       const rawWorkers = Array.isArray(workersJson) ? workersJson : (workersJson.content || []);
       const lvls = Array.isArray(levelsJson) ? levelsJson : (levelsJson.content || []);
       const sch = Array.isArray(schemesJson) ? schemesJson : (schemesJson.content || []);
       const rls = Array.isArray(rolesJson) ? rolesJson : (rolesJson.content || []);
+      const dpts = Array.isArray(departmentsJson) ? departmentsJson : (departmentsJson.content || []);
 
       // set auxiliary lists
       setLevels(lvls);
       setSchemes(sch);
       setRoles(rls);
+      setDepartments(dpts.map((d: any) => ({ id: Number(d.id), name: d.name ?? d.departamento ?? '' })));
 
       // build id->name map to resolve manager names
       const idNameMap: Record<number, string> = {};
@@ -135,6 +156,13 @@ export function useWorkers() {
         const wid = Number(rw.id ?? rw.worker);
         const wname = rw.name ?? rw.worker_name ?? rw.workerName ?? '';
         if (!Number.isNaN(wid)) idNameMap[wid] = wname;
+      });
+
+      const deptMap = new Map<number, string>();
+      dpts.forEach((d: any) => {
+        const id = Number(d.id);
+        const name = d.name ?? d.departamento ?? '';
+        if (!Number.isNaN(id)) deptMap.set(id, name);
       });
 
       // map workers into WorkerData
@@ -146,6 +174,7 @@ export function useWorkers() {
         const level_id = w.level_id ?? w.levelId ?? null;
         const scheme_id = w.scheme_id ?? w.schemeId ?? null;
         const role_id = w.role_id ?? w.roleId ?? w.role ?? null;
+        const department_id = w.department_id ?? w.departmentId ?? null;
         const employee_code = w.employee_code ?? w.employeeCode ?? undefined;
         const hire_date = w.hire_date ?? w.hireDate ?? null;
         const termination_date = w.termination_date ?? w.terminationDate ?? null;
@@ -158,6 +187,7 @@ export function useWorkers() {
         const schemeName = scheme_id ? (sch.find((x: any) => x.id === scheme_id)?.name ?? String(scheme_id)) : undefined;
         const roleName = role_id ? (rls.find((x: any) => x.id === role_id)?.name ?? String(role_id)) : undefined;
         const managerName = manager_id ? (idNameMap[Number(manager_id)] ?? String(manager_id)) : undefined;
+        const departmentName = department_id ? (deptMap.get(Number(department_id)) ?? String(department_id)) : undefined;
 
         return {
           id: Number(id),
@@ -167,6 +197,8 @@ export function useWorkers() {
           status: status ?? false,
           location: w.location ?? undefined,
           description: w.description ?? undefined,
+          department_id,
+          departmentName,
           employee_code,
           hire_date,
           termination_date,
@@ -202,9 +234,16 @@ export function useWorkers() {
   // Obtener un trabajador específico por ID
   const getWorkerById = async (id: number): Promise<WorkerData | null> => {
     try {
-      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS));
+      const [res, depRes] = await Promise.all([
+        fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS)),
+        fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS)),
+      ]);
       if (!res.ok) return null;
       const json = await res.json();
+      const depJson = depRes.ok ? await depRes.json() : [];
+      const depArr = Array.isArray(depJson) ? depJson : (depJson.content || []);
+      const deptMap = new Map<number, string>();
+      depArr.forEach((d: any) => deptMap.set(Number(d.id), d.name ?? d.departamento ?? ''));
       const raw = Array.isArray(json) ? json : (json.content || []);
       const found = raw.find((w: any) => Number(w.id ?? w.worker) === id);
       if (!found) return null;
@@ -213,6 +252,7 @@ export function useWorkers() {
       const level_id = found.level_id ?? found.levelId ?? null;
       const scheme_id = found.scheme_id ?? found.schemeId ?? null;
       const role_id = found.role_id ?? found.roleId ?? found.role ?? null;
+      const department_id = found.department_id ?? found.departmentId ?? null;
       const employee_code = found.employee_code ?? found.employeeCode ?? undefined;
       const hire_date = found.hire_date ?? found.hireDate ?? null;
       const termination_date = found.termination_date ?? found.terminationDate ?? null;
@@ -229,6 +269,8 @@ export function useWorkers() {
         status: typeof found.status === 'boolean' ? found.status : (found.status === 1 || found.status === '1'),
         location: found.location ?? undefined,
         description: found.description ?? undefined,
+        department_id,
+        departmentName: department_id ? (deptMap.get(Number(department_id)) ?? String(department_id)) : undefined,
         employee_code,
         hire_date,
         termination_date,
@@ -262,6 +304,7 @@ export function useWorkers() {
         status: payload.status,
         location: payload.location ?? '',
         description: payload.description ?? '',
+        department_id: payload.department_id ?? null,
         level_id: payload.level_id ?? null,
         scheme_id: payload.scheme_id ?? null,
         role_id: payload.role_id ?? null,
@@ -298,6 +341,7 @@ export function useWorkers() {
         status: payload.status,
         location: payload.location ?? '',
         description: payload.description ?? '',
+        department_id: payload.department_id ?? null,
         level_id: payload.level_id ?? null,
         scheme_id: payload.scheme_id ?? null,
         role_id: payload.role_id ?? null,
@@ -349,6 +393,66 @@ export function useWorkers() {
     fetchWorkers();
   }, []);
 
+  // Filter by department with pagination
+  const fetchWorkersFiltered = async (departmentId?: number, page: number = 0, size: number = 20) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Ensure we have departments/levels/schemes/roles to map names
+      await Promise.all([fetchDepartments(), fetchLevels(), fetchSchemes(), fetchRoles()]);
+      const res = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS + '/filter'), {
+        params: { departmentId, page, size },
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+      });
+      const payload = res.data;
+      const content = Array.isArray(payload?.content) ? payload.content : [];
+
+      // build maps
+      const lvlMap = new Map(levels.map(l => [l.id, l.name]));
+      const schMap = new Map(schemes.map(s => [s.id, s.name]));
+      const rolMap = new Map(roles.map(r => [r.id, r.name]));
+      const depMap = new Map(departments.map(d => [d.id, d.name]));
+
+      const mapped: WorkerData[] = content.map((w: any) => {
+        const department_id = w.department_id ?? w.departmentId ?? null;
+        const level_id = w.level_id ?? w.levelId ?? null;
+        const scheme_id = w.scheme_id ?? w.schemeId ?? null;
+        const role_id = w.role_id ?? w.roleId ?? w.role ?? null;
+        const manager_id = w.manager_id ?? w.managerId ?? w.manager ?? null;
+        return {
+          id: Number(w.id ?? w.worker),
+          name: w.name ?? w.worker_name ?? w.workerName ?? '',
+          email: w.email ?? undefined,
+          phone: w.phone ?? undefined,
+          status: typeof w.status === 'boolean' ? w.status : (w.status === 1 || w.status === '1'),
+          location: w.location ?? undefined,
+          description: w.description ?? undefined,
+          department_id,
+          departmentName: department_id ? (depMap.get(Number(department_id)) ?? String(department_id)) : undefined,
+          employee_code: w.employee_code ?? w.employeeCode ?? undefined,
+          hire_date: w.hire_date ?? w.hireDate ?? null,
+          termination_date: w.termination_date ?? w.terminationDate ?? null,
+          active: typeof w.active === 'boolean' ? w.active : (w.active === 1 || w.active === '1'),
+          level_id,
+          scheme_id,
+          role_id,
+          manager_id,
+          managerName: manager_id ? String(manager_id) : undefined,
+          levelName: level_id ? (lvlMap.get(Number(level_id)) ?? String(level_id)) : undefined,
+          schemeName: scheme_id ? (schMap.get(Number(scheme_id)) ?? String(scheme_id)) : undefined,
+          roleName: role_id ? (rolMap.get(Number(role_id)) ?? String(role_id)) : undefined,
+        };
+      });
+      setData(mapped);
+    } catch (err) {
+      console.error('Error filtering workers', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     data,
     loading,
@@ -358,13 +462,16 @@ export function useWorkers() {
     schemes,
     roles,
     managers,
+    departments,
     fetchWorkers,
     fetchLevels,
     fetchSchemes,
     fetchRoles,
+    fetchDepartments,
     getWorkerById,
     createWorker,
     updateWorker,
     deleteWorkers,
+    fetchWorkersFiltered,
   };
 }

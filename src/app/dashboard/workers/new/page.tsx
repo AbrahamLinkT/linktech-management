@@ -6,6 +6,7 @@ import { ContentBody } from "@/components/containers/containers";
 import { Btn_data } from "@/components/buttons/buttons";
 import { ArrowLeft } from "lucide-react";
 import { useWorkers } from "@/hooks/useWorkers";
+import { useDepartments } from "@/hooks/useDepartments";
 
 export default function NewWorker() {
     const stylesInput = `
@@ -19,6 +20,7 @@ export default function NewWorker() {
     const router = useRouter();
 
     const { createWorker, levels, schemes, roles, managers, fetchLevels, fetchSchemes, fetchRoles, fetchWorkers } = useWorkers();
+    const { data: departments } = useDepartments();
 
     const [form, setForm] = useState({
         name: "",
@@ -27,6 +29,7 @@ export default function NewWorker() {
         status: "1",
         location: "",
         description: "",
+            department_id: "",
         level_id: "",
         scheme_id: "",
         role_id: "",
@@ -71,6 +74,7 @@ export default function NewWorker() {
         if (values.level_id && Number.isNaN(Number(values.level_id))) errs.level_id = "Nivel inválido";
         if (values.scheme_id && Number.isNaN(Number(values.scheme_id))) errs.scheme_id = "Esquema inválido";
         if (values.role_id && Number.isNaN(Number(values.role_id))) errs.role_id = "Rol inválido";
+        if (values.department_id && Number.isNaN(Number(values.department_id))) errs.department_id = "Departamento inválido";
 
         return errs;
     };
@@ -112,6 +116,7 @@ export default function NewWorker() {
             status: form.status === "1",
             location: form.location.trim(),
             description: form.description.trim(),
+                    department_id: form.department_id === "" ? null : Number(form.department_id),
             level_id: form.level_id === "" ? null : Number(form.level_id),
             scheme_id: form.scheme_id === "" ? null : Number(form.scheme_id),
             role_id: form.role_id === "" ? null : Number(form.role_id),
@@ -205,6 +210,17 @@ export default function NewWorker() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
+                                        <label className="block font-medium mb-1">Departamento</label>
+                                        <select name="department_id" value={(form as any).department_id || ''} onChange={handleChange} onBlur={handleBlur} className={stylesInput} aria-invalid={!!(errors as any).department_id} aria-describedby={(errors as any).department_id ? 'err-department' : undefined}>
+                                            <option value="">Seleccione departamento</option>
+                                            {departments.map((d) => (
+                                                <option key={d.id} value={d.id}>{(d as any).departamento ?? d.name}</option>
+                                            ))}
+                                        </select>
+                                        {(touched as any).department_id && (errors as any).department_id && <p id="err-department" className="text-red-600 text-sm mt-1">{(errors as any).department_id}</p>}
+                                    </div>
+
+                                    <div>
                                 <label className="block font-medium mb-1">Nivel</label>
                                 <select name="level_id" value={form.level_id} onChange={handleChange} onBlur={handleBlur} className={stylesInput} aria-invalid={!!errors.level_id} aria-describedby={errors.level_id ? 'err-level' : undefined}>
                                     <option value="">Seleccione nivel</option>
