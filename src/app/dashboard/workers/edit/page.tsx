@@ -318,7 +318,7 @@ export default function EditWorker() {
                   >
                     <option value="">Seleccione departamento</option>
                     {departments.map((d) => (
-                      <option key={d.id} value={d.id}>{(d as any).departamento ?? d.name}</option>
+                      <option key={d.id} value={d.id}>{d.departamento}</option>
                     ))}
                   </select>
                   {(touched as any).department_id && (errors as any).department_id && <p id="err-department" className="text-red-600 text-sm mt-1">{(errors as any).department_id}</p>}

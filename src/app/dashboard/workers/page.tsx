@@ -71,7 +71,7 @@ export default function Workers() {
           >
             <option value="">Todos</option>
             {departments?.map((d) => (
-              <option key={d.id} value={d.id}>{d.departamento ?? d.name}</option>
+              <option key={d.id} value={d.id}>{d.departamento}</option>
             ))}
           </select>
           {selectedDepartment && (
