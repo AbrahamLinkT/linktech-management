@@ -23,7 +23,6 @@ type RowData = {
   tipoEmpleado: string;
   esquema: string;
   tiempo: string;
-  modulo: string;
   nivel: string;
   ubicacion: string;
   proyecto: string;
@@ -141,7 +140,6 @@ export default function ProyeccionPage() {
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
-            modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
@@ -186,7 +184,6 @@ export default function ProyeccionPage() {
       { accessorKey: "tipoEmpleado", header: "Tipo Empleado" },
       { accessorKey: "esquema", header: "Esquema" },
       { accessorKey: "tiempo", header: "Horas/Sem" },
-      { accessorKey: "modulo", header: "Módulo" },
       { accessorKey: "nivel", header: "Nivel" },
       { accessorKey: "ubicacion", header: "Ubicación" },
     ],
@@ -252,7 +249,6 @@ export default function ProyeccionPage() {
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
-            modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
@@ -361,7 +357,6 @@ export default function ProyeccionPage() {
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
-            modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
