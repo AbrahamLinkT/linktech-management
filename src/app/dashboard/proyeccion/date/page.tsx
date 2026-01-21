@@ -144,6 +144,43 @@ function ProyeccionTablePage() {
 
   const [tableData, setTableData] = useState<ProyeccionRow[]>([]);
   const [calculatedDates, setCalculatedDates] = useState<Array<{ inicial: string; fecha: string; fullDate: string }>>([]);
+
+  // Utilidades para mapear semanas → fechas por día
+  const formatYMD = (date: Date) => {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const getISOWeekStart = (year: number, week: number) => {
+    const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+    const dow = simple.getUTCDay() || 7; // 1..7 (Mon..Sun)
+    if (dow !== 1) {
+      simple.setUTCDate(simple.getUTCDate() - (dow - 1));
+    }
+    return simple; // Monday of the ISO week in UTC
+  };
+
+  const parseWeekStartDate = (weekStr?: string): Date | null => {
+    if (!weekStr) return null;
+    // Try YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(weekStr)) {
+      const d = new Date(weekStr);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    // Try ISO week: YYYY-Www
+    const m = weekStr.match(/^(\d{4})-W(\d{2})$/);
+    if (m) {
+      const year = parseInt(m[1], 10);
+      const wk = parseInt(m[2], 10);
+      const mondayUTC = getISOWeekStart(year, wk);
+      // Convert to local date at same Y-M-D
+      const local = new Date(Date.UTC(mondayUTC.getUTCFullYear(), mondayUTC.getUTCMonth(), mondayUTC.getUTCDate()));
+      return local;
+    }
+    return null;
+  };
   
   // Función para obtener el department head del proyecto
   const getDepartmentHead = async (projectId: number): Promise<number | null> => {
@@ -377,8 +414,31 @@ function ProyeccionTablePage() {
             const horasContrato = schedule?.hours || 'N/A';
             const tiempoName = schedule?.name || 'N/A';
 
-            // Construir arreglo de horas vacío por ahora
+            // Construir arreglo de horas y poblar desde assigned-hours
             const horasArray = Array(calculatedDatesLocal.length).fill('');
+
+            const workerRecs = byWorker.get(workerId) || [];
+            const dayKeys = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+
+            for (const rec of workerRecs) {
+              const hd = rec.hoursData ?? rec.hours_data ?? {};
+              const weekStart = parseWeekStartDate(hd.week ?? rec.week);
+              if (!weekStart) continue;
+              for (let offset = 0; offset < 7; offset++) {
+                const dayKey = dayKeys[offset];
+                const valRaw = hd?.[dayKey];
+                const val = typeof valRaw === 'number' ? valRaw : parseFloat(String(valRaw ?? ''));
+                if (!val || isNaN(val) || val <= 0) continue;
+                const d = new Date(weekStart);
+                d.setDate(d.getDate() + offset);
+                const ymd = formatYMD(d);
+                // Buscar índice en las fechas calculadas y asignar
+                const idx = calculatedDatesLocal.findIndex(fd => fd.fullDate === ymd);
+                if (idx >= 0) {
+                  horasArray[idx] = String(val);
+                }
+              }
+            }
 
             rows.push({
               consultor: consultorName,
