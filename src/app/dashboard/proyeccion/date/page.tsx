@@ -328,10 +328,25 @@ function ProyeccionTablePage() {
         // Calcular fechas basadas en la fecha de inicio y fin del proyecto
         let calculatedDatesLocal: Array<{ inicial: string; fecha: string; fullDate: string }> = [];
         if (project.start_date) {
+          // Si tenemos end_date, calcular número de semanas completas entre las fechas
+          let numWeeks = vistaSemanas; // fallback
+          if (project.end_date) {
+            try {
+              const startD = new Date(project.start_date);
+              const endD = new Date(project.end_date);
+              const diffMs = endD.getTime() - startD.getTime();
+              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1; // inclusive
+              numWeeks = Math.max(1, Math.ceil(diffDays / 7));
+              console.log(`🔢 Calculado semanas entre ${project.start_date} y ${project.end_date}:`, numWeeks);
+            } catch (err) {
+              console.warn('No se pudo calcular semanas desde fechas del proyecto, usando vistaSemanas por defecto', err);
+            }
+          }
+
           calculatedDatesLocal = calculateDatesFromStart(
-            project.start_date, 
-            project.end_date, 
-            vistaSemanas
+            project.start_date,
+            project.end_date,
+            numWeeks
           );
           setCalculatedDates(calculatedDatesLocal);
           console.log('📅 Fechas calculadas:', calculatedDatesLocal);
@@ -340,10 +355,19 @@ function ProyeccionTablePage() {
           setIsLoading(false);
           return;
         }
-        
+
         // Agrupar fechas por semanas
         const weeksData = groupDatesByWeeks(calculatedDatesLocal);
         console.log('📅 Semanas agrupadas:', weeksData);
+
+        // Ajustar la cantidad de semanas (filas/columnas) que mostrará la tabla según las fechas calculadas
+        try {
+          const weeksCount = weeksData.length || 1;
+          setVistaSemanas(weeksCount);
+          console.log('🔧 Ajustando vistaSemanas a:', weeksCount);
+        } catch (err) {
+          console.warn('No se pudo ajustar vistaSemanas automáticamente', err);
+        }
         
         // Obtener el department head para el proyecto
         // (Se mantiene la llamada original por compatibilidad, aunque no la usamos para poblar la fila principal)
