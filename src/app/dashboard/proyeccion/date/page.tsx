@@ -312,68 +312,91 @@ function ProyeccionTablePage() {
         // (Se mantiene la llamada original por compatibilidad, aunque no la usamos para poblar la fila principal)
         const assignedBy = await getDepartmentHead(project.project_id);
 
-        // --- NUEVA LÓGICA: Poblar la tabla usando project.employee_id ---
+        // --- NUEVA LÓGICA: Poblar la tabla usando assigned-hours para el proyecto ---
         try {
-          console.log('🔎 Buscando worker desde project.employee_id:', project.employee_id);
-          // Obtener lista completa de workers y buscar el que coincide con employee_id
+          console.log('🔎 Obteniendo assigned-hours para proyecto:', project.project_id);
+          const assignedRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS) + `/${project.project_id}`);
+          if (!assignedRes.ok) throw new Error(`Error fetching assigned-hours: ${assignedRes.status}`);
+          const assignedList = await assignedRes.json();
+
+          if (!Array.isArray(assignedList) || assignedList.length === 0) {
+            console.warn('⚠️ No hay registros en assigned-hours para el proyecto:', project.project_id);
+            setTableData([]);
+            // no return; permitimos que la tabla quede vacía
+          }
+
+          // Agrupar por assignedTo (worker id) y mantener el nombre del assignedTo del payload
+          const byWorker = new Map<number, any[]>();
+          for (const rec of (assignedList || [])) {
+            const id = Number(rec.assignedTo);
+            if (!byWorker.has(id)) byWorker.set(id, []);
+            byWorker.get(id)!.push(rec);
+          }
+
+          // Obtener lista completa de workers (para datos adicionales como name, department_id, scheme_id)
           const workersRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS));
           if (!workersRes.ok) throw new Error(`Error fetching workers: ${workersRes.status}`);
           const workersList = await workersRes.json();
-          const worker = Array.isArray(workersList)
-            ? workersList.find((w: any) => w.id === project.employee_id)
-            : null;
 
-          if (!worker) {
-            console.warn('⚠️ Worker (employee_id) no encontrado:', project.employee_id);
-            setTableData([]);
-            setIsLoading(false);
-            return;
-          }
-
-          // Obtener departamentos y resolver el nombre del departamento del worker
+          // Obtener lista de departamentos una sola vez
           const deptsRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS));
-          if (!deptsRes.ok) throw new Error(`Error fetching departments: ${deptsRes.status}`);
-          const deptsList = await deptsRes.json();
-          const department = Array.isArray(deptsList)
-            ? deptsList.find((d: any) => d.id === worker.department_id)
-            : null;
-          const departmentName = department?.name || 'N/A';
+          const deptsList = deptsRes.ok ? await deptsRes.json() : [];
 
-          // Obtener el esquema (workSchedule/{id}) usando scheme_id del worker
-          let schedule: any = null;
-          if (worker.scheme_id) {
-            const schedRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE) + `/${worker.scheme_id}`);
-            if (schedRes.ok) {
-              schedule = await schedRes.json();
-            } else {
-              console.warn('⚠️ No se pudo obtener workSchedule para id', worker.scheme_id, 'status=', schedRes.status);
+          const rows: ProyeccionRow[] = [];
+
+          // Para cada worker único crear una fila
+          for (const workerId of Array.from(byWorker.keys())) {
+            // Intentar obtener el worker desde la lista de workers
+            const worker = Array.isArray(workersList) ? workersList.find((w: any) => Number(w.id) === Number(workerId)) : null;
+
+            // Si no existe el worker en /worker, intentamos usar el nombre que viene en assigned-hours
+            const nameFromAssigned = byWorker.get(workerId)?.[0]?.nameAssignedTo || '';
+            const consultorName = worker?.name || nameFromAssigned || `ID ${workerId}`;
+
+            // Resolver departamento
+            const deptId = worker?.department_id;
+            const departmentObj = Array.isArray(deptsList) ? deptsList.find((d: any) => Number(d.id) === Number(deptId)) : null;
+            const departmentName = departmentObj?.name || 'N/A';
+
+            // Resolver esquema/horas (usar listado schemes cargado primero)
+            let schedule: any = null;
+            const schemeId = worker?.scheme_id;
+            if (schemeId) {
+              schedule = schemes.find(s => Number(s.id) === Number(schemeId));
+              if (!schedule) {
+                // Si no está en el listado, intentar obtener detalle por id
+                try {
+                  const schedRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE) + `/${schemeId}`);
+                  if (schedRes.ok) schedule = await schedRes.json();
+                } catch (err) {
+                  console.warn('No se pudo obtener workSchedule detalle para', schemeId, err);
+                }
+              }
             }
-          }
 
-          const horasContrato = schedule?.hours || 'N/A';
-          const tiempoName = schedule?.name || 'N/A';
+            const horasContrato = schedule?.hours || 'N/A';
+            const tiempoName = schedule?.name || 'N/A';
 
-          // Construir arreglo de horas vacío con la longitud de las fechas calculadas
-          const horasArray = Array(calculatedDatesLocal.length).fill('');
+            // Construir arreglo de horas vacío por ahora
+            const horasArray = Array(calculatedDatesLocal.length).fill('');
 
-          const tableData: ProyeccionRow[] = [
-            {
-              consultor: worker.name || 'N/A',
+            rows.push({
+              consultor: consultorName,
               departamento: departmentName,
-              tipoEmpleado: worker.description || '',
-              esquema: schedule?.name || (worker.scheme_id ? String(worker.scheme_id) : 'N/A'),
+              tipoEmpleado: worker?.description || '',
+              esquema: schedule?.name || (schemeId ? String(schemeId) : 'N/A'),
               horasContrato: horasContrato,
               tiempo: tiempoName,
-              nivel: worker.level_id ? String(worker.level_id) : 'N/A',
+              nivel: worker?.level_id ? String(worker.level_id) : 'N/A',
               horas: horasArray,
               fechaLibre: 'N/A',
-            },
-          ];
+            });
+          }
 
-          console.log('✅ Fila construida desde project.employee_id:', tableData);
-          setTableData(tableData);
+          console.log('✅ Filas construidas desde assigned-hours:', rows);
+          setTableData(rows);
         } catch (err) {
-          console.error('❌ Error poblando tabla desde employee_id:', err);
+          console.error('❌ Error poblando tabla desde assigned-hours:', err);
           setTableData([]);
         }
         
