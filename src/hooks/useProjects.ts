@@ -120,17 +120,41 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      // Usar /projects/dto para obtener todos los proyectos en formato DTO
-      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/dto'), {
+      // Intentar obtener desde /projects (contiene employee_id en la respuesta completa)
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
         headers: {
           'Content-Type': 'application/json',
         },
         timeout: 30000,
       });
-      
-      const projectsData = Array.isArray(response.data) ? response.data : [];
+
+      // Manejar varios formatos de respuesta posibles
+      const payload = response.data;
+      let projectsData: Project[] = [];
+      if (Array.isArray(payload)) {
+        projectsData = payload;
+      } else if (Array.isArray(payload.content)) {
+        projectsData = payload.content;
+      } else if (Array.isArray(payload.data)) {
+        projectsData = payload.data;
+      }
+
+      // Fallback: si no obtuvimos datos, intentar /projects/dto (compatibilidad con versiones previas)
+      if (!projectsData || projectsData.length === 0) {
+        try {
+          const dtoRes = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS + '/dto'), {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 30000,
+          });
+          const dtoData = dtoRes.data;
+          projectsData = Array.isArray(dtoData) ? dtoData : dtoData?.content || [];
+        } catch (dtoErr) {
+          console.warn('Fallback to /projects/dto failed:', dtoErr);
+        }
+      }
+
       setProjects(projectsData);
-      
+
       setIsLoading(false);
       return {
         success: true,
@@ -139,18 +163,18 @@ export const useProjects = () => {
     } catch (err: unknown) {
       console.error('Error fetching projects:', err);
       let errorMessage = 'Error fetching projects';
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
       } else {
         const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
         errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error fetching projects';
       }
-      
+
       setError(errorMessage);
       setIsLoading(false);
       setProjects([]);
-      
+
       return {
         success: false,
         error: errorMessage,

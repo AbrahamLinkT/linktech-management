@@ -281,7 +281,9 @@ function ProyeccionTablePage() {
           setIsLoading(false);
           return;
         }
-        
+
+        console.log('📊 Info general del proyecto:', project);
+
         console.log('📊 Cargando datos para proyecto:', project.project_name, 'ID:', project.project_id);
         console.log('📅 Fecha de inicio del proyecto:', project.start_date);
         console.log('📅 Fecha de fin del proyecto:', project.end_date);
@@ -307,162 +309,74 @@ function ProyeccionTablePage() {
         console.log('📅 Semanas agrupadas:', weeksData);
         
         // Obtener el department head para el proyecto
+        // (Se mantiene la llamada original por compatibilidad, aunque no la usamos para poblar la fila principal)
         const assignedBy = await getDepartmentHead(project.project_id);
-        
-        // Obtener horas asignadas del proyecto
-        console.log('🔍 Obteniendo todas las horas asignadas...');
-        const allHours = await getAssignedHours();
-        console.log('📊 Total de horas asignadas:', allHours.length);
-        
-        const projectHours = allHours.filter(h => h.projectId === project.project_id);
-        console.log(`🔍 Horas asignadas filtradas para proyecto ${project.project_id}:`, projectHours.length);
-        
-        // Obtener workers únicos asignados al proyecto
-        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
-        console.log('👥 Workers únicos en el proyecto:', Array.from(uniqueWorkerIds));
-        
-        if (uniqueWorkerIds.size === 0) {
-          console.warn('⚠️ No hay workers asignados para este proyecto');
-          setTableData([]);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Obtener información de los workers
-        console.log('👥 Obteniendo información de workers...');
-        const workers = await getWorkersForAssignedHours(projectHours);
-        console.log('👥 Workers cargados:', workers.length);
-        
-        // Para cada worker, verificar que tenga horas asignadas para cada semana
-        const hoursToCreate: any[] = [];
-        
-        for (const workerId of Array.from(uniqueWorkerIds)) {
-          for (const week of weeksData) {
-            // Buscar si ya existe un registro para este worker en esta semana
-            const existingHour = projectHours.find(
-              h => h.assignedTo === workerId && h.hoursData.week === week.weekStart
-            );
-            
-            if (!existingHour) {
-              console.log(`📝 Creando registro para worker ${workerId} en semana ${week.weekStart}`);
-              hoursToCreate.push({
-                project_id: project.project_id,
-                assigned_to: workerId,
-                assigned_by: assignedBy,
-                hours_data: {
-                  monday: 0,
-                  tuesday: 0,
-                  wednesday: 0,
-                  thursday: 0,
-                  friday: 0,
-                  saturday: 0,
-                  sunday: 0,
-                  total: 0,
-                  week: week.weekStart
-                }
-              });
-            }
-          }
-        }
-        
-        // Crear los registros faltantes
-        let finalProjectHours = projectHours;
-        if (hoursToCreate.length > 0) {
-          console.log(`📝 Creando ${hoursToCreate.length} registros de horas...`);
-          await createAssignedHours(hoursToCreate);
-          
-          // Recargar las horas asignadas
-          const updatedHours = await getAssignedHours();
-          finalProjectHours = updatedHours.filter(h => h.projectId === project.project_id);
-          console.log('✅ Horas actualizadas:', finalProjectHours.length);
-        }
-        
-        // Agrupar horas por worker
-        const hoursByWorker = new Map<number, any[]>();
-        for (const hour of finalProjectHours) {
-          if (!hoursByWorker.has(hour.assignedTo)) {
-            hoursByWorker.set(hour.assignedTo, []);
-          }
-          hoursByWorker.get(hour.assignedTo)!.push(hour);
-        }
-        
-        console.log('📊 Horas agrupadas por worker:', Array.from(hoursByWorker.entries()).map(([id, hours]) => ({
-          workerId: id,
-          hoursCount: hours.length
-        })));
-        
-        // Transformar datos para la tabla
-        const tableData: ProyeccionRow[] = [];
-        
-        for (const [workerId, workerHours] of hoursByWorker.entries()) {
-          const worker = workers.find(w => w.id === workerId);
+
+        // --- NUEVA LÓGICA: Poblar la tabla usando project.employee_id ---
+        try {
+          console.log('🔎 Buscando worker desde project.employee_id:', project.employee_id);
+          // Obtener lista completa de workers y buscar el que coincide con employee_id
+          const workersRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS));
+          if (!workersRes.ok) throw new Error(`Error fetching workers: ${workersRes.status}`);
+          const workersList = await workersRes.json();
+          const worker = Array.isArray(workersList)
+            ? workersList.find((w: any) => w.id === project.employee_id)
+            : null;
+
           if (!worker) {
-            console.warn(`⚠️ Worker ${workerId} no encontrado`);
-            continue;
+            console.warn('⚠️ Worker (employee_id) no encontrado:', project.employee_id);
+            setTableData([]);
+            setIsLoading(false);
+            return;
           }
-          
-          console.log(`🔧 Procesando worker ${workerId}: ${worker.name}`);
-          
-          // Intentar obtener el scheme_id del worker
-          const workerSchemeId = worker?.schemeId || (worker as any)?.scheme_id;
-          const scheme = schemes.find(s => s.id === workerSchemeId);
-          const horasContrato = scheme?.hours || 'N/A';
-          
-          // Ordenar las horas por semana
-          const sortedHours = workerHours.sort((a, b) => 
-            a.hoursData.week.localeCompare(b.hoursData.week)
-          );
-          
-          // Construir array de horas basado en las fechas calculadas
-          const horasArray: string[] = [];
-          const dayMapping = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-          
-          for (const date of calculatedDatesLocal) {
-            // Encontrar la semana que corresponde a esta fecha
-            const weekRecord = sortedHours.find(h => {
-              const weekStart = new Date(h.hoursData.week);
-              const currentDate = new Date(date.fullDate);
-              // La fecha debe estar en la misma semana
-              const diffDays = Math.floor((currentDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
-              return diffDays >= 0 && diffDays < 7;
-            });
-            
-            if (weekRecord) {
-              // Obtener el día de la semana (0=Dom, 1=Lun, ..., 5=Vie)
-              const dateObj = new Date(date.fullDate);
-              const dayOfWeek = dateObj.getDay();
-              
-              // Mapear al campo correcto (1=Lun -> monday, 2=Mar -> tuesday, etc.)
-              if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-                const dayField = dayMapping[dayOfWeek - 1] as keyof typeof weekRecord.hoursData;
-                const value = weekRecord.hoursData[dayField];
-                horasArray.push(value !== null ? String(value) : '0');
-              } else {
-                horasArray.push('0');
-              }
+
+          // Obtener departamentos y resolver el nombre del departamento del worker
+          const deptsRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.DEPARTMENTS));
+          if (!deptsRes.ok) throw new Error(`Error fetching departments: ${deptsRes.status}`);
+          const deptsList = await deptsRes.json();
+          const department = Array.isArray(deptsList)
+            ? deptsList.find((d: any) => d.id === worker.department_id)
+            : null;
+          const departmentName = department?.name || 'N/A';
+
+          // Obtener el esquema (workSchedule/{id}) usando scheme_id del worker
+          let schedule: any = null;
+          if (worker.scheme_id) {
+            const schedRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE) + `/${worker.scheme_id}`);
+            if (schedRes.ok) {
+              schedule = await schedRes.json();
             } else {
-              horasArray.push('0');
+              console.warn('⚠️ No se pudo obtener workSchedule para id', worker.scheme_id, 'status=', schedRes.status);
             }
           }
-          
-          // Calcular el total de horas por semana
-          const totalHours = sortedHours.reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
-          
-          tableData.push({
-            consultor: worker.name,
-            departamento: worker.roleName || 'N/A',
-            tipoEmpleado: worker.schemeName || 'N/A',
-            esquema: worker.levelName || 'N/A',
-            horasContrato: horasContrato,
-            tiempo: `${totalHours}/total`,
-            nivel: worker.levelName || 'N/A',
-            horas: horasArray,
-            fechaLibre: 'N/A',
-          });
+
+          const horasContrato = schedule?.hours || 'N/A';
+          const tiempoName = schedule?.name || 'N/A';
+
+          // Construir arreglo de horas vacío con la longitud de las fechas calculadas
+          const horasArray = Array(calculatedDatesLocal.length).fill('');
+
+          const tableData: ProyeccionRow[] = [
+            {
+              consultor: worker.name || 'N/A',
+              departamento: departmentName,
+              tipoEmpleado: worker.description || '',
+              esquema: schedule?.name || (worker.scheme_id ? String(worker.scheme_id) : 'N/A'),
+              horasContrato: horasContrato,
+              tiempo: tiempoName,
+              nivel: worker.level_id ? String(worker.level_id) : 'N/A',
+              horas: horasArray,
+              fechaLibre: 'N/A',
+            },
+          ];
+
+          console.log('✅ Fila construida desde project.employee_id:', tableData);
+          setTableData(tableData);
+        } catch (err) {
+          console.error('❌ Error poblando tabla desde employee_id:', err);
+          setTableData([]);
         }
         
-        console.log('✅ Datos transformados:', tableData);
-        setTableData(tableData);
         console.log('✅ Datos cargados exitosamente:', tableData.length, 'registros');
       } catch (error) {
         console.error('❌ Error cargando datos del proyecto:', error);
