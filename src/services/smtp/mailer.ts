@@ -5,6 +5,7 @@ export interface SendChangeHoursEmailParams {
   toName: string;
   toEmail: string;
   xlsxBuffer?: Buffer;
+  message?: string;
 }
 
 function getTransporter() {
@@ -27,7 +28,7 @@ function getTransporter() {
 }
 
 export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
-  const { toName, toEmail, xlsxBuffer } = params;
+  const { toName, toEmail, xlsxBuffer, message } = params;
   const transporter = getTransporter();
 
   let tableHtml: string | undefined;
@@ -39,7 +40,7 @@ export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
     }
   }
 
-  const html = renderChangeHoursEmailBody({ name: toName, tableHtml });
+  const html = renderChangeHoursEmailBody({ name: toName, tableHtml, message });
 
   const attachments: Array<{ filename: string; content: Buffer }> = [];
   if (xlsxBuffer && xlsxBuffer.length > 0) {

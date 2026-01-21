@@ -137,9 +137,9 @@ export default function ProyeccionPage() {
           return {
             id: String(workerId),
             consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
-            departamento: worker?.roleName || 'N/A',
-            tipoEmpleado: worker?.schemeName || 'N/A',
-            esquema: worker?.levelName || 'N/A',
+            departamento: worker?.departmentName || 'N/A',
+            tipoEmpleado: worker?.roleName || 'N/A',
+            esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
             modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
@@ -248,9 +248,9 @@ export default function ProyeccionPage() {
           return {
             id: String(workerId),
             consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
-            departamento: worker?.roleName || 'N/A',
-            tipoEmpleado: worker?.schemeName || 'N/A',
-            esquema: worker?.levelName || 'N/A',
+            departamento: worker?.departmentName || 'N/A',
+            tipoEmpleado: worker?.roleName || 'N/A',
+            esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
             modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
@@ -357,9 +357,9 @@ export default function ProyeccionPage() {
           return {
             id: String(workerId),
             consultor: worker?.name || firstHour?.nameAssignedTo || 'Unknown',
-            departamento: worker?.roleName || 'N/A',
-            tipoEmpleado: worker?.schemeName || 'N/A',
-            esquema: worker?.levelName || 'N/A',
+            departamento: worker?.departmentName || 'N/A',
+            tipoEmpleado: worker?.roleName || 'N/A',
+            esquema: worker?.schemeName || 'N/A',
             tiempo: String(totalHours),
             modulo: 'N/A',
             nivel: worker?.levelName || 'N/A',
@@ -635,7 +635,7 @@ export default function ProyeccionPage() {
                           {worker.levelName || '—'}
                         </td>
                         <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
-                          {worker.description || '—'}
+                          {worker.departmentName || '—'}
                         </td>
                         <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
                           {'—'}
