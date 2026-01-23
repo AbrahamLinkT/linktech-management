@@ -13,6 +13,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useUser } from "@clerk/nextjs";
+import { buildApiUrl, API_CONFIG } from "@/config/api";
 
 
 // =================== TIPOS ===================
@@ -182,7 +183,7 @@ export default function ProyeccionPage() {
   const calculateWeeklyHours = async (schemeId?: number | null): Promise<string> => {
     if (!schemeId) return 'N/A';
     try {
-      const res = await fetch(`http://backend.linktech.com.mx/workSchedule/${schemeId}`);
+      const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.WORK_SCHEDULE) + `/${schemeId}`);
       if (!res.ok) throw new Error(`Error: ${res.status}`);
       const schedule = await res.json();
       
