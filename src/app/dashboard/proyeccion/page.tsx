@@ -178,6 +178,42 @@ export default function ProyeccionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProject, projects.length, workers.length]);
 
+  // Función auxiliar para calcular horas semanales basadas en el scheme (reutilizable)
+  const calculateWeeklyHours = async (schemeId?: number | null): Promise<string> => {
+    if (!schemeId) return 'N/A';
+    try {
+      const res = await fetch(`http://backend.linktech.com.mx/workSchedule/${schemeId}`);
+      if (!res.ok) throw new Error(`Error: ${res.status}`);
+      const schedule = await res.json();
+      
+      if (!schedule.hours || !schedule.working_days) {
+        return 'N/A';
+      }
+
+      // Parsear horas: ej "08:00-18:00"
+      const hoursMatch = schedule.hours.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
+      if (!hoursMatch) return 'N/A';
+      
+      const startHour = parseInt(hoursMatch[1], 10);
+      const endHour = parseInt(hoursMatch[3], 10);
+      const dailyHours = endHour - startHour;
+
+      // Contar días de trabajo (split por comas y trim)
+      const workingDays = schedule.working_days
+        .split(',')
+        .map((d: string) => d.trim())
+        .filter((d: string) => d.length > 0);
+      const daysCount = workingDays.length;
+
+      // Calcular: horas_diarias * cantidad_de_días
+      const weeklyHours = dailyHours * daysCount;
+      return String(weeklyHours);
+    } catch (err) {
+      console.error(`Error calculando horas para scheme ${schemeId}:`, err);
+      return 'N/A';
+    }
+  };
+
   // ------------------- CARGAR HORAS ASIGNADAS POR PROYECTO SELECCIONADO -----------------
   useEffect(() => {
     const loadProjectData = async () => {
@@ -211,21 +247,21 @@ export default function ProyeccionPage() {
         
         // Transformar datos para la tabla haciendo match con workers completos
         // Una fila por worker único
-        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+        const tableData: RowData[] = await Promise.all(
+          Array.from(uniqueWorkerIds).map(async (workerId) => {
           // Buscar el worker completo por ID
           const worker = workers.find(w => w.id === workerId);
           
           // Obtener el primer registro de horas para este worker (para obtener nombres)
           const firstHour = projectHours.find(h => h.assignedTo === workerId);
           
-          // Calcular el total de horas sumando todos los registros de este worker
-          const totalHours = projectHours
-            .filter(h => h.assignedTo === workerId)
-            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+            // Calcular horas semanales según el scheme del worker
+            const weeklyHours = await calculateWeeklyHours(worker?.scheme_id);
           
           console.log(`Mapping worker ${workerId}:`, {
             found: !!worker,
-            totalHours,
+              schemeId: worker?.scheme_id,
+              weeklyHours,
             workerData: worker ? {
               name: worker.name,
               role: worker.roleName,
@@ -241,12 +277,13 @@ export default function ProyeccionPage() {
             departamento: worker?.departmentName || 'N/A',
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
-            tiempo: String(totalHours),
+              tiempo: weeklyHours,
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
           };
-        });
+          })
+        );
 
         setTableDataFromApi(tableData);
         console.log('✅ Datos transformados para tabla:', tableData);
@@ -337,12 +374,11 @@ export default function ProyeccionPage() {
         // Obtener workers únicos
         const uniqueWorkerIds = new Set(updatedProjectHours.map(h => h.assignedTo));
         
-        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+        const tableData: RowData[] = await Promise.all(
+          Array.from(uniqueWorkerIds).map(async (workerId) => {
           const worker = workers.find(w => w.id === workerId);
           const firstHour = updatedProjectHours.find(h => h.assignedTo === workerId);
-          const totalHours = updatedProjectHours
-            .filter(h => h.assignedTo === workerId)
-            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+            const weeklyHours = await calculateWeeklyHours(worker?.scheme_id);
           
           return {
             id: String(workerId),
@@ -350,12 +386,13 @@ export default function ProyeccionPage() {
             departamento: worker?.departmentName || 'N/A',
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
-            tiempo: String(totalHours),
+              tiempo: weeklyHours,
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
           };
-        });
+          })
+        );
 
         setTableDataFromApi(tableData);
         
@@ -445,12 +482,11 @@ export default function ProyeccionPage() {
         // Obtener workers únicos
         const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
         
-        const tableData: RowData[] = Array.from(uniqueWorkerIds).map(workerId => {
+        const tableData: RowData[] = await Promise.all(
+          Array.from(uniqueWorkerIds).map(async (workerId) => {
           const worker = workers.find(w => w.id === workerId);
           const firstHour = projectHours.find(h => h.assignedTo === workerId);
-          const totalHours = projectHours
-            .filter(h => h.assignedTo === workerId)
-            .reduce((sum, h) => sum + (h.hoursData.total || 0), 0);
+            const weeklyHours = await calculateWeeklyHours(worker?.scheme_id);
           
           return {
             id: String(workerId),
@@ -458,12 +494,13 @@ export default function ProyeccionPage() {
             departamento: worker?.departmentName || 'N/A',
             tipoEmpleado: worker?.roleName || 'N/A',
             esquema: worker?.schemeName || 'N/A',
-            tiempo: String(totalHours),
+              tiempo: weeklyHours,
             nivel: worker?.levelName || 'N/A',
             ubicacion: worker?.location || 'N/A',
             proyecto: firstHour?.projectName || '',
           };
-        });
+          })
+        );
         setTableDataFromApi(tableData);
         
         // Limpiar selección del modal
