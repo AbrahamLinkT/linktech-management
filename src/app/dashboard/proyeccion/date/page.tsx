@@ -164,10 +164,14 @@ function ProyeccionTablePage() {
 
   const parseWeekStartDate = (weekStr?: string): Date | null => {
     if (!weekStr) return null;
-    // Try YYYY-MM-DD
+    // Try YYYY-MM-DD (construct as local date to avoid timezone shifts)
     if (/^\d{4}-\d{2}-\d{2}$/.test(weekStr)) {
-      const d = new Date(weekStr);
-      return isNaN(d.getTime()) ? null : d;
+      const [y, m, d] = weekStr.split('-').map(s => parseInt(s, 10));
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        const dt = new Date(y, m - 1, d);
+        return isNaN(dt.getTime()) ? null : dt;
+      }
+      return null;
     }
     // Try ISO week: YYYY-Www
     const m = weekStr.match(/^(\d{4})-W(\d{2})$/);
@@ -175,8 +179,8 @@ function ProyeccionTablePage() {
       const year = parseInt(m[1], 10);
       const wk = parseInt(m[2], 10);
       const mondayUTC = getISOWeekStart(year, wk);
-      // Convert to local date at same Y-M-D
-      const local = new Date(Date.UTC(mondayUTC.getUTCFullYear(), mondayUTC.getUTCMonth(), mondayUTC.getUTCDate()));
+      // Convert to local date at same Y-M-D by reading UTC components and building local date
+      const local = new Date(mondayUTC.getUTCFullYear(), mondayUTC.getUTCMonth(), mondayUTC.getUTCDate());
       return local;
     }
     return null;
@@ -360,7 +364,7 @@ function ProyeccionTablePage() {
         const weeksData = groupDatesByWeeks(calculatedDatesLocal);
         console.log('📅 Semanas agrupadas:', weeksData);
 
-        // Ajustar la cantidad de semanas (filas/columnas) que mostrará la tabla según las fechas calculadas
+    // Ajustar la cantidad de semanas (filas/columnas) que mostrará la tabla según las fechas calculadas
         try {
           const weeksCount = weeksData.length || 1;
           setVistaSemanas(weeksCount);
@@ -442,25 +446,43 @@ function ProyeccionTablePage() {
             const horasArray = Array(calculatedDatesLocal.length).fill('');
 
             const workerRecs = byWorker.get(workerId) || [];
-            const dayKeys = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+            const dayKeysWeekday = ['monday','tuesday','wednesday','thursday','friday'];
 
             for (const rec of workerRecs) {
               const hd = rec.hoursData ?? rec.hours_data ?? {};
-              const weekStart = parseWeekStartDate(hd.week ?? rec.week);
+              // Preferir startDate (formato YYYY-MM-DD) que viene en el payload, si no usar hoursData.week
+              const weekRaw = (rec.startDate ?? rec.start_date) || hd.week || hd.weekStart || null;
+              const weekStart = parseWeekStartDate(weekRaw);
               if (!weekStart) continue;
-              for (let offset = 0; offset < 7; offset++) {
-                const dayKey = dayKeys[offset];
+
+              // Sólo mapear lunes..viernes
+              for (let offset = 0; offset < 5; offset++) {
+                const dayKey = dayKeysWeekday[offset];
                 const valRaw = hd?.[dayKey];
-                const val = typeof valRaw === 'number' ? valRaw : parseFloat(String(valRaw ?? ''));
-                if (!val || isNaN(val) || val <= 0) continue;
+
+                // Considerar ausencia de dato cuando es null/undefined/''
+                if (valRaw === null || valRaw === undefined || String(valRaw).trim() === '') {
+                  // no escribir aquí; dejaremos '-' por defecto después
+                  continue;
+                }
+
+                const valNum = typeof valRaw === 'number' ? valRaw : parseFloat(String(valRaw));
+                if (isNaN(valNum)) continue;
+
                 const d = new Date(weekStart);
                 d.setDate(d.getDate() + offset);
                 const ymd = formatYMD(d);
-                // Buscar índice en las fechas calculadas y asignar
                 const idx = calculatedDatesLocal.findIndex(fd => fd.fullDate === ymd);
                 if (idx >= 0) {
-                  horasArray[idx] = String(val);
+                  horasArray[idx] = String(valNum);
                 }
+              }
+            }
+
+            // Rellenar con '-' las celdas de días laborables que quedaron sin dato
+            for (let i = 0; i < horasArray.length; i++) {
+              if (horasArray[i] === '') {
+                horasArray[i] = '-';
               }
             }
 
@@ -538,12 +560,27 @@ function ProyeccionTablePage() {
     // Espera formato dd/mm/yy o yyyy-mm-dd
     if (!f) return null;
     if (f.includes("-")) {
-      // yyyy-mm-dd
-      return new Date(f);
+      // yyyy-mm-dd -> construir como fecha local para evitar desplazamientos de zona
+      const parts = f.split('-');
+      if (parts.length >= 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+          return new Date(y, m - 1, d);
+        }
+        return null;
+      }
+      return null;
     }
     const [d, m, y] = f.split("/");
     const fullYear = y.length === 2 ? `20${y}` : y;
-    return new Date(`${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
+    // Construir como fecha local
+    const yi = parseInt(fullYear, 10);
+    const mi = parseInt(m, 10);
+    const di = parseInt(d, 10);
+    if (isNaN(yi) || isNaN(mi) || isNaN(di)) return null;
+    return new Date(yi, mi - 1, di);
   };
 
   // Normaliza la fecha a entero AAAAMMDD para evitar problemas de zona horaria
