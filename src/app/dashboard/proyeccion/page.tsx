@@ -57,6 +57,8 @@ export default function ProyeccionPage() {
   const [filterName, setFilterName] = useState<string>("");
   const [filterSpecialty, setFilterSpecialty] = useState<string>("");
   const [filterLevel, setFilterLevel] = useState<string>("");
+  const [releaseDates, setReleaseDates] = useState<Record<number, string>>({});
+  const [assignedWorkerIds, setAssignedWorkerIds] = useState<Set<number>>(new Set());
 
   // ------------------- ROUTE -----------------
   const router = useRouter();
@@ -75,6 +77,106 @@ export default function ProyeccionPage() {
     loadProjectNames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ------------------- CARGAR TRABAJADORES ASIGNADOS Y FECHAS DE LIBERACIÓN -----------------
+  useEffect(() => {
+    const loadWorkerAssignmentsAndDates = async () => {
+      if (!selectedProject || projects.length === 0) {
+        setAssignedWorkerIds(new Set());
+        setReleaseDates({});
+        return;
+      }
+
+      try {
+        const projectObj = projects.find(p => p.project_name === selectedProject);
+        if (!projectObj) {
+          setAssignedWorkerIds(new Set());
+          setReleaseDates({});
+          return;
+        }
+
+        const allHours = await getAssignedHours();
+        const projectHours = allHours.filter(h => h.projectId === projectObj.project_id);
+        const assignedIds = new Set(projectHours.map(h => h.assignedTo));
+        setAssignedWorkerIds(assignedIds);
+
+        const dates: Record<number, string> = {};
+
+        for (const worker of workers) {
+          const workerId = worker.id;
+          const workerHours = allHours.filter(h => h.assignedTo === workerId);
+          
+          if (workerHours.length === 0) {
+            dates[workerId] = '—';
+            continue;
+          }
+
+          let latestDate: Date | null = null;
+          for (const rec of workerHours) {
+            const hd = rec.hoursData ?? {};
+            const weekStr = hd.week;
+            if (!weekStr) continue;
+
+            let weekDate: Date | null = null;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(weekStr)) {
+              weekDate = new Date(weekStr);
+            } else if (/^\d{4}-W\d{2}$/.test(weekStr)) {
+              const m = weekStr.match(/^(\d{4})-W(\d{2})$/);
+              if (m) {
+                const year = parseInt(m[1], 10);
+                const wk = parseInt(m[2], 10);
+                const simple = new Date(Date.UTC(year, 0, 1 + (wk - 1) * 7));
+                const dow = simple.getUTCDay() || 7;
+                if (dow !== 1) {
+                  simple.setUTCDate(simple.getUTCDate() - (dow - 1));
+                }
+                weekDate = new Date(
+                  Date.UTC(
+                    simple.getUTCFullYear(),
+                    simple.getUTCMonth(),
+                    simple.getUTCDate()
+                  )
+                );
+              }
+            }
+
+            if (weekDate && !isNaN(weekDate.getTime())) {
+              const hasHours = Object.entries(hd).some(
+                ([k, v]: [string, any]) =>
+                  !['week', 'total'].includes(k) &&
+                  typeof v === 'number' &&
+                  v > 0
+              );
+              if (hasHours) {
+                const fridayDate = new Date(weekDate);
+                fridayDate.setDate(fridayDate.getDate() + 4);
+                if (!latestDate || fridayDate > latestDate) {
+                  latestDate = fridayDate;
+                }
+              }
+            }
+          }
+
+          if (latestDate) {
+            const y = latestDate.getFullYear();
+            const m = (latestDate.getMonth() + 1).toString().padStart(2, '0');
+            const d = latestDate.getDate().toString().padStart(2, '0');
+            dates[workerId] = `${d}/${m}/${y.toString().slice(-2)}`;
+          } else {
+            dates[workerId] = '—';
+          }
+        }
+
+        setReleaseDates(dates);
+      } catch (err) {
+        console.error('Error cargando fechas de liberación:', err);
+        setReleaseDates({});
+      }
+    };
+
+    loadWorkerAssignmentsAndDates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProject, projects.length, workers.length]);
 
   // ------------------- CARGAR HORAS ASIGNADAS POR PROYECTO SELECCIONADO -----------------
   useEffect(() => {
@@ -376,9 +478,14 @@ export default function ProyeccionPage() {
   };
 
   // ------------------- MODAL - FILTRADO DE TRABAJADORES -------------------
-  // Filtrar trabajadores según los criterios del modal
+  // Filtrar trabajadores según los criterios del modal y excluir los asignados
   const filteredModalRows = useMemo(() => {
     return workers.filter((worker) => {
+      // Excluir trabajadores ya asignados al proyecto
+      if (assignedWorkerIds.has(worker.id)) {
+        return false;
+      }
+
       // Filtro por nombre
       if (filterName && !worker.name.toLowerCase().includes(filterName.toLowerCase())) {
         return false;
@@ -394,12 +501,9 @@ export default function ProyeccionPage() {
         return false;
       }
       
-      // TODO: Filtro por fechas (modalDesde, modalHasta)
-      // Por ahora, los trabajadores no tienen fecha de liberación en la API
-      
       return true;
     });
-  }, [workers, filterName, filterSpecialty, filterLevel]);
+  }, [workers, filterName, filterSpecialty, filterLevel, assignedWorkerIds]);
 
   // Mostrar loading inicial si los proyectos están cargando y no hay datos
   if (projectsLoading && projects.length === 0) {
@@ -602,7 +706,7 @@ export default function ProyeccionPage() {
                         Departamento
                       </th>
                       <th style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15, background: '#f7f4fa' }}>
-                        Fecha tentativa de liberación
+                        Fecha liberación
                       </th>
                       <th
                         style={{
@@ -633,7 +737,7 @@ export default function ProyeccionPage() {
                           {worker.departmentName || '—'}
                         </td>
                         <td style={{ border: "1px solid #aaa", padding: '10px 8px', fontSize: 15 }}>
-                          {'—'}
+                          {releaseDates[worker.id] || '—'}
                         </td>
                         <td
                           style={{
