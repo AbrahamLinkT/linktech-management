@@ -5,18 +5,9 @@ export function useHorasPorAprobar() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    async function fetchHoras() {
-      try {
-        const res = await fetch("/data/staff_horas.json");
-        const data = await res.json();
-        // Suponiendo que las horas pendientes tienen un campo 'estatus' = 'Pendiente'
-  const pendientes = data.staff.filter((h: { estatus: string }) => h.estatus === "Pendiente");
-        setCount(pendientes.length);
-      } catch {
-        setCount(0);
-      }
-    }
-    fetchHoras();
+    // TODO: Conectar con endpoint real de horas por aprobar desde el backend
+    // Por ahora retorna 0 para evitar el error 404
+    setCount(0);
   }, []);
 
   return count;
