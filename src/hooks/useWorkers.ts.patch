@@ -1,0 +1,45 @@
+// Corrección para createWorker - líneas 298-322
+
+  // Crear un nuevo trabajador
+  const createWorker = async (payload: WorkerPayload): Promise<WorkerData | null> => {
+    try {
+      const body: any = {
+        name: payload.name,
+        status: payload.status,
+      };
+
+      // Add optional fields only if they have a value
+      if (payload.email) body.email = payload.email;
+      if (payload.phone) body.phone = payload.phone;
+      if (payload.location) body.location = payload.location;
+      if (payload.description) body.description = payload.description;
+      if (payload.department_id !== undefined && payload.department_id !== null) body.department_id = payload.department_id;
+      if (payload.level_id !== undefined && payload.level_id !== null) body.level_id = payload.level_id;
+      if (payload.scheme_id !== undefined && payload.scheme_id !== null) body.scheme_id = payload.scheme_id;
+      if (payload.role_id !== undefined && payload.role_id !== null) body.role_id = payload.role_id;
+      if ((payload as any).employee_code) body.employee_code = (payload as any).employee_code;
+      if ((payload as any).hire_date) body.hire_date = (payload as any).hire_date;
+      if ((payload as any).termination_date) body.termination_date = (payload as any).termination_date;
+      if ((payload as any).manager_id !== undefined && (payload as any).manager_id !== null) body.manager_id = (payload as any).manager_id;
+      
+      // active is optional; if provided use it, otherwise don't send it
+      if (typeof (payload as any).active === 'boolean') {
+        body.active = (payload as any).active;
+      }
+
+      console.log('Creating worker with payload:', body);
+
+      const response = await axios.post(
+        buildApiUrl(API_CONFIG.ENDPOINTS.WORKERS),
+        body,
+        { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
+      );
+
+      // refetch
+      await fetchWorkers();
+      return response.data;
+    } catch (error) {
+      console.error('Error creating worker:', error);
+      return null;
+    }
+  };
