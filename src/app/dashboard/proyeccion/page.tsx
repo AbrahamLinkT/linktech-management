@@ -191,13 +191,22 @@ export default function ProyeccionPage() {
         return 'N/A';
       }
 
-      // Parsear horas: ej "08:00-18:00"
-      const hoursMatch = schedule.hours.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
+      // Parsear horas: ej "08:00-18:00" en formato 24h
+      const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
       if (!hoursMatch) return 'N/A';
       
       const startHour = parseInt(hoursMatch[1], 10);
+      const startMin = parseInt(hoursMatch[2], 10);
       const endHour = parseInt(hoursMatch[3], 10);
-      const dailyHours = endHour - startHour;
+      const endMin = parseInt(hoursMatch[4], 10);
+
+      const startTotal = startHour * 60 + startMin;
+      const endTotal = endHour * 60 + endMin;
+      // Diferencia cronométrica en minutos en círculo de 24h
+      let diff = Math.abs(endTotal - startTotal);
+      // Usar el arco mínimo (maneja cruces de medianoche y evita negativos)
+      diff = Math.min(diff, 24 * 60 - diff);
+      const dailyHours = diff / 60;
 
       // Contar días de trabajo (split por comas y trim)
       const workingDays = schedule.working_days
@@ -208,7 +217,9 @@ export default function ProyeccionPage() {
 
       // Calcular: horas_diarias * cantidad_de_días
       const weeklyHours = dailyHours * daysCount;
-      return String(weeklyHours);
+      // Formatear a máximo 2 decimales para evitar flotantes largos
+      const formatted = Number.isInteger(weeklyHours) ? String(weeklyHours) : weeklyHours.toFixed(2);
+      return formatted;
     } catch (err) {
       console.error(`Error calculando horas para scheme ${schemeId}:`, err);
       return 'N/A';
