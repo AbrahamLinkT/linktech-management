@@ -25,6 +25,7 @@ type ProyeccionRow = {
   nivel: string;
   horas: string[]; // índice 0..14 (3 semanas * 5 días)
   fechaLibre: string;
+  workerId?: number; // id del worker asociado (opcional)
 };
 
 interface SchemeItem {
@@ -144,6 +145,9 @@ function ProyeccionTablePage() {
 
   const [tableData, setTableData] = useState<ProyeccionRow[]>([]);
   const [calculatedDates, setCalculatedDates] = useState<Array<{ inicial: string; fecha: string; fullDate: string }>>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<number | null>(null);
+  const [dateError, setDateError] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
 
   // Utilidades para mapear semanas → fechas por día
   const formatYMD = (date: Date) => {
@@ -322,6 +326,8 @@ function ProyeccionTablePage() {
           setIsLoading(false);
           return;
         }
+        // Guardar id del proyecto para uso en el modal/post
+        setCurrentProjectId(project.project_id);
 
         console.log('📊 Info general del proyecto:', project);
 
@@ -495,6 +501,7 @@ function ProyeccionTablePage() {
               tiempo: tiempoName,
               nivel: worker?.level_id ? String(worker.level_id) : 'N/A',
               horas: horasArray,
+              workerId: Number(workerId),
               fechaLibre: 'N/A',
             });
           }
@@ -589,6 +596,88 @@ function ProyeccionTablePage() {
     return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
   };
 
+  // Validadores para inputs de fecha: Desde debe ser Lunes (1), Hasta debe ser Viernes (5)
+  const handleDesdeChange = (val: string) => {
+    setDateError('');
+    const d = parseFecha(val);
+    if (!d) { setDateError('Fecha inválida'); return; }
+    if (d.getDay() !== 1) { setDateError('La fecha Desde debe ser Lunes'); return; }
+    setRangoHoras(r => ({ ...r, desde: val }));
+  };
+
+  const handleHastaChange = (val: string) => {
+    setDateError('');
+    const d = parseFecha(val);
+    if (!d) { setDateError('Fecha inválida'); return; }
+    if (d.getDay() !== 5) { setDateError('La fecha Hasta debe ser Viernes'); return; }
+    setRangoHoras(r => ({ ...r, hasta: val }));
+  };
+
+  // Helper para postear assigned-hours por cada semana entre dos fechas (desde lunes hasta viernes)
+  const postAssignedHoursForWeeks = async (assignedTo: number, desdeStr: string, hastaStr: string, cantidad: number) => {
+    if (!currentProjectId) throw new Error('No project id available');
+    const desde = parseFecha(desdeStr);
+    const hasta = parseFecha(hastaStr);
+    if (!desde || !hasta) throw new Error('Fechas inválidas');
+    // asegurar que desde es lunes y hasta es viernes
+    if (desde.getDay() !== 1) throw new Error('Desde debe ser lunes');
+    if (hasta.getDay() !== 5) throw new Error('Hasta debe ser viernes');
+
+    const weeks: Array<{ start: Date; end: Date }> = [];
+    let cur = new Date(desde);
+    while (cur <= hasta) {
+      const start = new Date(cur);
+      const end = new Date(cur);
+      end.setDate(start.getDate() + 4); // viernes
+      // push copy
+      weeks.push({ start: new Date(start), end: new Date(end) });
+      // next week
+      cur.setDate(cur.getDate() + 7);
+    }
+
+    setIsPosting(true);
+    try {
+      for (const w of weeks) {
+        const bodyObj: any = {
+          project_id: currentProjectId,
+          assigned_to: assignedTo,
+          assigned_by: 18,
+          hours_data: {
+            monday: cantidad,
+            tuesday: cantidad,
+            wednesday: cantidad,
+            thursday: cantidad,
+            friday: cantidad,
+            saturday: 0,
+            sunday: 0,
+          },
+          start_date: formatYMD(w.start),
+          end_date: formatYMD(w.end),
+        };
+
+        console.log('📤 POST assigned-hours payload:', bodyObj);
+        try {
+          const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([bodyObj]),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            console.error('❌ Error posting assigned-hours:', res.status, text);
+          } else {
+            console.log('✅ assigned-hours created for week', bodyObj.start_date);
+          }
+        } catch (postErr) {
+          console.error('❌ Exception posting assigned-hours:', postErr);
+        }
+      }
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  // Función para guardar el rango de horas
   const handleGuardarHoras = () => {
     if (registroSeleccionado) {
       setTableData((prev) =>
@@ -613,6 +702,21 @@ function ProyeccionTablePage() {
                 }
               }
             }
+            // POST: si rango definido realizar posts por semana
+            (async () => {
+              try {
+                const assignedTo = registroSeleccionado.workerId;
+                if (assignedTo && rangoHoras.desde && rangoHoras.hasta) {
+                  const cantidad = parseInt(rangoHoras.cantidad || '0', 10);
+                  if (!isNaN(cantidad)) {
+                    await postAssignedHoursForWeeks(assignedTo, rangoHoras.desde, rangoHoras.hasta, cantidad);
+                  }
+                }
+              } catch (err) {
+                console.error('❌ Error creando assigned-hours desde modal:', err);
+              }
+            })();
+
             return { ...row, horas: nuevasHoras };
           }
           return row;
@@ -626,6 +730,30 @@ function ProyeccionTablePage() {
           const cantidadStr = (rangoHoras.cantidad ?? '').trim();
           if (!cantidadStr) return row;
           nuevasHoras[diaSeleccionado] = `${cantidadStr}*`;
+
+          // POST single week for the registroSeleccionado if we have it
+          (async () => {
+            try {
+              const assignedTo = row.workerId;
+              const cantidad = parseInt(cantidadStr || '0', 10);
+              if (assignedTo && cantidad && diasInfo[diaSeleccionado]) {
+                // derive week Monday and Friday from the clicked column date
+                const clickedDate = parseFecha(diasInfo[diaSeleccionado].fullDate || diasInfo[diaSeleccionado].fecha);
+                if (clickedDate) {
+                  // compute monday of that week
+                  const day = clickedDate.getDay();
+                  const monday = new Date(clickedDate);
+                  monday.setDate(clickedDate.getDate() - (day === 0 ? 6 : day - 1));
+                  const friday = new Date(monday);
+                  friday.setDate(monday.getDate() + 4);
+                  await postAssignedHoursForWeeks(assignedTo, formatYMD(monday), formatYMD(friday), cantidad);
+                }
+              }
+            } catch (err) {
+              console.error('❌ Error creando assigned-hours para día seleccionado:', err);
+            }
+          })();
+
           return { ...row, horas: nuevasHoras };
         })
       );
@@ -743,7 +871,16 @@ function ProyeccionTablePage() {
                   transition: 'background 0.2s',
                   '&:hover': { bgcolor: '#d1e0fa' },
                 }}
-                onClick={() => handleAbrirModal(idx)}
+                onClick={() => {
+                  // seleccionar registro actual antes de abrir modal
+                  try {
+                    const rowData = (cell?.row as any)?.original as ProyeccionRow | undefined;
+                    if (rowData) setRegistroSeleccionado(rowData);
+                  } catch (e) {
+                    /* ignore */
+                  }
+                  handleAbrirModal(idx);
+                }}
                 title="Cambiar horas"
               >
                 {value}
@@ -946,15 +1083,25 @@ function ProyeccionTablePage() {
                 <input
                   type="date"
                   value={vistaRango.desde}
-                  onChange={e => setVistaRango(r => ({ ...r, desde: e.target.value }))}
-                  style={{ width: 140, padding: 4 }}
+                  onChange={e => handleDesdeChange(e.target.value)}
+                  style={{
+                    width: 140,
+                    padding: 8,
+                    border: '1px solid rgba(0, 0, 0, 0.35)',
+                    borderRadius: 5
+                  }}
                 />
                 <Typography>Hasta:</Typography>
                 <input
                   type="date"
                   value={vistaRango.hasta}
-                  onChange={e => setVistaRango(r => ({ ...r, hasta: e.target.value }))}
-                  style={{ width: 140, padding: 4 }}
+                  onChange={e => handleHastaChange(e.target.value)}
+                  style={{
+                    width: 140,
+                    padding: 8,
+                    border: '1px solid rgba(0, 0, 0, 0.35)',
+                    borderRadius: 5
+                  }}
                 />
               </Box>
             )}
@@ -1047,7 +1194,7 @@ function ProyeccionTablePage() {
                 <input
                   type="date"
                   value={rangoHoras.desde}
-                  onChange={e => setRangoHoras(r => ({ ...r, desde: e.target.value }))}
+                  onChange={e => handleDesdeChange(e.target.value)}
                   style={{
                     width: 140,
                     padding: 8,
@@ -1059,7 +1206,7 @@ function ProyeccionTablePage() {
                 <input
                   type="date"
                   value={rangoHoras.hasta}
-                  onChange={e => setRangoHoras(r => ({ ...r, hasta: e.target.value }))}
+                  onChange={e => handleHastaChange(e.target.value)}
                   style={{
                     width: 140,
                     padding: 8,
@@ -1083,6 +1230,7 @@ function ProyeccionTablePage() {
                 />
               </Box>
             )}
+            {dateError && <Typography color="error" sx={{ mt: 1 }}>{dateError}</Typography>}
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Button variant="contained" color="primary" onClick={handleGuardarHoras}>
                 Guardar
