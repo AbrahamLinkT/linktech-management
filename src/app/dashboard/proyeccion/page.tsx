@@ -424,7 +424,60 @@ export default function ProyeccionPage() {
     setSelectedModalRows((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  // Función para agregar workers seleccionados
+  // Función para generar XLSX con información del worker
+  const generateWorkerXLSX = (selectedWorkers: typeof filteredModalRows) => {
+    try {
+      const XLSX = require('xlsx');
+      const data = selectedWorkers.map(w => ({
+        'Nombre': w.name || 'N/A',
+        'Email': w.email || 'N/A',
+        'Departamento': w.departmentName || 'N/A',
+        'Rol': w.roleName || 'N/A',
+        'Nivel': w.levelName || 'N/A',
+        'Ubicación': w.location || 'N/A',
+        'Fecha de Contratación': w.hire_date || 'N/A',
+        'Código de Empleado': w.employee_code || 'N/A',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Trabajadores');
+      
+      // Generar el archivo XLSX como buffer
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    } catch (error) {
+      console.error('Error generando XLSX:', error);
+      return null;
+    }
+  };
+
+  // Función para encontrar el líder del departamento del worker
+  const findDepartmentHead = (workerDepartmentId: number | null | undefined): { id: number; email?: string; name?: string } | null => {
+    if (!workerDepartmentId) return null;
+    
+    // Buscar un worker que sea líder (manager_id == su propio id o que tenga rol de "Jefe de Departamento")
+    // Esto es un aproximado: buscar el primer worker del departamento con rol de "Jefe" o similar
+    const departmentHeads = workers.filter(w => 
+      w.department_id === workerDepartmentId && 
+      (w.roleName?.toLowerCase().includes('jefe') || 
+       w.roleName?.toLowerCase().includes('líder') || 
+       w.roleName?.toLowerCase().includes('head') ||
+       w.roleName?.toLowerCase().includes('manager'))
+    );
+
+    if (departmentHeads.length > 0) {
+      return {
+        id: departmentHeads[0].id,
+        email: departmentHeads[0].email,
+        name: departmentHeads[0].name
+      };
+    }
+
+    return null;
+  };
+
+  // Función para agregar workers seleccionados con lógica de departamentos
   const handleAgregarSeleccionados = async () => {
     // Obtener los workers seleccionados
     const selectedWorkers = Object.entries(selectedModalRows)
@@ -462,8 +515,21 @@ export default function ProyeccionPage() {
         return;
       }
 
+      // ==================== VERIFICACIÓN DE AUTORIZACIÓN ====================
+      // Solo el responsable/líder del proyecto puede agregar workers
+      if (creator.id !== project.employee_id) {
+        alert(`⛔ No tienes permiso para agregar personal a este proyecto. Solo el responsable (${project.employee_id}) puede hacerlo.`);
+        return;
+      }
+
       const assignedById = creator.id;
-      // Crear el payload para el POST
+      const creatorDepartmentId = creator.department_id;
+      
+      // ==================== SEPARAR WORKERS POR DEPARTAMENTO ====================
+      const sameDeptWorkers = selectedWorkers.filter(w => w.department_id === creatorDepartmentId);
+      const diffDeptWorkers = selectedWorkers.filter(w => w.department_id !== creatorDepartmentId);
+
+      // Crear el payload para todos los workers
       const payload = selectedWorkers.map(worker => ({
         project_id: project.project_id,
         assigned_to: worker.id,
@@ -481,11 +547,73 @@ export default function ProyeccionPage() {
         }
       }));
 
-      console.log('Creando asignaciones:', payload);
+      console.log('✅ Creando asignaciones:', payload);
       const success = await createAssignedHours(payload);
 
       if (success) {
-        alert(`✅ ${selectedWorkers.length} consultor(es) agregado(s) exitosamente`);
+        // ==================== ENVIAR NOTIFICACIONES POR DEPARTAMENTO ====================
+        const emailPromises: Promise<void>[] = [];
+
+        for (const worker of diffDeptWorkers) {
+          const departmentHead = findDepartmentHead(worker.department_id);
+          if (departmentHead && departmentHead.email) {
+            // Generar XLSX solo para este worker
+            const xlsxBlob = generateWorkerXLSX([worker]);
+            if (xlsxBlob) {
+              // Crear una promesa que convierte el blob a base64 y envía el email
+              const emailPromise = new Promise<void>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                  try {
+                    const result = reader.result as string;
+                    const base64 = result.split(',')[1]; // Obtener solo la parte base64
+                    
+                    const formData = new FormData();
+                    formData.append('email', departmentHead.email!);
+                    formData.append('name', departmentHead.name || 'Líder de Departamento');
+                    formData.append('message', `Se ha asignado a ${worker.name} (${worker.email}) del departamento ${worker.departmentName} al proyecto ${project.project_name} por ${creator.name}.`);
+                    formData.append('xlsxBase64', base64);
+
+                    const response = await fetch(buildApiUrl('/api/smtp/send'), {
+                      method: 'POST',
+                      body: formData,
+                    });
+                    
+                    if (!response.ok) {
+                      console.warn(`Email enviado con estado ${response.status} a ${departmentHead.email}`);
+                    } else {
+                      console.log(`✅ Email enviado exitosamente a ${departmentHead.email}`);
+                    }
+                  } catch (err) {
+                    console.error(`Error enviando email a ${departmentHead.email}:`, err);
+                  } finally {
+                    resolve();
+                  }
+                };
+                reader.onerror = () => {
+                  console.error('Error leyendo XLSX blob');
+                  resolve();
+                };
+                reader.readAsDataURL(xlsxBlob);
+              });
+
+              emailPromises.push(emailPromise);
+            }
+          }
+        }
+
+        // Esperar a que todos los emails se envíen (sin bloquearse si hay errores)
+        await Promise.all(emailPromises);
+
+        // Mensaje de confirmación
+        let message = `✅ ${selectedWorkers.length} consultor(es) agregado(s) exitosamente`;
+        if (sameDeptWorkers.length > 0 && diffDeptWorkers.length > 0) {
+          message += `\n📌 ${sameDeptWorkers.length} del mismo departamento (sin notificación)`;
+          message += `\n📧 ${diffDeptWorkers.length} de otros departamentos (notificados)`;
+        } else if (diffDeptWorkers.length > 0) {
+          message += `\n📧 Se enviaron notificaciones a ${diffDeptWorkers.length} líder(es) de departamento`;
+        }
+        alert(message);
         
         // Recargar datos del proyecto
         const allHours = await getAssignedHours();
