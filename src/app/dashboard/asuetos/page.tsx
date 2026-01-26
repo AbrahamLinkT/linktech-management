@@ -122,14 +122,25 @@ export default function AsuetosPage() {
 
                     // Colores por estado
                     let bg = 'bg-gray-100 text-gray-800';
-                    if (value === 'REQUESTED') bg = 'bg-yellow-100 text-yellow-800';
-                    else if (value === 'APPROVED') bg = 'bg-green-100 text-green-800';
-                    else if (value === 'REJECTED') bg = 'bg-red-100 text-red-800';
-                    else if (value === 'CANCELLED') bg = 'bg-slate-100 text-slate-800';
+                    let displayText = value;
+                    
+                    if (value === 'REQUESTED') {
+                        bg = 'bg-yellow-100 text-yellow-800';
+                        displayText = 'SOLICITADO';
+                    } else if (value === 'APPROVED') {
+                        bg = 'bg-green-100 text-green-800';
+                        displayText = 'APROBADO';
+                    } else if (value === 'REJECTED') {
+                        bg = 'bg-red-100 text-red-800';
+                        displayText = 'RECHAZADO';
+                    } else if (value === 'CANCELLED') {
+                        bg = 'bg-slate-100 text-slate-800';
+                        displayText = 'CANCELADO';
+                    }
 
                     return (
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${bg}`}>
-                            {value}
+                            {displayText}
                         </span>
                     );
                 }

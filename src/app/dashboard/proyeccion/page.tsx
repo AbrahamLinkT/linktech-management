@@ -560,41 +560,39 @@ export default function ProyeccionPage() {
             // Generar XLSX solo para este worker
             const xlsxBlob = generateWorkerXLSX([worker]);
             if (xlsxBlob) {
-              // Crear una promesa que convierte el blob a base64 y envía el email
+              // Crear una promesa que envía el email con el archivo XLSX
               const emailPromise = new Promise<void>((resolve) => {
-                const reader = new FileReader();
-                reader.onload = async () => {
-                  try {
-                    const result = reader.result as string;
-                    const base64 = result.split(',')[1]; // Obtener solo la parte base64
-                    
-                    const formData = new FormData();
-                    formData.append('email', departmentHead.email!);
-                    formData.append('name', departmentHead.name || 'Líder de Departamento');
-                    formData.append('message', `Se ha asignado a ${worker.name} (${worker.email}) del departamento ${worker.departmentName} al proyecto ${project.project_name} por ${creator.name}.`);
-                    formData.append('xlsxBase64', base64);
+                try {
+                  // Crear un File a partir del Blob
+                  const xlsxFile = new File(
+                    [xlsxBlob],
+                    `worker_${worker.id}_${Date.now()}.xlsx`,
+                    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+                  );
 
-                    const response = await fetch(buildApiUrl('/api/smtp/send'), {
-                      method: 'POST',
-                      body: formData,
-                    });
-                    
-                    if (!response.ok) {
-                      console.warn(`Email enviado con estado ${response.status} a ${departmentHead.email}`);
+                  const formData = new FormData();
+                  formData.append('name', departmentHead.name || 'Líder de Departamento');
+                  formData.append('email', departmentHead.email!);
+                  formData.append('file', xlsxFile);
+
+                  fetch(buildApiUrl('/api/smtp/send'), {
+                    method: 'POST',
+                    body: formData,
+                  }).then(response => {
+                    if (response.ok) {
+                      console.log(`✅ Email enviado exitosamente a ${departmentHead.email} (${worker.name})`);
                     } else {
-                      console.log(`✅ Email enviado exitosamente a ${departmentHead.email}`);
+                      console.warn(`⚠️ Email retornó estado ${response.status} para ${departmentHead.email}`);
                     }
-                  } catch (err) {
-                    console.error(`Error enviando email a ${departmentHead.email}:`, err);
-                  } finally {
+                  }).catch(err => {
+                    console.error(`❌ Error enviando email a ${departmentHead.email}:`, err);
+                  }).finally(() => {
                     resolve();
-                  }
-                };
-                reader.onerror = () => {
-                  console.error('Error leyendo XLSX blob');
+                  });
+                } catch (err) {
+                  console.error(`❌ Error preparando email para ${departmentHead.email}:`, err);
                   resolve();
-                };
-                reader.readAsDataURL(xlsxBlob);
+                }
               });
 
               emailPromises.push(emailPromise);
