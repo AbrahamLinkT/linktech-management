@@ -556,12 +556,16 @@ export default function ProyeccionPage() {
 
         for (const worker of diffDeptWorkers) {
           const departmentHead = findDepartmentHead(worker.department_id);
+          console.log(`🔍 Worker ${worker.name}, Líder encontrado:`, departmentHead);
+          
           if (departmentHead && departmentHead.email) {
             // Generar XLSX solo para este worker
             const xlsxBlob = generateWorkerXLSX([worker]);
+            console.log(`📄 XLSX generado para ${worker.name}:`, xlsxBlob);
+            
             if (xlsxBlob) {
               // Crear una promesa que envía el email con el archivo XLSX
-              const emailPromise = new Promise<void>((resolve) => {
+              const emailPromise = (async () => {
                 try {
                   // Crear un File a partir del Blob
                   const xlsxFile = new File(
@@ -575,33 +579,36 @@ export default function ProyeccionPage() {
                   formData.append('email', departmentHead.email!);
                   formData.append('file', xlsxFile);
 
-                  fetch(buildApiUrl('/api/smtp/send'), {
+                  const smtpUrl = buildApiUrl('/api/smtp/send');
+                  console.log(`📧 Enviando email a ${departmentHead.email}, URL: ${smtpUrl}`);
+
+                  const response = await fetch(smtpUrl, {
                     method: 'POST',
                     body: formData,
-                  }).then(response => {
-                    if (response.ok) {
-                      console.log(`✅ Email enviado exitosamente a ${departmentHead.email} (${worker.name})`);
-                    } else {
-                      console.warn(`⚠️ Email retornó estado ${response.status} para ${departmentHead.email}`);
-                    }
-                  }).catch(err => {
-                    console.error(`❌ Error enviando email a ${departmentHead.email}:`, err);
-                  }).finally(() => {
-                    resolve();
                   });
+
+                  const responseText = await response.text();
+                  console.log(`📬 Respuesta del servidor (${response.status}):`, responseText);
+
+                  if (response.ok) {
+                    console.log(`✅ Email enviado exitosamente a ${departmentHead.email} (${worker.name})`);
+                  } else {
+                    console.warn(`⚠️ Email retornó estado ${response.status} para ${departmentHead.email}`);
+                  }
                 } catch (err) {
-                  console.error(`❌ Error preparando email para ${departmentHead.email}:`, err);
-                  resolve();
+                  console.error(`❌ Error enviando email a ${departmentHead.email}:`, err);
                 }
-              });
+              })();
 
               emailPromises.push(emailPromise);
             }
           }
         }
 
-        // Esperar a que todos los emails se envíen (sin bloquearse si hay errores)
+        // Esperar a que todos los emails se envíen
+        console.log(`📊 Esperando ${emailPromises.length} promesas de email...`);
         await Promise.all(emailPromises);
+        console.log(`✅ Todas las notificaciones han sido procesadas`);
 
         // Mensaje de confirmación
         let message = `✅ ${selectedWorkers.length} consultor(es) agregado(s) exitosamente`;
