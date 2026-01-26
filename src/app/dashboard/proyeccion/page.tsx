@@ -454,26 +454,51 @@ export default function ProyeccionPage() {
 
   // Función para encontrar el líder del departamento del worker
   const findDepartmentHead = (workerDepartmentId: number | null | undefined): { id: number; email?: string; name?: string } | null => {
-    if (!workerDepartmentId) return null;
+    if (!workerDepartmentId) {
+      console.log('❌ No department ID provided');
+      return null;
+    }
     
-    // Buscar un worker que sea líder (manager_id == su propio id o que tenga rol de "Jefe de Departamento")
-    // Esto es un aproximado: buscar el primer worker del departamento con rol de "Jefe" o similar
-    const departmentHeads = workers.filter(w => 
-      w.department_id === workerDepartmentId && 
-      (w.roleName?.toLowerCase().includes('jefe') || 
-       w.roleName?.toLowerCase().includes('líder') || 
-       w.roleName?.toLowerCase().includes('head') ||
-       w.roleName?.toLowerCase().includes('manager'))
+    console.log(`🔎 Buscando líder para departamento ID: ${workerDepartmentId}`);
+    
+    // Opción 1: Buscar por rol (Jefe, Líder, Head, Manager)
+    const departmentWorkers = workers.filter(w => w.department_id === workerDepartmentId);
+    console.log(`📊 Workers en este departamento: ${departmentWorkers.length}`, departmentWorkers.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
+    
+    const departmentHeads = departmentWorkers.filter(w => 
+      w.roleName?.toLowerCase().includes('jefe') || 
+      w.roleName?.toLowerCase().includes('líder') || 
+      w.roleName?.toLowerCase().includes('head') ||
+      w.roleName?.toLowerCase().includes('manager')
     );
-
+    
+    console.log(`🔍 Líderes encontrados por rol: ${departmentHeads.length}`, departmentHeads.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
+    
     if (departmentHeads.length > 0) {
+      const head = departmentHeads[0];
+      console.log(`✅ Líder encontrado por rol: ${head.name} (${head.email})`);
       return {
-        id: departmentHeads[0].id,
-        email: departmentHeads[0].email,
-        name: departmentHeads[0].name
+        id: head.id,
+        email: head.email,
+        name: head.name
       };
     }
 
+    // Opción 2: Usar manager_id del primer worker como fallback
+    if (departmentWorkers.length > 0 && departmentWorkers[0].manager_id) {
+      const managerId = departmentWorkers[0].manager_id;
+      const manager = workers.find(w => w.id === managerId);
+      if (manager && manager.email) {
+        console.log(`✅ Líder encontrado por manager_id: ${manager.name} (${manager.email})`);
+        return {
+          id: manager.id,
+          email: manager.email,
+          name: manager.name
+        };
+      }
+    }
+
+    console.log(`❌ No se encontró líder para departamento ${workerDepartmentId}`);
     return null;
   };
 
