@@ -637,8 +637,20 @@ function ProyeccionTablePage() {
 
     setIsPosting(true);
     try {
+      // Obtener registros existentes para el proyecto (si la API soporta filtro por proyecto)
+      let existingList: any[] = [];
+      try {
+        const listRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS) + `/${currentProjectId}`);
+        if (listRes.ok) {
+          existingList = await listRes.json();
+        } else {
+          console.warn('No se pudo obtener assigned-hours existentes, status=', listRes.status);
+        }
+      } catch (e) {
+        console.warn('Error al fetch assigned-hours existentes:', e);
+      }
+
       for (const w of weeks) {
-        console.log(w)
         const bodyObj: any = {
           project_id: currentProjectId,
           assigned_to: assignedTo,
@@ -652,26 +664,75 @@ function ProyeccionTablePage() {
             saturday: 0,
             sunday: 0,
           },
+          // also include camelCase variants for compatibility
+          hoursData: {
+            monday: cantidad,
+            tuesday: cantidad,
+            wednesday: cantidad,
+            thursday: cantidad,
+            friday: cantidad,
+            saturday: 0,
+            sunday: 0,
+          },
+          startDate: formatYMD(w.start),
+          endDate: formatYMD(w.end),
           start_date: formatYMD(w.start),
           end_date: formatYMD(w.end),
         };
 
-        console.log('📤 POST assigned-hours payload:', bodyObj);
+        // Buscar si ya existe un registro que coincida exactamente en project/assigned/start/end
+        const match = existingList.find((ex: any) => {
+          const exProject = ex.projectId ?? ex.project_id ?? ex.projectId ?? ex.projectId;
+          const exAssignedTo = ex.assignedTo ?? ex.assigned_to ?? ex.assigned_to ?? ex.assignedTo;
+          const exAssignedBy = ex.assignedBy ?? ex.assigned_by ?? ex.assigned_by ?? ex.assignedBy;
+          const exStart = (ex.startDate ?? ex.start_date ?? ex.start_date ?? ex.startDate) || '';
+          const exEnd = (ex.endDate ?? ex.end_date ?? ex.end_date ?? ex.endDate) || '';
 
-        try {
-          const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify([bodyObj]),
-          });
-          if (!res.ok) {
-            const text = await res.text();
-            console.error('❌ Error posting assigned-hours:', res.status, text);
-          } else {
-            console.log('✅ assigned-hours created for week', bodyObj.start_date);
+          return Number(exProject) === Number(currentProjectId) &&
+                 Number(exAssignedTo) === Number(assignedTo) &&
+                 Number(exAssignedBy) === Number(18) &&
+                 (exStart === formatYMD(w.start)) &&
+                 (exEnd === formatYMD(w.end));
+        });
+
+        if (match && (match.id || match._id)) {
+          // Si existe, incluir el id y hacer PUT
+          const id = match.id ?? match._id;
+          const putObj = { ...bodyObj, id };
+          try {
+            console.log('🔁 PUT assigned-hours payload:', putObj);
+            const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify([putObj]),
+            });
+            if (!res.ok) {
+              const text = await res.text();
+              console.error('❌ Error PUT assigned-hours:', res.status, text);
+            } else {
+              console.log('✅ assigned-hours updated for week', putObj.startDate, 'id=', id);
+            }
+          } catch (putErr) {
+            console.error('❌ Exception PUT assigned-hours:', putErr);
           }
-        } catch (postErr) {
-          console.error('❌ Exception posting assigned-hours:', postErr);
+        } else {
+          // No existe: crear (POST)
+          try {
+            console.log('📤 POST assigned-hours payload:', bodyObj);
+            const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify([bodyObj]),
+            });
+            if (!res.ok) {
+              const text = await res.text();
+              console.error('❌ Error posting assigned-hours:', res.status, text);
+            } else {
+              console.log('✅ assigned-hours created for week', bodyObj.startDate);
+            }
+          } catch (postErr) {
+            console.error('❌ Exception posting assigned-hours:', postErr);
+          }
         }
       }
     } finally {
