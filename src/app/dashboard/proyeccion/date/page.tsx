@@ -638,6 +638,7 @@ function ProyeccionTablePage() {
     setIsPosting(true);
     try {
       for (const w of weeks) {
+        console.log(w)
         const bodyObj: any = {
           project_id: currentProjectId,
           assigned_to: assignedTo,
@@ -656,6 +657,7 @@ function ProyeccionTablePage() {
         };
 
         console.log('📤 POST assigned-hours payload:', bodyObj);
+
         try {
           const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
             method: 'POST',
@@ -678,21 +680,33 @@ function ProyeccionTablePage() {
   };
 
   // Función para guardar el rango de horas
-  const handleGuardarHoras = () => {
+  const handleGuardarHoras = async () => {
+    // Helper to clear modal state
+    const clearAndClose = () => {
+      setOpenModal(false);
+      setRangoHoras({ desde: '', hasta: '', cantidad: '' });
+      setDiaSeleccionado(null);
+      setRegistroSeleccionado(null);
+    };
+
+    // If a specific row was selected in the modal, update only that row
     if (registroSeleccionado) {
-      setTableData((prev) =>
-        prev.map((row) => {
-          if (row === registroSeleccionado) {
+      const cantidadStr = (rangoHoras.cantidad ?? '').trim();
+      if (!cantidadStr) {
+        clearAndClose();
+        return;
+      }
+
+      // Compute updated rows based on workerId (avoid object reference checks)
+      setTableData((prev) => {
+        const desdeDate = parseFecha(rangoHoras.desde);
+        const hastaDate = parseFecha(rangoHoras.hasta);
+        const desdeInt = toIntDate(desdeDate);
+        const hastaInt = toIntDate(hastaDate);
+
+        return prev.map((row) => {
+          if (Number(row.workerId) === Number(registroSeleccionado.workerId)) {
             const nuevasHoras = [...row.horas];
-            // Mapear fechas de columnas a índices
-            const desdeDate = parseFecha(rangoHoras.desde);
-            const hastaDate = parseFecha(rangoHoras.hasta);
-            const desdeInt = toIntDate(desdeDate);
-            const hastaInt = toIntDate(hastaDate);
-            const cantidadStr = (rangoHoras.cantidad ?? '').trim();
-            if (!cantidadStr) {
-              return row; // no actualizar si cantidad vacía
-            }
             for (let i = 0; i < diasInfo.length; i++) {
               const colDate = parseFecha(diasInfo[i].fullDate || diasInfo[i].fecha);
               const colInt = toIntDate(colDate);
@@ -702,65 +716,81 @@ function ProyeccionTablePage() {
                 }
               }
             }
-            // POST: si rango definido realizar posts por semana
-            (async () => {
-              try {
-                const assignedTo = registroSeleccionado.workerId;
-                if (assignedTo && rangoHoras.desde && rangoHoras.hasta) {
-                  const cantidad = parseInt(rangoHoras.cantidad || '0', 10);
-                  if (!isNaN(cantidad)) {
-                    await postAssignedHoursForWeeks(assignedTo, rangoHoras.desde, rangoHoras.hasta, cantidad);
-                  }
-                }
-              } catch (err) {
-                console.error('❌ Error creando assigned-hours desde modal:', err);
-              }
-            })();
-
             return { ...row, horas: nuevasHoras };
           }
           return row;
-        })
-      );
-      setRegistroSeleccionado(null);
-    } else if (diaSeleccionado !== null) {
-      setTableData((prev) =>
-        prev.map((row) => {
-          const nuevasHoras = [...row.horas];
-          const cantidadStr = (rangoHoras.cantidad ?? '').trim();
-          if (!cantidadStr) return row;
-          nuevasHoras[diaSeleccionado] = `${cantidadStr}*`;
+        });
+      });
 
-          // POST single week for the registroSeleccionado if we have it
-          (async () => {
-            try {
-              const assignedTo = row.workerId;
-              const cantidad = parseInt(cantidadStr || '0', 10);
-              if (assignedTo && cantidad && diasInfo[diaSeleccionado]) {
-                // derive week Monday and Friday from the clicked column date
-                const clickedDate = parseFecha(diasInfo[diaSeleccionado].fullDate || diasInfo[diaSeleccionado].fecha);
-                if (clickedDate) {
-                  // compute monday of that week
-                  const day = clickedDate.getDay();
-                  const monday = new Date(clickedDate);
-                  monday.setDate(clickedDate.getDate() - (day === 0 ? 6 : day - 1));
-                  const friday = new Date(monday);
-                  friday.setDate(monday.getDate() + 4);
-                  await postAssignedHoursForWeeks(assignedTo, formatYMD(monday), formatYMD(friday), cantidad);
-                }
-              }
-            } catch (err) {
-              console.error('❌ Error creando assigned-hours para día seleccionado:', err);
-            }
-          })();
+      // Do the POST once for the selected worker (outside of map)
+      try {
+        const assignedTo = registroSeleccionado.workerId;
+        if (assignedTo && rangoHoras.desde && rangoHoras.hasta) {
+          const cantidad = parseInt(rangoHoras.cantidad || '0', 10);
+          if (!isNaN(cantidad)) {
+            await postAssignedHoursForWeeks(assignedTo, rangoHoras.desde, rangoHoras.hasta, cantidad);
+          }
+        }
+      } catch (err) {
+        console.error('❌ Error creando assigned-hours desde modal:', err);
+      } finally {
+        clearAndClose();
+      }
 
-          return { ...row, horas: nuevasHoras };
-        })
-      );
+      return;
     }
-    setOpenModal(false);
-    setRangoHoras({ desde: '', hasta: '', cantidad: '' });
-    setDiaSeleccionado(null);
+
+    // If applying to a single day (diaSeleccionado) -- update all rows' cell and post per row once
+    if (diaSeleccionado !== null) {
+      const cantidadStr = (rangoHoras.cantidad ?? '').trim();
+      if (!cantidadStr) {
+        clearAndClose();
+        return;
+      }
+      const cantidad = parseInt(cantidadStr || '0', 10);
+      if (isNaN(cantidad)) {
+        clearAndClose();
+        return;
+      }
+
+      // Build updated rows locally so we can both set state and iterate to post
+      const updatedRows = tableData.map((row) => {
+        const nuevasHoras = [...row.horas];
+        nuevasHoras[diaSeleccionado] = `${cantidadStr}*`;
+        return { ...row, horas: nuevasHoras };
+      });
+
+      setTableData(updatedRows);
+
+      // Compute week bounds once based on clicked column date
+      const clickedDate = parseFecha(diasInfo[diaSeleccionado].fullDate || diasInfo[diaSeleccionado].fecha);
+      if (clickedDate) {
+        const day = clickedDate.getDay();
+        const monday = new Date(clickedDate);
+        monday.setDate(clickedDate.getDate() - (day === 0 ? 6 : day - 1));
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+
+        // Post once per row (do in parallel)
+        try {
+          await Promise.all(
+            updatedRows.map((row) => {
+              const assignedTo = row.workerId;
+              if (assignedTo) {
+                return postAssignedHoursForWeeks(assignedTo, formatYMD(monday), formatYMD(friday), cantidad).catch((err) => {
+                  console.error('❌ Error creando assigned-hours para día seleccionado (workerId=' + assignedTo + '):', err);
+                });
+              }
+              return Promise.resolve();
+            })
+          );
+        } catch (err) {
+          console.error('❌ Error en posts paralelos:', err);
+        }
+      }
+
+      clearAndClose();
+    }
   };
 
   // ---- Columnas (con grupos por semana) ----
