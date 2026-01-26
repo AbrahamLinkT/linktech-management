@@ -452,8 +452,8 @@ export default function ProyeccionPage() {
     }
   };
 
-  // Función para encontrar el líder del departamento del worker
-  const findDepartmentHead = (workerDepartmentId: number | null | undefined): { id: number; email?: string; name?: string } | null => {
+  // Función para encontrar el líder del departamento del worker (async)
+  const findDepartmentHead = async (workerDepartmentId: number | null | undefined): Promise<{ id: number; email?: string; name?: string } | null> => {
     if (!workerDepartmentId) {
       console.log('❌ No department ID provided');
       return null;
@@ -461,45 +461,47 @@ export default function ProyeccionPage() {
     
     console.log(`🔎 Buscando líder para departamento ID: ${workerDepartmentId}`);
     
-    // Opción 1: Buscar por rol (Jefe, Líder, Head, Manager)
-    const departmentWorkers = workers.filter(w => w.department_id === workerDepartmentId);
-    console.log(`📊 Workers en este departamento: ${departmentWorkers.length}`, departmentWorkers.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
-    
-    const departmentHeads = departmentWorkers.filter(w => 
-      w.roleName?.toLowerCase().includes('jefe') || 
-      w.roleName?.toLowerCase().includes('líder') || 
-      w.roleName?.toLowerCase().includes('head') ||
-      w.roleName?.toLowerCase().includes('manager')
-    );
-    
-    console.log(`🔍 Líderes encontrados por rol: ${departmentHeads.length}`, departmentHeads.map(w => ({ id: w.id, name: w.name, role: w.roleName })));
-    
-    if (departmentHeads.length > 0) {
-      const head = departmentHeads[0];
-      console.log(`✅ Líder encontrado por rol: ${head.name} (${head.email})`);
-      return {
-        id: head.id,
-        email: head.email,
-        name: head.name
-      };
-    }
-
-    // Opción 2: Usar manager_id del primer worker como fallback
-    if (departmentWorkers.length > 0 && departmentWorkers[0].manager_id) {
-      const managerId = departmentWorkers[0].manager_id;
-      const manager = workers.find(w => w.id === managerId);
-      if (manager && manager.email) {
-        console.log(`✅ Líder encontrado por manager_id: ${manager.name} (${manager.email})`);
-        return {
-          id: manager.id,
-          email: manager.email,
-          name: manager.name
-        };
+    try {
+      // Consultar department-heads desde el backend
+      const response = await fetch(buildApiUrl('/department-heads'));
+      if (!response.ok) {
+        console.error(`❌ Error obteniendo department-heads: ${response.status}`);
+        return null;
       }
+      
+      const departmentHeads = await response.json();
+      console.log('📋 Department heads obtenidos:', departmentHeads);
+      
+      // Buscar el department head activo para este departamento
+      const activeDeptHead = departmentHeads.find((dh: any) => 
+        dh.id_department === workerDepartmentId && dh.active === true
+      );
+      
+      if (!activeDeptHead) {
+        console.log(`❌ No se encontró líder activo para departamento ${workerDepartmentId}`);
+        return null;
+      }
+      
+      console.log(`✅ Líder encontrado en department-heads:`, activeDeptHead);
+      
+      // Buscar el worker correspondiente al id_worker del líder
+      const headWorker = workers.find(w => w.id === activeDeptHead.id_worker);
+      
+      if (!headWorker || !headWorker.email) {
+        console.log(`❌ No se encontró worker o email para id_worker: ${activeDeptHead.id_worker}`);
+        return null;
+      }
+      
+      console.log(`✅ Líder del departamento: ${headWorker.name} (${headWorker.email})`);
+      return {
+        id: headWorker.id,
+        email: headWorker.email,
+        name: headWorker.name
+      };
+    } catch (error) {
+      console.error('❌ Error buscando líder del departamento:', error);
+      return null;
     }
-
-    console.log(`❌ No se encontró líder para departamento ${workerDepartmentId}`);
-    return null;
   };
 
   // Función para agregar workers seleccionados con lógica de departamentos
@@ -580,7 +582,7 @@ export default function ProyeccionPage() {
         const emailPromises: Promise<void>[] = [];
 
         for (const worker of diffDeptWorkers) {
-          const departmentHead = findDepartmentHead(worker.department_id);
+          const departmentHead = await findDepartmentHead(worker.department_id);
           console.log(`🔍 Worker ${worker.name}, Líder encontrado:`, departmentHead);
           
           if (departmentHead && departmentHead.email) {
@@ -604,7 +606,8 @@ export default function ProyeccionPage() {
                   formData.append('email', departmentHead.email!);
                   formData.append('file', xlsxFile);
 
-                  const smtpUrl = buildApiUrl('/api/smtp/send');
+                  // URL directa sin proxy (endpoint de Next.js, no backend Java)
+                  const smtpUrl = '/api/smtp/send';
                   console.log(`📧 Enviando email a ${departmentHead.email}, URL: ${smtpUrl}`);
 
                   const response = await fetch(smtpUrl, {
