@@ -89,24 +89,35 @@ export default function ResumenCargabilidad() {
   // Cargar work schedules
   useEffect(() => {
     const loadWorkSchedules = async () => {
-      if (!allWorkers || allWorkers.length === 0) return;
+      if (!allWorkers || allWorkers.length === 0) {
+        console.log('📦 Sin workers, no cargando schedules en resumen');
+        return;
+      }
       
+      console.log('📦 Resumen - Cargando work schedules...', allWorkers.length, 'workers');
       setLoadingSchedules(true);
       const scheduleMap = new Map<number, any>();
       const uniqueSchemeIds = new Set(allWorkers.map(w => w.scheme_id).filter(Boolean));
+      console.log('🔍 Resumen - Scheme IDs únicos a cargar:', Array.from(uniqueSchemeIds));
       
       for (const schemeId of uniqueSchemeIds) {
         try {
-          const res = await fetch(buildApiUrl(`/work-schedule/${schemeId}`));
+          const url = buildApiUrl(`/work-schedule/${schemeId}`);
+          console.log(`🌐 Resumen - Intentando cargar: ${url}`);
+          const res = await fetch(url);
           if (res.ok) {
             const schedule = await res.json();
+            console.log(`✅ Resumen - Schedule cargado para ${schemeId}:`, schedule);
             scheduleMap.set(Number(schemeId), schedule);
+          } else {
+            console.error(`❌ Resumen - Error cargando schedule ${schemeId}: ${res.status} ${res.statusText}`);
           }
         } catch (err) {
-          console.error(`Error cargando schedule ${schemeId}:`, err);
+          console.error(`❌ Resumen - Exception cargando schedule ${schemeId}:`, err);
         }
       }
       
+      console.log('✅ Resumen - Work schedules finalizados. Mapa:', Array.from(scheduleMap.entries()));
       setWorkSchedules(scheduleMap);
       setLoadingSchedules(false);
     };
@@ -183,7 +194,7 @@ export default function ResumenCargabilidad() {
   
   // Calcular ocupación por worker y día
   const occupancyData: WorkerOccupancy[] = useMemo(() => {
-    if (!allWorkers || selectedWorkerIds.length === 0 || assignedHours.length === 0 || loadingSchedules) return [];
+    if (!allWorkers || selectedWorkerIds.length === 0 || assignedHours.length === 0) return [];
     
     const filteredWorkers = allWorkers.filter(w => selectedWorkerIds.includes(w.id));
     

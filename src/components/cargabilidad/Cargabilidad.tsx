@@ -32,24 +32,35 @@ export default function CargabilidadComponent() {
     // Cargar work schedules para obtener las horas
     useEffect(() => {
         const loadWorkSchedules = async () => {
-            if (!workers || workers.length === 0) return;
+            if (!workers || workers.length === 0) {
+                console.log('📦 Sin workers, no cargando schedules');
+                return;
+            }
             
+            console.log('📦 Cargando work schedules...', workers.length, 'workers');
             setLoadingSchedules(true);
             const scheduleMap = new Map<number, any>();
             const uniqueSchemeIds = new Set(workers.map(w => w.scheme_id).filter(Boolean));
+            console.log('🔍 Scheme IDs únicos a cargar:', Array.from(uniqueSchemeIds));
             
             for (const schemeId of uniqueSchemeIds) {
                 try {
-                    const res = await fetch(buildApiUrl(`/work-schedule/${schemeId}`));
+                    const url = buildApiUrl(`/work-schedule/${schemeId}`);
+                    console.log(`🌐 Intentando cargar: ${url}`);
+                    const res = await fetch(url);
                     if (res.ok) {
                         const schedule = await res.json();
+                        console.log(`✅ Schedule cargado para ${schemeId}:`, schedule);
                         scheduleMap.set(Number(schemeId), schedule);
+                    } else {
+                        console.error(`❌ Error cargando schedule ${schemeId}: ${res.status} ${res.statusText}`);
                     }
                 } catch (err) {
-                    console.error(`Error cargando schedule ${schemeId}:`, err);
+                    console.error(`❌ Exception cargando schedule ${schemeId}:`, err);
                 }
             }
             
+            console.log('✅ Work schedules finalizados. Mapa:', Array.from(scheduleMap.entries()));
             setWorkSchedules(scheduleMap);
             setLoadingSchedules(false);
         };
@@ -61,13 +72,15 @@ export default function CargabilidadComponent() {
 
     // Función para calcular horas diarias del esquema
     const calculateDailyHours = (schemeId?: number | null): string => {
-        if (!schemeId) return 'N/A';
-        if (loadingSchedules) return 'Cargando...';
+        if (!schemeId) {
+            console.warn('⚠️ No schemeId provided');
+            return 'N/A';
+        }
         
         const schedule = workSchedules.get(schemeId);
         if (!schedule) {
-            console.warn(`🚨 Schedule no encontrado para scheme_id: ${schemeId}, schedules disponibles:`, Array.from(workSchedules.keys()));
-            return 'N/A';
+            console.warn(`🚨 Schedule no encontrado para scheme_id: ${schemeId}. Disponibles: ${Array.from(workSchedules.keys()).join(', ') || 'NINGUNO'}. loadingSchedules=${loadingSchedules}`);
+            return loadingSchedules ? 'Cargando...' : 'N/A';
         }
         
         console.log(`✅ Schedule encontrado para scheme_id ${schemeId}:`, schedule);
@@ -116,7 +129,7 @@ export default function CargabilidadComponent() {
 
     // Transformar datos de workers a formato de la tabla
     const data: StaffItem[] = useMemo(() => {
-        if (!workers || workers.length === 0 || loadingSchedules) return [];
+        if (!workers || workers.length === 0) return [];
         
         return workers.map((worker) => ({
             id: String(worker.id),
