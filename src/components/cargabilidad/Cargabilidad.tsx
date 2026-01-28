@@ -26,6 +26,7 @@ export default function CargabilidadComponent() {
     const { data: workers, loading } = useWorkers();
     const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
     const [loadingSchedules, setLoadingSchedules] = useState(true);
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 
     // Cargar work schedules para obtener las horas
     useEffect(() => {
@@ -145,6 +146,8 @@ export default function CargabilidadComponent() {
                 menu={true}
                 actions={actions}
                 edit={true}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
             />
         </ContentBody>
     );
