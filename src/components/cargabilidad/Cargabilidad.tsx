@@ -7,7 +7,8 @@ import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "../buttons/buttons";
 import { ChartColumn } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { buildApiUrl } from "@/config/api";
 
 interface StaffItem {
     id: string;
@@ -23,6 +24,69 @@ interface StaffItem {
 export default function CargabilidadComponent() {
     const router = useRouter();
     const { data: workers, loading } = useWorkers();
+    const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
+    const [loadingSchedules, setLoadingSchedules] = useState(true);
+
+    // Cargar work schedules para obtener las horas
+    useEffect(() => {
+        const loadWorkSchedules = async () => {
+            if (!workers || workers.length === 0) return;
+            
+            setLoadingSchedules(true);
+            const scheduleMap = new Map<number, any>();
+            const uniqueSchemeIds = new Set(workers.map(w => w.scheme_id).filter(Boolean));
+            
+            for (const schemeId of uniqueSchemeIds) {
+                try {
+                    const res = await fetch(buildApiUrl(`/work-schedule/${schemeId}`));
+                    if (res.ok) {
+                        const schedule = await res.json();
+                        scheduleMap.set(Number(schemeId), schedule);
+                    }
+                } catch (err) {
+                    console.error(`Error cargando schedule ${schemeId}:`, err);
+                }
+            }
+            
+            setWorkSchedules(scheduleMap);
+            setLoadingSchedules(false);
+        };
+        
+        if (workers && workers.length > 0) {
+            loadWorkSchedules();
+        }
+    }, [workers]);
+
+    // Función para calcular horas semanales
+    const calculateWeeklyHours = (schemeId?: number | null): string => {
+        if (!schemeId) return 'N/A';
+        
+        const schedule = workSchedules.get(schemeId);
+        if (!schedule?.hours || !schedule?.working_days) return 'N/A';
+
+        const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+        if (!hoursMatch) return 'N/A';
+        
+        const startH = parseInt(hoursMatch[1], 10);
+        const startM = parseInt(hoursMatch[2], 10);
+        const endH = parseInt(hoursMatch[3], 10);
+        const endM = parseInt(hoursMatch[4], 10);
+
+        const startTotal = startH * 60 + startM;
+        const endTotal = endH * 60 + endM;
+        let diff = Math.abs(endTotal - startTotal);
+        diff = Math.min(diff, 24 * 60 - diff);
+        const dailyHours = diff / 60;
+
+        const workingDays = schedule.working_days
+            .split(',')
+            .map((d: string) => d.trim())
+            .filter((d: string) => d.length > 0);
+        const daysCount = workingDays.length;
+
+        const weeklyHours = dailyHours * daysCount;
+        return Number.isInteger(weeklyHours) ? String(weeklyHours) : weeklyHours.toFixed(2);
+    };
 
     // Columnas para DataTable
     const columns = [
@@ -47,10 +111,10 @@ export default function CargabilidadComponent() {
             nivel: worker.levelName || 'N/A',
             departamento: worker.departmentName || 'N/A',
             esquema: worker.schemeName || 'N/A',
-            tiempo: worker.scheme_hours || 'N/A',
-            estatus: worker.status === 1 ? 'Activo' : 'Inactivo',
+            tiempo: calculateWeeklyHours(worker.scheme_id),
+            estatus: worker.status ? 'Activo' : 'Inactivo',
         }));
-    }, [workers]);
+    }, [workers, workSchedules]);
 
     const actions = { edit: false, add: false, export: false, delete: true };
     
@@ -58,7 +122,7 @@ export default function CargabilidadComponent() {
         router.push("/dashboard/cargabilidad/resumen");
     };
 
-    if (loading) {
+    if (loading || loadingSchedules) {
         return (
             <ContentBody title="Cargabilidad">
                 <div style={{ padding: 20, textAlign: 'center' }}>Cargando...</div>
