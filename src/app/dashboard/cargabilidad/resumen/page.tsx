@@ -5,6 +5,11 @@ import { useWorkers } from "@/hooks/useWorkers";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { buildApiUrl } from "@/config/api";
 import * as XLSX from 'xlsx';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { es } from 'date-fns/locale';
+import { Box, Button, TextField, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 
 interface WorkerOccupancy {
   workerId: number;
@@ -27,33 +32,69 @@ export default function ResumenCargabilidad() {
   const [loading, setLoading] = useState(true);
   const [loadingSchedules, setLoadingSchedules] = useState(true);
   
+  // Estados para selector de fechas
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [numberOfWeeks, setNumberOfWeeks] = useState<number>(3);
+  
   // IDs de workers seleccionados
   const selectedWorkerIds = useMemo(() => {
     if (!workersParam) return [];
     return workersParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
   }, [workersParam]);
   
-  // Generar semanas (últimas 3 semanas)
+  // Generar semanas basado en rango de fechas o número de semanas
   const generateWeeks = () => {
     const weeks = [];
-    const today = new Date();
     
-    for (let weekOffset = -2; weekOffset <= 0; weekOffset++) {
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7);
+    // Si hay rango de fechas seleccionado
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
       
-      const days = [];
-      for (let i = 0; i < 5; i++) {
-        const d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate() + i);
-        days.push(d);
+      // Ajustar al inicio de la semana (lunes)
+      start.setDate(start.getDate() - (start.getDay() === 0 ? 6 : start.getDay() - 1));
+      
+      // Generar semanas entre el rango
+      let currentWeekStart = new Date(start);
+      
+      while (currentWeekStart <= end) {
+        const days = [];
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(currentWeekStart);
+          d.setDate(currentWeekStart.getDate() + i);
+          days.push(d);
+        }
+        
+        const weekNumber = getWeekNumber(currentWeekStart);
+        weeks.push({
+          nombre: `SEMANA ${weekNumber}`,
+          dias: days
+        });
+        
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
       }
+    } else {
+      // Usar número de semanas (por defecto últimas N semanas)
+      const today = new Date();
       
-      const weekNumber = getWeekNumber(startOfWeek);
-      weeks.push({
-        nombre: `SEMANA ${weekNumber}`,
-        dias: days
-      });
+      for (let weekOffset = -(numberOfWeeks - 1); weekOffset <= 0; weekOffset++) {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7);
+        
+        const days = [];
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(startOfWeek);
+          d.setDate(startOfWeek.getDate() + i);
+          days.push(d);
+        }
+        
+        const weekNumber = getWeekNumber(startOfWeek);
+        weeks.push({
+          nombre: `SEMANA ${weekNumber}`,
+          dias: days
+        });
+      }
     }
     
     return weeks;
@@ -67,8 +108,9 @@ export default function ResumenCargabilidad() {
     return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
   };
   
-  const semanasAgrupadas = generateWeeks();
-  const allDays = semanasAgrupadas.flatMap(s => s.dias);
+  // Recalcular semanas cuando cambien las fechas o el número de semanas
+  const semanasAgrupadas = useMemo(() => generateWeeks(), [startDate, endDate, numberOfWeeks]);
+  const allDays = useMemo(() => semanasAgrupadas.flatMap(s => s.dias), [semanasAgrupadas]);
   
   // Cargar assigned hours
   useEffect(() => {
@@ -347,22 +389,90 @@ export default function ResumenCargabilidad() {
 
   return (
     <div className="relative p-6">
-      <div className="sticky top-0 left-0 z-20 bg-gray-100 flex items-center mb-6" style={{ minHeight: '3.5rem' }}>
-        <h2 className="text-2xl font-bold">Resumen de Cargabilidad ({occupancyData.length} consultores)</h2>
-        <div className="absolute right-6 top-6 flex gap-2" style={{ zIndex: 30 }}>
-          <button
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
-            onClick={handleExportExcel}
-          >
-            📥 Exportar Excel
-          </button>
-          <button
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
-            onClick={() => router.push('/dashboard/cargabilidad')}
-          >
-            ← Regresar
-          </button>
+      <div className="sticky top-0 left-0 z-20 bg-gray-100 mb-6">
+        <div className="flex items-center mb-4">
+          <h2 className="text-2xl font-bold">Resumen de Cargabilidad ({occupancyData.length} consultores)</h2>
+          <div className="absolute right-6 top-0 flex gap-2" style={{ zIndex: 30 }}>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
+              onClick={handleExportExcel}
+            >
+              📥 Exportar Excel
+            </button>
+            <button
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
+              onClick={() => router.push('/dashboard/cargabilidad')}
+            >
+              ← Regresar
+            </button>
+          </div>
         </div>
+        
+        {/* Controles de filtro */}
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+          <Box className="flex gap-4 items-center flex-wrap bg-white p-4 rounded-lg shadow">
+            <FormControl size="small" style={{ minWidth: 150 }}>
+              <InputLabel>Número de Semanas</InputLabel>
+              <Select
+                value={numberOfWeeks}
+                label="Número de Semanas"
+                onChange={(e) => {
+                  setNumberOfWeeks(e.target.value as number);
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+              >
+                <MenuItem value={1}>1 semana</MenuItem>
+                <MenuItem value={2}>2 semanas</MenuItem>
+                <MenuItem value={3}>3 semanas</MenuItem>
+                <MenuItem value={4}>4 semanas</MenuItem>
+                <MenuItem value={6}>6 semanas</MenuItem>
+                <MenuItem value={8}>8 semanas</MenuItem>
+                <MenuItem value={12}>12 semanas</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <div className="text-gray-500 font-semibold">O</div>
+            
+            <DatePicker
+              label="Fecha Inicio"
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+              slotProps={{ 
+                textField: { 
+                  size: 'small',
+                  style: { minWidth: 150 }
+                } 
+              }}
+            />
+            
+            <DatePicker
+              label="Fecha Fin"
+              value={endDate}
+              onChange={(newValue) => setEndDate(newValue)}
+              minDate={startDate || undefined}
+              slotProps={{ 
+                textField: { 
+                  size: 'small',
+                  style: { minWidth: 150 }
+                } 
+              }}
+            />
+            
+            {(startDate || endDate) && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+              >
+                Limpiar Fechas
+              </Button>
+            )}
+          </Box>
+        </LocalizationProvider>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
