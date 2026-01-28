@@ -62,12 +62,19 @@ export default function CargabilidadComponent() {
     // Función para calcular horas diarias del esquema
     const calculateDailyHours = (schemeId?: number | null): string => {
         if (!schemeId) return 'N/A';
+        if (loadingSchedules) return 'Cargando...';
         
         const schedule = workSchedules.get(schemeId);
-        if (!schedule) return 'N/A';
+        if (!schedule) {
+            console.warn(`🚨 Schedule no encontrado para scheme_id: ${schemeId}, schedules disponibles:`, Array.from(workSchedules.keys()));
+            return 'N/A';
+        }
+        
+        console.log(`✅ Schedule encontrado para scheme_id ${schemeId}:`, schedule);
         
         // Si hours es solo un número (ej: "8")
-        if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
+        if (!isNaN(parseFloat(schedule.hours)) && !String(schedule.hours).includes(':')) {
+            console.log(`📋 Formato numérico: ${schedule.hours}`);
             return String(schedule.hours);
         }
         
@@ -86,10 +93,12 @@ export default function CargabilidadComponent() {
                 diff = Math.min(diff, 24 * 60 - diff);
                 const dailyHours = diff / 60;
                 
+                console.log(`📋 Formato rango ${schedule.hours}: ${dailyHours} horas`);
                 return Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
             }
         }
         
+        console.warn(`⚠️ No se pudo calcular horas para scheme_id: ${schemeId}`);
         return 'N/A';
     };
 

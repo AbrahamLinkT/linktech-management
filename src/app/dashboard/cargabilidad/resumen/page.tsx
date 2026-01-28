@@ -180,36 +180,46 @@ export default function ResumenCargabilidad() {
   
   // Calcular ocupación por worker y día
   const occupancyData: WorkerOccupancy[] = useMemo(() => {
-    if (!allWorkers || selectedWorkerIds.length === 0 || assignedHours.length === 0) return [];
+    if (!allWorkers || selectedWorkerIds.length === 0 || assignedHours.length === 0 || loadingSchedules) return [];
     
     const filteredWorkers = allWorkers.filter(w => selectedWorkerIds.includes(w.id));
     
     return filteredWorkers.map(worker => {
       const schedule = worker.scheme_id ? workSchedules.get(worker.scheme_id) : null;
       
+      if (!schedule) {
+        console.warn(`🚨 Schedule no encontrado para worker ${worker.name} (scheme_id: ${worker.scheme_id})`);
+      }
+      
       // Calcular horas diarias disponibles
       let dailyHours = 8;
       let workingDaysSet = new Set<string>();
       
       if (schedule?.hours) {
-        const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
-        if (hoursMatch) {
-          const startH = parseInt(hoursMatch[1], 10);
-          const startM = parseInt(hoursMatch[2], 10);
-          const endH = parseInt(hoursMatch[3], 10);
-          const endM = parseInt(hoursMatch[4], 10);
-          const startTotal = startH * 60 + startM;
-          const endTotal = endH * 60 + endM;
-          let diff = Math.abs(endTotal - startTotal);
-          diff = Math.min(diff, 24 * 60 - diff);
-          dailyHours = diff / 60;
+        // Si hours es solo un número (ej: "8")
+        if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
+          dailyHours = parseFloat(schedule.hours);
+        } else {
+          // Si hours es en formato "HH:MM-HH:MM"
+          const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+          if (hoursMatch) {
+            const startH = parseInt(hoursMatch[1], 10);
+            const startM = parseInt(hoursMatch[2], 10);
+            const endH = parseInt(hoursMatch[3], 10);
+            const endM = parseInt(hoursMatch[4], 10);
+            const startTotal = startH * 60 + startM;
+            const endTotal = endH * 60 + endM;
+            let diff = Math.abs(endTotal - startTotal);
+            diff = Math.min(diff, 24 * 60 - diff);
+            dailyHours = diff / 60;
+          }
         }
       }
       
       if (schedule?.working_days) {
         const days = String(schedule.working_days)
           .split(',')
-          .map((d: string) => d.trim().toLowerCase())
+          .map((d: string) => d.trim().toUpperCase())
           .filter((d: string) => d.length > 0);
         workingDaysSet = new Set(days);
       }
@@ -220,7 +230,9 @@ export default function ResumenCargabilidad() {
       // Calcular % ocupación por cada día
       const weeklyData = allDays.map(date => {
         const dateYMD = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+        const dayIndex = date.getDay(); // 0=Sunday, 1=Monday, etc
+        const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
+        const dayName = dayNames[dayIndex];
         
         // Verificar si es día laboral
         const isWorkingDay = workingDaysSet.size === 0 || workingDaysSet.has(dayName);
@@ -234,7 +246,10 @@ export default function ResumenCargabilidad() {
                          (!assignment.endDate || dateYMD <= assignment.endDate);
           
           if (inRange && assignment.hoursData) {
-            const hoursForDay = assignment.hoursData[dayName] || 0;
+            // Buscar la clave del día en el formato del backend (monday, tuesday, etc)
+            const dayNamesLower = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayNameLower = dayNamesLower[dayIndex];
+            const hoursForDay = assignment.hoursData[dayNameLower] || 0;
             totalHours += hoursForDay;
           }
         }
@@ -252,7 +267,7 @@ export default function ResumenCargabilidad() {
         weeklyData
       };
     });
-  }, [allWorkers, selectedWorkerIds, assignedHours, allDays, workSchedules]);
+  }, [allWorkers, selectedWorkerIds, assignedHours, allDays, workSchedules, loadingSchedules]);
   
   // Función para exportar a Excel
   const handleExportExcel = () => {
