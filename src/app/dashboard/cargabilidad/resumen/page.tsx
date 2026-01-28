@@ -19,7 +19,7 @@ export default function ResumenCargabilidad() {
   const searchParams = useSearchParams();
   const workersParam = searchParams.get('workers');
   
-  const { data: allWorkers, loading: workersLoading } = useWorkers();
+  const { data: allWorkers, loading: workersLoading, schemes } = useWorkers();
   const { getAssignedHours } = useAssignedHours();
   
   const [assignedHours, setAssignedHours] = useState<any[]>([]);
@@ -88,44 +88,29 @@ export default function ResumenCargabilidad() {
   
   // Cargar work schedules
   useEffect(() => {
-    const loadWorkSchedules = async () => {
-      if (!allWorkers || allWorkers.length === 0) {
-        console.log('📦 Sin workers, no cargando schedules en resumen');
-        return;
-      }
-      
-      console.log('📦 Resumen - Cargando work schedules...', allWorkers.length, 'workers');
-      setLoadingSchedules(true);
-      const scheduleMap = new Map<number, any>();
-      const uniqueSchemeIds = new Set(allWorkers.map(w => w.scheme_id).filter(Boolean));
-      console.log('🔍 Resumen - Scheme IDs únicos a cargar:', Array.from(uniqueSchemeIds));
-      
-      for (const schemeId of uniqueSchemeIds) {
-        try {
-          const url = buildApiUrl(`/work-schedule/${schemeId}`);
-          console.log(`🌐 Resumen - Intentando cargar: ${url}`);
-          const res = await fetch(url);
-          if (res.ok) {
-            const schedule = await res.json();
-            console.log(`✅ Resumen - Schedule cargado para ${schemeId}:`, schedule);
-            scheduleMap.set(Number(schemeId), schedule);
-          } else {
-            console.error(`❌ Resumen - Error cargando schedule ${schemeId}: ${res.status} ${res.statusText}`);
-          }
-        } catch (err) {
-          console.error(`❌ Resumen - Exception cargando schedule ${schemeId}:`, err);
-        }
-      }
-      
-      console.log('✅ Resumen - Work schedules finalizados. Mapa:', Array.from(scheduleMap.entries()));
-      setWorkSchedules(scheduleMap);
-      setLoadingSchedules(false);
-    };
+    console.log('📦 Resumen - Cargando work schedules desde hook...', schemes?.length, 'schemes');
     
-    if (allWorkers && allWorkers.length > 0) {
-      loadWorkSchedules();
+    if (!schemes || schemes.length === 0) {
+      console.log('⚠️ Resumen - Sin schemes disponibles');
+      setWorkSchedules(new Map());
+      setLoadingSchedules(false);
+      return;
     }
-  }, [allWorkers]);
+    
+    console.log('🔍 Resumen - Schemes IDs:', schemes.map((s: any) => s.id));
+    
+    // Crear mapa de scheme_id -> schedule
+    const scheduleMap = new Map<number, any>();
+    schemes.forEach((scheme: any) => {
+      const schemeId = Number(scheme.id);
+      scheduleMap.set(schemeId, scheme);
+      console.log(`✅ Resumen - Scheme ${schemeId}:`, scheme);
+    });
+    
+    console.log('✅ Resumen - Work schedules desde hook. Mapa:', Array.from(scheduleMap.entries()));
+    setWorkSchedules(scheduleMap);
+    setLoadingSchedules(false);
+  }, [schemes]);
   
   // Función para calcular horas diarias del esquema
   const calculateDailyHours = (schemeId?: number | null): string => {
@@ -134,14 +119,17 @@ export default function ResumenCargabilidad() {
     const schedule = workSchedules.get(schemeId);
     if (!schedule) return 'N/A';
     
-    // Si hours es solo un número (ej: "8")
-    if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
-        return String(schedule.hours);
+    const hours = schedule.hours;
+    
+    // Si hours es solo un número (ej: "8", "8.5", 8)
+    const numHours = parseFloat(hours);
+    if (!isNaN(numHours) && !String(hours).includes(':')) {
+        return String(numHours);
     }
     
-    // Si hours es en formato "HH:MM-HH:MM"
-    if (schedule.hours) {
-        const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+    // Si hours es en formato "HH:MM-HH:MM" (ej: "07:00-02:00", "08:00-18:00")
+    if (typeof hours === 'string' && hours.includes(':') && hours.includes('-')) {
+        const hoursMatch = String(hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
         if (hoursMatch) {
             const startH = parseInt(hoursMatch[1], 10);
             const startM = parseInt(hoursMatch[2], 10);
@@ -150,11 +138,19 @@ export default function ResumenCargabilidad() {
             
             const startTotal = startH * 60 + startM;
             const endTotal = endH * 60 + endM;
-            let diff = Math.abs(endTotal - startTotal);
-            diff = Math.min(diff, 24 * 60 - diff);
-            const dailyHours = diff / 60;
             
-            return Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
+            // Calcular diferencia en minutos
+            let diff = endTotal - startTotal;
+            
+            // Si es negativo, significa que cruza medianoche (ej: 07:00 a 02:00 = 19 horas)
+            if (diff < 0) {
+                diff = (24 * 60) + diff; // Agregar 24 horas en minutos
+            }
+            
+            // Convertir minutos a horas
+            const totalHours = diff / 60;
+            
+            return Number.isInteger(totalHours) ? String(totalHours) : totalHours.toFixed(1);
         }
     }
     
@@ -210,12 +206,14 @@ export default function ResumenCargabilidad() {
       let workingDaysSet = new Set<string>();
       
       if (schedule?.hours) {
-        // Si hours es solo un número (ej: "8")
-        if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
-          dailyHours = parseFloat(schedule.hours);
+        const hours = schedule.hours;
+        // Si hours es solo un número (ej: "8", "8.5", 8)
+        const numHours = parseFloat(hours);
+        if (!isNaN(numHours) && !String(hours).includes(':')) {
+          dailyHours = numHours;
         } else {
           // Si hours es en formato "HH:MM-HH:MM"
-          const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+          const hoursMatch = String(hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
           if (hoursMatch) {
             const startH = parseInt(hoursMatch[1], 10);
             const startM = parseInt(hoursMatch[2], 10);
@@ -223,8 +221,15 @@ export default function ResumenCargabilidad() {
             const endM = parseInt(hoursMatch[4], 10);
             const startTotal = startH * 60 + startM;
             const endTotal = endH * 60 + endM;
-            let diff = Math.abs(endTotal - startTotal);
-            diff = Math.min(diff, 24 * 60 - diff);
+            
+            // Calcular diferencia en minutos
+            let diff = endTotal - startTotal;
+            
+            // Si es negativo, significa que cruza medianoche (ej: 07:00 a 02:00 = 19 horas)
+            if (diff < 0) {
+              diff = (24 * 60) + diff; // Agregar 24 horas en minutos
+            }
+            
             dailyHours = diff / 60;
           }
         }
