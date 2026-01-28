@@ -236,21 +236,32 @@ export default function DisponibilidadPage() {
     const worker = workers.find(w => w.id === selectedConsultorId);
     const schedule = worker?.scheme_id ? workSchedules.get(worker.scheme_id) : null;
     
-    // Calcular horas máximas por día
-    let maxHoursPerDay = 8; // default
+    // Calcular horas máximas por día según el esquema
+    let dailyHours = 8; // default
+    let workingDaysSet = new Set<string>(); // días de trabajo del esquema
+    
     if (schedule?.hours) {
-      const match = String(schedule.hours).match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
-      if (match) {
-        const startH = parseInt(match[1], 10);
-        const startM = parseInt(match[2], 10);
-        const endH = parseInt(match[3], 10);
-        const endM = parseInt(match[4], 10);
+      const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+      if (hoursMatch) {
+        const startH = parseInt(hoursMatch[1], 10);
+        const startM = parseInt(hoursMatch[2], 10);
+        const endH = parseInt(hoursMatch[3], 10);
+        const endM = parseInt(hoursMatch[4], 10);
         const startTotal = startH * 60 + startM;
         const endTotal = endH * 60 + endM;
         let diff = Math.abs(endTotal - startTotal);
         diff = Math.min(diff, 24 * 60 - diff);
-        maxHoursPerDay = diff / 60;
+        dailyHours = diff / 60;
       }
+    }
+    
+    // Obtener días de trabajo del esquema
+    if (schedule?.working_days) {
+      const days = String(schedule.working_days)
+        .split(',')
+        .map((d: string) => d.trim().toLowerCase())
+        .filter((d: string) => d.length > 0);
+      workingDaysSet = new Set(days);
     }
 
     // Filtrar asignaciones del worker en el rango de la semana
@@ -259,6 +270,10 @@ export default function DisponibilidadPage() {
     return weekDates.map((date) => {
       const dateYMD = dateToYMD(date);
       const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+      
+      // Verificar si este día es un día de trabajo según el esquema
+      const isWorkingDay = workingDaysSet.size === 0 || workingDaysSet.has(dayName);
+      const maxHoursPerDay = isWorkingDay ? dailyHours : 0;
       
       let totalHours = 0;
       const projects: string[] = [];
