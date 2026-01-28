@@ -120,7 +120,17 @@ export default function CargabilidadComponent() {
     const actions = { edit: false, add: false, export: false, delete: true };
     
     const handleClick = () => {
-        router.push("/dashboard/cargabilidad/resumen");
+        // Obtener IDs de workers seleccionados
+        const selectedIds = Object.keys(rowSelection).filter(key => rowSelection[key]);
+        
+        if (selectedIds.length === 0) {
+            alert('Por favor selecciona al menos un consultor');
+            return;
+        }
+        
+        // Pasar los IDs seleccionados via query params
+        const idsParam = selectedIds.join(',');
+        router.push(`/dashboard/cargabilidad/resumen?workers=${idsParam}`);
     };
 
     if (loading || loadingSchedules) {
