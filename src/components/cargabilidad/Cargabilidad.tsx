@@ -28,6 +28,15 @@ export default function CargabilidadComponent() {
     const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
     const [loadingSchedules, setLoadingSchedules] = useState(true);
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+    
+    // Log inicial
+    console.log('🎯 CARGABILIDAD RENDER - Workers:', workers?.length, 'Loading:', loading, 'SchedulesLoading:', loadingSchedules, 'SchedulesMap size:', workSchedules.size);
+    
+    // Debug - ver scheme_ids
+    if (workers && workers.length > 0) {
+        const schemeIds = workers.map(w => w.scheme_id).filter(Boolean);
+        console.log('🔍 Scheme IDs en workers:', schemeIds);
+    }
 
     // Cargar work schedules para obtener las horas
     useEffect(() => {
@@ -63,15 +72,26 @@ export default function CargabilidadComponent() {
             console.log('✅ Work schedules finalizados. Mapa:', Array.from(scheduleMap.entries()));
             setWorkSchedules(scheduleMap);
             setLoadingSchedules(false);
+            console.log('💾 STATE ACTUALIZADO - workSchedules.size debería ser:', scheduleMap.size);
         };
         
         if (workers && workers.length > 0) {
             loadWorkSchedules();
         }
     }, [workers]);
+    
+    // Efecto para debuggear cambios en workSchedules
+    useEffect(() => {
+        console.log('💾 WORKSCHEDULES ACTUALIZADO - Size:', workSchedules.size, 'Keys:', Array.from(workSchedules.keys()));
+        workSchedules.forEach((schedule, key) => {
+            console.log(`   [${key}]:`, schedule);
+        });
+    }, [workSchedules]);
 
     // Función para calcular horas diarias del esquema
     const calculateDailyHours = (schemeId?: number | null): string => {
+        console.log(`🔍 calculateDailyHours ENTRADA - schemeId:`, schemeId, 'scheduleMap size:', workSchedules.size, 'loadingSchedules:', loadingSchedules);
+        
         if (!schemeId) {
             console.warn('⚠️ No schemeId provided');
             return 'N/A';
@@ -79,8 +99,11 @@ export default function CargabilidadComponent() {
         
         const schedule = workSchedules.get(schemeId);
         if (!schedule) {
-            console.warn(`🚨 Schedule no encontrado para scheme_id: ${schemeId}. Disponibles: ${Array.from(workSchedules.keys()).join(', ') || 'NINGUNO'}. loadingSchedules=${loadingSchedules}`);
-            return loadingSchedules ? 'Cargando...' : 'N/A';
+            const available = Array.from(workSchedules.keys());
+            console.warn(`🚨 Schedule no encontrado para scheme_id: ${schemeId}. Disponibles: [${available.join(', ') || 'NINGUNO'}]. loadingSchedules=${loadingSchedules}`);
+            const result = loadingSchedules ? 'Cargando...' : 'N/A';
+            console.log(`🔍 calculateDailyHours SALIDA (sin schedule) -> ${result}`);
+            return result;
         }
         
         console.log(`✅ Schedule encontrado para scheme_id ${schemeId}:`, schedule);
@@ -88,6 +111,7 @@ export default function CargabilidadComponent() {
         // Si hours es solo un número (ej: "8")
         if (!isNaN(parseFloat(schedule.hours)) && !String(schedule.hours).includes(':')) {
             console.log(`📋 Formato numérico: ${schedule.hours}`);
+            console.log(`🔍 calculateDailyHours SALIDA -> ${schedule.hours}`);
             return String(schedule.hours);
         }
         
@@ -106,12 +130,15 @@ export default function CargabilidadComponent() {
                 diff = Math.min(diff, 24 * 60 - diff);
                 const dailyHours = diff / 60;
                 
-                console.log(`📋 Formato rango ${schedule.hours}: ${dailyHours} horas`);
-                return Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
+                const result = Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
+                console.log(`📋 Formato rango ${schedule.hours}: ${dailyHours} horas -> ${result}`);
+                console.log(`🔍 calculateDailyHours SALIDA -> ${result}`);
+                return result;
             }
         }
         
         console.warn(`⚠️ No se pudo calcular horas para scheme_id: ${schemeId}`);
+        console.log(`🔍 calculateDailyHours SALIDA (fallback) -> N/A`);
         return 'N/A';
     };
 
@@ -130,6 +157,11 @@ export default function CargabilidadComponent() {
     // Transformar datos de workers a formato de la tabla
     const data: StaffItem[] = useMemo(() => {
         if (!workers || workers.length === 0) return [];
+        
+        console.log('📊 USEMEMO - Procesando', workers.length, 'workers');
+        workers.forEach((w, idx) => {
+            if (idx < 3) console.log(`   Worker ${idx}:`, { id: w.id, name: w.name, scheme_id: w.scheme_id });
+        });
         
         return workers.map((worker) => ({
             id: String(worker.id),
