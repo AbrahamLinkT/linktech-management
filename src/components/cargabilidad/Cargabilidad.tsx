@@ -6,9 +6,10 @@ import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "../buttons/buttons";
-import { ChartColumn } from "lucide-react";
+import { ChartColumn, Download } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { buildApiUrl } from "@/config/api";
+import * as XLSX from 'xlsx';
 
 interface StaffItem {
     id: string;
@@ -103,7 +104,7 @@ export default function CargabilidadComponent() {
 
     // Transformar datos de workers a formato de la tabla
     const data: StaffItem[] = useMemo(() => {
-        if (!workers || workers.length === 0) return [];
+        if (!workers || workers.length === 0 || loadingSchedules) return [];
         
         return workers.map((worker) => ({
             id: String(worker.id),
@@ -115,7 +116,7 @@ export default function CargabilidadComponent() {
             tiempo: calculateWeeklyHours(worker.scheme_id),
             estatus: worker.status ? 'Activo' : 'Inactivo',
         }));
-    }, [workers, workSchedules]);
+    }, [workers, workSchedules, loadingSchedules]);
 
     const actions = { edit: false, add: false, export: false, delete: true };
     
@@ -132,6 +133,33 @@ export default function CargabilidadComponent() {
         const idsParam = selectedIds.join(',');
         router.push(`/dashboard/cargabilidad/resumen?workers=${idsParam}`);
     };
+    
+    const handleExportExcel = () => {
+        if (!data || data.length === 0) {
+            alert('No hay datos para exportar');
+            return;
+        }
+        
+        // Preparar datos para Excel
+        const excelData = data.map(row => ({
+            'Consultor': row.consultor,
+            'Especialidad': row.especialidad,
+            'Nivel': row.nivel,
+            'Departamento': row.departamento,
+            'Esquema': row.esquema,
+            'Tiempo': row.tiempo,
+            'Estatus': row.estatus
+        }));
+        
+        // Crear workbook y worksheet
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Cargabilidad');
+        
+        // Descargar archivo
+        const fecha = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `Cargabilidad_${fecha}.xlsx`);
+    };
 
     if (loading || loadingSchedules) {
         return (
@@ -144,12 +172,20 @@ export default function CargabilidadComponent() {
     return (
         <ContentBody title="Cargabilidad"
             btnReg={
-                <Btn_data
-                    text="Resumen"
-                    icon={<ChartColumn />}
-                    styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium hover:bg-blue-400 hover:text-white"
-                    Onclick={handleClick}
-                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <Btn_data
+                        text="Exportar Excel"
+                        icon={<Download />}
+                        styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium hover:bg-green-400 hover:text-white"
+                        Onclick={handleExportExcel}
+                    />
+                    <Btn_data
+                        text="Resumen"
+                        icon={<ChartColumn />}
+                        styles="mb-2 whitespace-nowrap rounded-lg border border-gray-400 bg-transparent px-4 py-2 text-sm font-medium hover:bg-blue-400 hover:text-white"
+                        Onclick={handleClick}
+                    />
+                </div>
             }
         >
             <DataTable<StaffItem> data={data} columns={columns}
