@@ -49,6 +49,27 @@ export default function DisponibilidadPage() {
   const [assignedHours, setAssignedHours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
+  const [userPermissions, setUserPermissions] = useState<any>(null);
+
+  // Cargar permisos del usuario
+  useEffect(() => {
+    const loadPermissions = async () => {
+      try {
+        const response = await fetch('https://linktech-management-a.vercel.app/api/permissions');
+        if (response.ok) {
+          const permissions = await response.json();
+          setUserPermissions(permissions);
+          console.log('✅ Permisos del usuario:', permissions);
+        }
+      } catch (error) {
+        console.error('❌ Error cargando permisos:', error);
+      }
+    };
+    
+    if (isLoaded && isSignedIn) {
+      loadPermissions();
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Cargar assigned hours
   useEffect(() => {
@@ -102,7 +123,13 @@ export default function DisponibilidadPage() {
   // Obtener email del usuario actual
   const currentEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress;
 
-  // Ordenar consultores: primero el del usuario actual, luego los demás
+  // Obtener role del usuario
+  const userRole = userPermissions?.role;
+  const isAdmin = userRole === 'admin';
+  const isProjectLeader = userRole === 'project_leader' || userRole === 'líder de proyecto';
+  const isWorker = userRole === 'worker';
+
+  // Ordenar/filtrar consultores según permisos
   const consultores = useMemo(() => {
     const allConsultores = workers.map(w => ({ id: w.id, name: w.name, email: w.email }));
     
@@ -113,14 +140,22 @@ export default function DisponibilidadPage() {
       c => c.email?.toLowerCase() === currentEmail.toLowerCase()
     );
 
+    // Si es worker regular, solo mostrar su propia información
+    if (isWorker && !isAdmin && !isProjectLeader) {
+      if (currentWorkerIndex !== -1) {
+        return [allConsultores[currentWorkerIndex]];
+      }
+      return []; // No se encontró el worker actual
+    }
+
+    // Admin o líder de proyecto: ver todos, con el actual primero
     if (currentWorkerIndex === -1) return allConsultores;
 
-    // Mover el worker actual al inicio
     const currentWorker = allConsultores[currentWorkerIndex];
     const otherWorkers = allConsultores.filter((_, idx) => idx !== currentWorkerIndex);
     
     return [currentWorker, ...otherWorkers];
-  }, [workers, currentEmail]);
+  }, [workers, currentEmail, userRole, isAdmin, isProjectLeader, isWorker]);
 
   // Filtrar consultores
   const filteredConsultores = consultores.filter((c) =>
@@ -214,8 +249,14 @@ export default function DisponibilidadPage() {
           options={consultores.map(c => c.name)}
           inputValue={search}
           onInputChange={(_, v) => setSearch(v)}
+          disabled={isWorker && !isAdmin && !isProjectLeader}
           renderInput={(params) => (
-            <TextField {...params} label="Buscar consultor" variant="outlined" />
+            <TextField 
+              {...params} 
+              label="Buscar consultor" 
+              variant="outlined"
+              helperText={isWorker && !isAdmin && !isProjectLeader ? "Solo puedes ver tu propia disponibilidad" : ""}
+            />
           )}
         />
       </Box>
