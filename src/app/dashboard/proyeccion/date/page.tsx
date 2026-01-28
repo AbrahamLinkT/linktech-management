@@ -758,6 +758,147 @@ function ProyeccionTablePage() {
         return;
       }
 
+      // If the modal was opened from clicking a specific day on a row, diaSeleccionado will be set
+      if (diaSeleccionado !== null) {
+        // Single-day update for the selected worker
+        const cantidad = parseInt(cantidadStr || '0', 10);
+        if (isNaN(cantidad)) {
+          clearAndClose();
+          return;
+        }
+
+        // Update local table data for that worker only
+        setTableData((prev) => {
+          return prev.map((row) => {
+            if (Number(row.workerId) === Number(registroSeleccionado.workerId)) {
+              const nuevasHoras = [...row.horas];
+              nuevasHoras[diaSeleccionado] = `${cantidadStr}*`;
+              return { ...row, horas: nuevasHoras };
+            }
+            return row;
+          });
+        });
+
+        // Compute week bounds for the clicked date
+        const clickedDate = parseFecha(diasInfo[diaSeleccionado].fullDate || diasInfo[diaSeleccionado].fecha);
+        if (!clickedDate) {
+          clearAndClose();
+          return;
+        }
+
+        const day = clickedDate.getDay();
+        const monday = new Date(clickedDate);
+        monday.setDate(clickedDate.getDate() - (day === 0 ? 6 : day - 1));
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+
+        // Fetch existing assigned-hours for the project
+        try {
+          const listRes = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS) + `/${currentProjectId}`);
+          let existingList: any[] = [];
+          if (listRes.ok) {
+            existingList = await listRes.json();
+          }
+
+          // Find a matching record for the worker where clickedDate is within startDate..endDate
+          const match = existingList.find((ex: any) => {
+            const exAssignedTo = ex.assignedTo ?? ex.assigned_to ?? ex.assigned_to ?? ex.assignedTo;
+            const exStart = ex.startDate ?? ex.start_date ?? ex.startDate ?? '';
+            const exEnd = ex.endDate ?? ex.end_date ?? ex.endDate ?? '';
+            const startDateParsed = parseFecha(exStart);
+            const endDateParsed = parseFecha(exEnd);
+            if (!startDateParsed || !endDateParsed) return false;
+            return Number(exAssignedTo) === Number(registroSeleccionado.workerId) &&
+                   toIntDate(startDateParsed) <= toIntDate(clickedDate) &&
+                   toIntDate(endDateParsed) >= toIntDate(clickedDate);
+          });
+
+          // Helper to map JS weekday to hoursData key
+          const weekdayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const key = weekdayKeys[clickedDate.getDay()];
+
+          if (match) {
+            // Update existing record: modify its hoursData and PUT
+            const updated = { ...match };
+            // Ensure hoursData exists
+            const hoursObj = { ...(match.hoursData ?? match.hours_data ?? {}) };
+            hoursObj[key] = cantidad;
+            // Keep both snake_case and camelCase for compatibility
+            updated.hoursData = { ...hoursObj };
+            updated.hours_data = { ...hoursObj };
+
+            // Ensure fields names are consistent
+            updated.projectId = updated.projectId ?? updated.project_id ?? currentProjectId;
+            updated.project_id = updated.project_id ?? updated.projectId ?? currentProjectId;
+            updated.assignedTo = updated.assignedTo ?? updated.assigned_to ?? registroSeleccionado.workerId;
+            updated.assigned_to = updated.assigned_to ?? updated.assignedTo ?? registroSeleccionado.workerId;
+
+            let objReady = [{
+              "id": updated.id,
+              "hours_data": updated.hours_data,
+              "project_id": updated.projectId,
+              "assigned_to": updated.assignedTo,
+              "assigned_by": updated.assignedBy,
+              "startDate": updated.startDate,
+              "endDate": updated.endDate
+            }]
+
+            console.log('🔁 PUT assigned-hours payload (single day):', updated);
+            console.log('🔁 PUT assigned-hours payload (single day):', objReady);
+            try {
+              await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(objReady),
+              });
+            } catch (putErr) {
+              console.error('❌ Error actualizando assigned-hours (PUT):', putErr);
+            }
+          } else {
+            // No existing week found: create new week object ( monday..friday ) and POST
+            const horasBase: any = {
+              monday: 0,
+              tuesday: 0,
+              wednesday: 0,
+              thursday: 0,
+              friday: 0,
+              saturday: 0,
+              sunday: 0,
+            };
+            horasBase[key] = cantidad;
+
+            const postObj: any = {
+              project_id: currentProjectId,
+              assigned_to: registroSeleccionado.workerId,
+              assigned_by: 18,
+              hours_data: { ...horasBase },
+              hoursData: { ...horasBase },
+              start_date: formatYMD(monday),
+              end_date: formatYMD(friday),
+              startDate: formatYMD(monday),
+              endDate: formatYMD(friday),
+            };
+
+            try {
+              await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ASSIGNED_HOURS), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(postObj),
+              });
+            } catch (postErr) {
+              console.error('❌ Error creando assigned-hours (POST):', postErr);
+            }
+          }
+        } catch (err) {
+          console.error('❌ Error manejando assigned-hours para día único:', err);
+        } finally {
+          clearAndClose();
+        }
+
+        return;
+      }
+
+      // Otherwise, treat as the existing range-based update (preserve previous behavior)
       // Compute updated rows based on workerId (avoid object reference checks)
       setTableData((prev) => {
         const desdeDate = parseFecha(rangoHoras.desde);
