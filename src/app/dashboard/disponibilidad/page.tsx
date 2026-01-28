@@ -53,6 +53,7 @@ export default function DisponibilidadPage() {
   const [loading, setLoading] = useState(true);
   const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
   const [userPermissions, setUserPermissions] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Cargar permisos del usuario
   useEffect(() => {
@@ -140,6 +141,31 @@ export default function DisponibilidadPage() {
   startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7);
   const weekDates = getWeekDates(startOfWeek);
   const weekDatesFormatted = weekDates.map(formatDateString);
+  
+  // Verificar si la semana mostrada es la actual
+  const todayDateString = formatDateString(today);
+  const isCurrentWeek = weekDatesFormatted.some(d => d === todayDateString);
+  const weekLabel = isCurrentWeek ? " (Semana actual)" : "";
+
+  // Función para cambiar a una semana específica
+  const goToWeek = (selectedDate: string) => {
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const selected = new Date(year, month - 1, day);
+    
+    // Calcular el lunes de la semana del día seleccionado
+    const selected_start = new Date(selected);
+    selected_start.setDate(selected.getDate() - selected.getDay() + 1);
+    
+    // Calcular diferencia en semanas desde hoy
+    const today_start = new Date(today);
+    today_start.setDate(today.getDate() - today.getDay() + 1);
+    
+    const diffTime = selected_start.getTime() - today_start.getTime();
+    const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+    
+    setWeekOffset(diffWeeks);
+    setShowDatePicker(false);
+  };
 
   // Obtener role del usuario actual
   const userRole = userPermissions?.role;
@@ -303,36 +329,82 @@ export default function DisponibilidadPage() {
         {selectedConsultor?.name || 'Selecciona un consultor'}
       </Typography>
 
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2, mb: 2 }}>
         <button
           onClick={() => setWeekOffset((w) => w - 1)}
           style={{
-            marginRight: 16,
             padding: "4px 12px",
             borderRadius: 6,
             border: "1px solid #ccc",
             background: "#f3f6fa",
             fontWeight: 600,
             cursor: "pointer",
+            fontSize: "14px",
           }}
         >
           ← Semana anterior
         </button>
 
-        <Typography sx={{ fontWeight: 600, fontSize: 18, color: "#2563eb" }}>
-          {weekDatesFormatted[0]} - {weekDatesFormatted[weekDatesFormatted.length - 1]}
-        </Typography>
+        <Box sx={{ minWidth: 300, textAlign: "center", position: "relative" }}>
+          <Box 
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            sx={{ 
+              cursor: "pointer",
+              p: 1,
+              borderRadius: 1,
+              '&:hover': { bgcolor: '#f0f0f0' }
+            }}
+          >
+            <Typography sx={{ fontWeight: 700, fontSize: 16, color: "#2563eb", mb: 0.5 }}>
+              📅 {weekDatesFormatted[0]} - {weekDatesFormatted[weekDatesFormatted.length - 1]}
+            </Typography>
+            {isCurrentWeek && (
+              <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#10b981", letterSpacing: "0.5px" }}>
+                Semana actual
+              </Typography>
+            )}
+          </Box>
+          
+          {showDatePicker && (
+            <Box sx={{ 
+              position: "absolute", 
+              top: "100%", 
+              left: "50%",
+              transform: "translateX(-50%)",
+              mt: 1,
+              bgcolor: "white",
+              border: "1px solid #ddd",
+              borderRadius: 1,
+              p: 1.5,
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+              zIndex: 10,
+              minWidth: 200
+            }}>
+              <TextField
+                type="date"
+                size="small"
+                fullWidth
+                defaultValue={dateToYMD(weekDates[0])}
+                onChange={(e) => goToWeek(e.target.value)}
+                sx={{ mb: 1 }}
+              />
+              <Typography sx={{ fontSize: 12, color: "#666", textAlign: "center" }}>
+                Selecciona cualquier día
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
         <button
           onClick={() => setWeekOffset((w) => w + 1)}
           style={{
-            marginLeft: 16,
             padding: "4px 12px",
             borderRadius: 6,
             border: "1px solid #ccc",
             background: "#f3f6fa",
             fontWeight: 600,
             cursor: "pointer",
+            fontSize: "14px",
           }}
         >
           Semana siguiente →
