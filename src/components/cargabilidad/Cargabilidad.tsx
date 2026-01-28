@@ -59,35 +59,38 @@ export default function CargabilidadComponent() {
         }
     }, [workers]);
 
-    // Función para calcular horas semanales
-    const calculateWeeklyHours = (schemeId?: number | null): string => {
+    // Función para calcular horas diarias del esquema
+    const calculateDailyHours = (schemeId?: number | null): string => {
         if (!schemeId) return 'N/A';
         
         const schedule = workSchedules.get(schemeId);
-        if (!schedule?.hours || !schedule?.working_days) return 'N/A';
-
-        const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
-        if (!hoursMatch) return 'N/A';
+        if (!schedule) return 'N/A';
         
-        const startH = parseInt(hoursMatch[1], 10);
-        const startM = parseInt(hoursMatch[2], 10);
-        const endH = parseInt(hoursMatch[3], 10);
-        const endM = parseInt(hoursMatch[4], 10);
-
-        const startTotal = startH * 60 + startM;
-        const endTotal = endH * 60 + endM;
-        let diff = Math.abs(endTotal - startTotal);
-        diff = Math.min(diff, 24 * 60 - diff);
-        const dailyHours = diff / 60;
-
-        const workingDays = schedule.working_days
-            .split(',')
-            .map((d: string) => d.trim())
-            .filter((d: string) => d.length > 0);
-        const daysCount = workingDays.length;
-
-        const weeklyHours = dailyHours * daysCount;
-        return Number.isInteger(weeklyHours) ? String(weeklyHours) : weeklyHours.toFixed(2);
+        // Si hours es solo un número (ej: "8")
+        if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
+            return String(schedule.hours);
+        }
+        
+        // Si hours es en formato "HH:MM-HH:MM"
+        if (schedule.hours) {
+            const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+            if (hoursMatch) {
+                const startH = parseInt(hoursMatch[1], 10);
+                const startM = parseInt(hoursMatch[2], 10);
+                const endH = parseInt(hoursMatch[3], 10);
+                const endM = parseInt(hoursMatch[4], 10);
+                
+                const startTotal = startH * 60 + startM;
+                const endTotal = endH * 60 + endM;
+                let diff = Math.abs(endTotal - startTotal);
+                diff = Math.min(diff, 24 * 60 - diff);
+                const dailyHours = diff / 60;
+                
+                return Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
+            }
+        }
+        
+        return 'N/A';
     };
 
     // Columnas para DataTable
@@ -113,7 +116,7 @@ export default function CargabilidadComponent() {
             nivel: worker.levelName || 'N/A',
             departamento: worker.departmentName || 'N/A',
             esquema: worker.schemeName || 'N/A',
-            tiempo: calculateWeeklyHours(worker.scheme_id),
+            tiempo: calculateDailyHours(worker.scheme_id),
             estatus: worker.status ? 'Activo' : 'Inactivo',
         }));
     }, [workers, workSchedules, loadingSchedules]);

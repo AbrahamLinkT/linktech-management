@@ -113,7 +113,41 @@ export default function ResumenCargabilidad() {
     }
   }, [allWorkers]);
   
-  // Función para calcular horas semanales del esquema
+  // Función para calcular horas diarias del esquema
+  const calculateDailyHours = (schemeId?: number | null): string => {
+    if (!schemeId) return 'N/A';
+    
+    const schedule = workSchedules.get(schemeId);
+    if (!schedule) return 'N/A';
+    
+    // Si hours es solo un número (ej: "8")
+    if (!isNaN(parseFloat(schedule.hours)) && !schedule.hours.includes(':')) {
+        return String(schedule.hours);
+    }
+    
+    // Si hours es en formato "HH:MM-HH:MM"
+    if (schedule.hours) {
+        const hoursMatch = String(schedule.hours).trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+        if (hoursMatch) {
+            const startH = parseInt(hoursMatch[1], 10);
+            const startM = parseInt(hoursMatch[2], 10);
+            const endH = parseInt(hoursMatch[3], 10);
+            const endM = parseInt(hoursMatch[4], 10);
+            
+            const startTotal = startH * 60 + startM;
+            const endTotal = endH * 60 + endM;
+            let diff = Math.abs(endTotal - startTotal);
+            diff = Math.min(diff, 24 * 60 - diff);
+            const dailyHours = diff / 60;
+            
+            return Number.isInteger(dailyHours) ? String(dailyHours) : dailyHours.toFixed(1);
+        }
+    }
+    
+    return 'N/A';
+  };
+  
+  // Función antigua para referencia (no se usa aquí)
   const calculateWeeklyHours = (schemeId?: number | null): string => {
     if (!schemeId) return 'N/A';
     
@@ -214,7 +248,7 @@ export default function ResumenCargabilidad() {
         workerId: worker.id,
         workerName: worker.name || 'N/A',
         esquema: worker.schemeName || 'N/A',
-        tiempo: calculateWeeklyHours(worker.scheme_id),
+        tiempo: calculateDailyHours(worker.scheme_id),
         weeklyData
       };
     });
