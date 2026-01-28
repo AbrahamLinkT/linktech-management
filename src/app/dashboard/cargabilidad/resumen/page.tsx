@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { buildApiUrl } from "@/config/api";
+import * as XLSX from 'xlsx';
 
 interface WorkerOccupancy {
   workerId: number;
@@ -149,6 +150,39 @@ export default function ResumenCargabilidad() {
     
     const filteredWorkers = allWorkers.filter(w => selectedWorkerIds.includes(w.id));
     
+    const handleExportExcel = () => {
+    if (occupancyData.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+    
+    // Preparar datos para Excel
+    const excelData = occupancyData.map(worker => {
+      const row: any = {
+        'Consultor': worker.workerName,
+        'Esquema': worker.esquema,
+        'Tiempo': worker.tiempo
+      };
+      
+      // Agregar cada día como columna
+      allDays.forEach((dia, idx) => {
+        const dateStr = dia.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
+        row[dateStr] = `${worker.weeklyData[idx]}%`;
+      });
+      
+      return row;
+    });
+    
+    // Crear workbook y worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Resumen Cargabilidad');
+    
+    // Descargar archivo
+    const fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Resumen_Cargabilidad_${fecha}.xlsx`);
+  };
+  
     return filteredWorkers.map(worker => {
       const schedule = worker.scheme_id ? workSchedules.get(worker.scheme_id) : null;
       
@@ -246,13 +280,20 @@ export default function ResumenCargabilidad() {
     <div className="relative p-6">
       <div className="sticky top-0 left-0 z-20 bg-gray-100 flex items-center mb-6" style={{ minHeight: '3.5rem' }}>
         <h2 className="text-2xl font-bold">Resumen de Cargabilidad ({occupancyData.length} consultores)</h2>
-        <button
-          className="absolute right-6 top-6 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
-          style={{ zIndex: 30 }}
-          onClick={() => router.push('/dashboard/cargabilidad')}
-        >
-          ← Regresar
-        </button>
+        <div className="absolute right-6 top-6 flex gap-2" style={{ zIndex: 30 }}>
+          <button
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
+            onClick={handleExportExcel}
+          >
+            📥 Exportar Excel
+          </button>
+          <button
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
+            onClick={() => router.push('/dashboard/cargabilidad')}
+          >
+            ← Regresar
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
