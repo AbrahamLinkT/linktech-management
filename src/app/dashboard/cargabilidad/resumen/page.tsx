@@ -25,6 +25,7 @@ export default function ResumenCargabilidad() {
   const [assignedHours, setAssignedHours] = useState<any[]>([]);
   const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadingSchedules, setLoadingSchedules] = useState(true);
   
   // IDs de workers seleccionados
   const selectedWorkerIds = useMemo(() => {
@@ -90,6 +91,7 @@ export default function ResumenCargabilidad() {
     const loadWorkSchedules = async () => {
       if (!allWorkers || allWorkers.length === 0) return;
       
+      setLoadingSchedules(true);
       const scheduleMap = new Map<number, any>();
       const uniqueSchemeIds = new Set(allWorkers.map(w => w.scheme_id).filter(Boolean));
       
@@ -106,6 +108,7 @@ export default function ResumenCargabilidad() {
       }
       
       setWorkSchedules(scheduleMap);
+      setLoadingSchedules(false);
     };
     
     if (allWorkers && allWorkers.length > 0) {
