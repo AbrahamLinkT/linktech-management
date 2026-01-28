@@ -6,6 +6,7 @@ import { Box, TextField, Typography, Autocomplete } from "@mui/material";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { buildApiUrl } from "@/config/api";
+import { useUser } from "@clerk/nextjs";
 
 const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const horas = Array.from({ length: 12 }, (_, i) => {
@@ -41,6 +42,7 @@ function dateToYMD(date: Date): string {
 export default function DisponibilidadPage() {
   const { data: workers, loading: workersLoading } = useWorkers();
   const { getAssignedHours } = useAssignedHours();
+  const { isLoaded, isSignedIn, user } = useUser();
   
   const [search, setSearch] = useState("");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -97,8 +99,30 @@ export default function DisponibilidadPage() {
   const weekDates = getWeekDates(startOfWeek);
   const weekDatesFormatted = weekDates.map(formatDateString);
 
+  // Obtener email del usuario actual
+  const currentEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress;
+
+  // Ordenar consultores: primero el del usuario actual, luego los demás
+  const consultores = useMemo(() => {
+    const allConsultores = workers.map(w => ({ id: w.id, name: w.name, email: w.email }));
+    
+    if (!currentEmail) return allConsultores;
+
+    // Encontrar el worker del usuario actual
+    const currentWorkerIndex = allConsultores.findIndex(
+      c => c.email?.toLowerCase() === currentEmail.toLowerCase()
+    );
+
+    if (currentWorkerIndex === -1) return allConsultores;
+
+    // Mover el worker actual al inicio
+    const currentWorker = allConsultores[currentWorkerIndex];
+    const otherWorkers = allConsultores.filter((_, idx) => idx !== currentWorkerIndex);
+    
+    return [currentWorker, ...otherWorkers];
+  }, [workers, currentEmail]);
+
   // Filtrar consultores
-  const consultores = workers.map(w => ({ id: w.id, name: w.name }));
   const filteredConsultores = consultores.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
