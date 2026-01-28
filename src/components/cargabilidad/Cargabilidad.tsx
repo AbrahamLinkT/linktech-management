@@ -1,13 +1,13 @@
 "use client";
 
-
 import { useRouter } from "next/navigation";
-import staf from "@/data/staff.json";
+import { useWorkers } from "@/hooks/useWorkers";
 import { ContentBody } from "@/components/containers/containers";
 import { DataTable } from "@/components/tables/table_master";
 import { type MRT_ColumnDef } from "material-react-table";
 import { Btn_data } from "../buttons/buttons";
 import { ChartColumn } from "lucide-react";
+import { useMemo } from "react";
 
 interface StaffItem {
     id: string;
@@ -22,6 +22,7 @@ interface StaffItem {
 
 export default function CargabilidadComponent() {
     const router = useRouter();
+    const { data: workers, loading } = useWorkers();
 
     // Columnas para DataTable
     const columns = [
@@ -35,12 +36,36 @@ export default function CargabilidadComponent() {
         { accessorKey: "estatus", header: "Estatus" },
     ] as MRT_ColumnDef<StaffItem>[];
 
-    // Datos del JSON
-    const data: StaffItem[] = Array.isArray(staf.staff) ? staf.staff : [];
-    const actions = { edit: false, add: false, export: false, delete: true }
+    // Transformar datos de workers a formato de la tabla
+    const data: StaffItem[] = useMemo(() => {
+        if (!workers || workers.length === 0) return [];
+        
+        return workers.map((worker) => ({
+            id: String(worker.id),
+            consultor: worker.name || 'N/A',
+            especialidad: worker.roleName || 'N/A',
+            nivel: worker.levelName || 'N/A',
+            departamento: worker.departmentName || 'N/A',
+            esquema: worker.schemeName || 'N/A',
+            tiempo: worker.scheme_hours || 'N/A',
+            estatus: worker.status === 1 ? 'Activo' : 'Inactivo',
+        }));
+    }, [workers]);
+
+    const actions = { edit: false, add: false, export: false, delete: true };
+    
     const handleClick = () => {
         router.push("/dashboard/cargabilidad/resumen");
     };
+
+    if (loading) {
+        return (
+            <ContentBody title="Cargabilidad">
+                <div style={{ padding: 20, textAlign: 'center' }}>Cargando...</div>
+            </ContentBody>
+        );
+    }
+
     return (
         <ContentBody title="Cargabilidad"
             btnReg={
