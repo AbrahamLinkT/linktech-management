@@ -35,7 +35,7 @@ export default function ResumenCargabilidad() {
   // Estados para selector de fechas
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [numberOfWeeks, setNumberOfWeeks] = useState<number>(3);
+  const [numberOfWeeks, setNumberOfWeeks] = useState<number>(4);
   
   // IDs de workers seleccionados
   const selectedWorkerIds = useMemo(() => {
@@ -57,6 +57,7 @@ export default function ResumenCargabilidad() {
       
       // Generar semanas entre el rango
       let currentWeekStart = new Date(start);
+      let weekCounter = 1;
       
       while (currentWeekStart <= end) {
         const days = [];
@@ -66,21 +67,25 @@ export default function ResumenCargabilidad() {
           days.push(d);
         }
         
-        const weekNumber = getWeekNumber(currentWeekStart);
         weeks.push({
-          nombre: `SEMANA ${weekNumber}`,
+          nombre: `SEMANA ${weekCounter}`,
           dias: days
         });
         
+        weekCounter++;
         currentWeekStart.setDate(currentWeekStart.getDate() + 7);
       }
     } else {
-      // Usar número de semanas (por defecto últimas N semanas)
+      // Usar número de semanas (empezando desde la semana actual)
       const today = new Date();
       
-      for (let weekOffset = -(numberOfWeeks - 1); weekOffset <= 0; weekOffset++) {
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7);
+      // Ajustar al inicio de la semana actual (lunes)
+      const currentWeekStart = new Date(today);
+      currentWeekStart.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+      
+      for (let weekOffset = 0; weekOffset < numberOfWeeks; weekOffset++) {
+        const startOfWeek = new Date(currentWeekStart);
+        startOfWeek.setDate(currentWeekStart.getDate() + weekOffset * 7);
         
         const days = [];
         for (let i = 0; i < 5; i++) {
@@ -89,9 +94,8 @@ export default function ResumenCargabilidad() {
           days.push(d);
         }
         
-        const weekNumber = getWeekNumber(startOfWeek);
         weeks.push({
-          nombre: `SEMANA ${weekNumber}`,
+          nombre: `SEMANA ${weekOffset + 1}`,
           dias: days
         });
       }
