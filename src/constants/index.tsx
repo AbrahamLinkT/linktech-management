@@ -22,7 +22,7 @@ export const navbarLinks = [
                 icon: UserCheck,
                 path: "/dashboard/disponibilidad",
                 description: "Consulta la disponibilidad de los trabajadores.",
-            },
+            }
         ],
     },
     {
@@ -75,6 +75,12 @@ export const navbarLinks = [
                 icon: Users,
                 path: "/dashboard/manager",
                 description: "Administra accesos y lideres.",
+            },
+            {
+                label: "Niveles",
+                icon: Users,
+                path: "/dashboard/level",
+                description: "Administra los niveles del personal.",
             },
         ],
     },
