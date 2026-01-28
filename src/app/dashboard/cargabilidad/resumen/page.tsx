@@ -150,39 +150,6 @@ export default function ResumenCargabilidad() {
     
     const filteredWorkers = allWorkers.filter(w => selectedWorkerIds.includes(w.id));
     
-    const handleExportExcel = () => {
-    if (occupancyData.length === 0) {
-      alert('No hay datos para exportar');
-      return;
-    }
-    
-    // Preparar datos para Excel
-    const excelData = occupancyData.map(worker => {
-      const row: any = {
-        'Consultor': worker.workerName,
-        'Esquema': worker.esquema,
-        'Tiempo': worker.tiempo
-      };
-      
-      // Agregar cada día como columna
-      allDays.forEach((dia, idx) => {
-        const dateStr = dia.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
-        row[dateStr] = `${worker.weeklyData[idx]}%`;
-      });
-      
-      return row;
-    });
-    
-    // Crear workbook y worksheet
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Resumen Cargabilidad');
-    
-    // Descargar archivo
-    const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `Resumen_Cargabilidad_${fecha}.xlsx`);
-  };
-  
     return filteredWorkers.map(worker => {
       const schedule = worker.scheme_id ? workSchedules.get(worker.scheme_id) : null;
       
@@ -252,6 +219,40 @@ export default function ResumenCargabilidad() {
       };
     });
   }, [allWorkers, selectedWorkerIds, assignedHours, allDays, workSchedules]);
+  
+  // Función para exportar a Excel
+  const handleExportExcel = () => {
+    if (occupancyData.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+    
+    // Preparar datos para Excel
+    const excelData = occupancyData.map(worker => {
+      const row: any = {
+        'Consultor': worker.workerName,
+        'Esquema': worker.esquema,
+        'Tiempo': worker.tiempo
+      };
+      
+      // Agregar cada día como columna
+      allDays.forEach((dia, idx) => {
+        const dateStr = dia.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' });
+        row[dateStr] = `${worker.weeklyData[idx]}%`;
+      });
+      
+      return row;
+    });
+    
+    // Crear workbook y worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Resumen Cargabilidad');
+    
+    // Descargar archivo
+    const fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Resumen_Cargabilidad_${fecha}.xlsx`);
+  };
   
   if (workersLoading || loading) {
     return (
