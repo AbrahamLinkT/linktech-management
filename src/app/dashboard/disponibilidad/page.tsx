@@ -129,24 +129,37 @@ export default function DisponibilidadPage() {
   const isProjectLeader = userRole === 'project_leader' || userRole === 'líder de proyecto';
   const isWorker = userRole === 'worker';
 
+  console.log('🔐 Role del usuario:', { userRole, isAdmin, isProjectLeader, isWorker });
+
   // Ordenar/filtrar consultores según permisos
   const consultores = useMemo(() => {
     const allConsultores = workers.map(w => ({ id: w.id, name: w.name, email: w.email }));
     
-    if (!currentEmail) return allConsultores;
+    if (!currentEmail) {
+      console.log('❌ No hay currentEmail');
+      return allConsultores;
+    }
 
     // Encontrar el worker del usuario actual
     const currentWorkerIndex = allConsultores.findIndex(
       c => c.email?.toLowerCase() === currentEmail.toLowerCase()
     );
 
+    console.log('🔍 Current worker index:', currentWorkerIndex, 'Email:', currentEmail);
+
     // Si es worker regular, solo mostrar su propia información
     if (isWorker && !isAdmin && !isProjectLeader) {
+      console.log('👷 Usuario es WORKER - mostrando solo su info');
       if (currentWorkerIndex !== -1) {
-        return [allConsultores[currentWorkerIndex]];
+        const singleWorker = [allConsultores[currentWorkerIndex]];
+        console.log('✅ Worker encontrado:', singleWorker);
+        return singleWorker;
       }
+      console.log('❌ Worker no encontrado en la lista');
       return []; // No se encontró el worker actual
     }
+
+    console.log('👔 Usuario es ADMIN/LÍDER - mostrando todos');
 
     // Admin o líder de proyecto: ver todos, con el actual primero
     if (currentWorkerIndex === -1) return allConsultores;
@@ -155,7 +168,7 @@ export default function DisponibilidadPage() {
     const otherWorkers = allConsultores.filter((_, idx) => idx !== currentWorkerIndex);
     
     return [currentWorker, ...otherWorkers];
-  }, [workers, currentEmail, userRole, isAdmin, isProjectLeader, isWorker]);
+  }, [workers, currentEmail, isWorker, isAdmin, isProjectLeader]);
 
   // Filtrar consultores
   const filteredConsultores = consultores.filter((c) =>
