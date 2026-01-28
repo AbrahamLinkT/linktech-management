@@ -14,12 +14,15 @@ export default function LevelPage() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [idsToDelete, setIdsToDelete] = useState<string[] | null>(null);
 
-  const tableData = useMemo(() => {
+  const tableData = useMemo<(LevelItem & { id: string })[]>(() => {
     if (!data) return [];
-    return data.map((d) => ({ ...d, id: d.id.toString() }));
+    return data.map((d) => {
+      const { id, ...rest } = d;
+      return { ...rest, id: id.toString() } as LevelItem & { id: string };
+    });
   }, [data]);
 
-  const columns = useMemo<MRT_ColumnDef<LevelItem>[]>(
+  const columns = useMemo<MRT_ColumnDef<LevelItem & { id: string }>[]>(
     () => [
       { accessorKey: "name", header: "Nombre" },
       { accessorKey: "shortName", header: "Nombre Corto" },
