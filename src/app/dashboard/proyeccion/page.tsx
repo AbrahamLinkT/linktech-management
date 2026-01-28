@@ -348,7 +348,7 @@ export default function ProyeccionPage() {
     if (ids.length === 0) return;
 
     const confirmed = window.confirm(
-      `¿Estás seguro de eliminar ${ids.length} consultor(es)? Se eliminarán todas sus horas asignadas. Esta acción no se puede deshacer.`
+      `¿Estás seguro de eliminar ${ids.length} consultor(es)? Se eliminarán TODAS sus horas asignadas en TODOS los proyectos. Esta acción no se puede deshacer.`
     );
 
     if (!confirmed) return;
@@ -359,15 +359,16 @@ export default function ProyeccionPage() {
       const projectObj = projects.find(p => p.project_name === selectedProject);
       if (!projectObj) return;
       
-      // Los IDs ahora son workerIds, necesitamos obtener todos los registros de horas de esos workers
-      const allHours = await getAssignedHours();
-      const projectHours = allHours.filter(h => h.projectId === projectObj.project_id);
-      
-      // Encontrar todos los registros de horas de los workers seleccionados
+      // Los IDs ahora son workerIds
       const workerIds = ids.map(id => parseInt(id));
-      const hoursToDelete = projectHours.filter(h => workerIds.includes(h.assignedTo));
       
-      console.log(`Eliminando ${hoursToDelete.length} registros de horas de ${workerIds.length} workers`);
+      // Obtener TODOS los registros de assigned-hours (no solo del proyecto actual)
+      const allHours = await getAssignedHours();
+      
+      // Encontrar TODOS los registros de horas de los workers seleccionados (en cualquier proyecto)
+      const hoursToDelete = allHours.filter(h => workerIds.includes(h.assignedTo));
+      
+      console.log(`🗑️ Eliminando ${hoursToDelete.length} registros de horas asignadas de ${workerIds.length} worker(s) en TODOS los proyectos`);
       
       // Eliminar cada hora asignada
       const deletePromises = hoursToDelete.map(hour => deleteAssignedHour(hour.id));
@@ -377,7 +378,7 @@ export default function ProyeccionPage() {
       const allSuccess = results.every(result => result === true);
 
       if (allSuccess) {
-        alert('Consultores eliminados exitosamente');
+        alert(`✅ ${hoursToDelete.length} registros eliminados exitosamente de ${workerIds.length} worker(s)`);
         
         // Recargar datos del proyecto actual
         const updatedHours = await getAssignedHours();
@@ -411,10 +412,10 @@ export default function ProyeccionPage() {
         // Limpiar selección
         setRowSelection({});
       } else {
-        alert('Algunos registros no pudieron ser eliminados. Por favor, revisa la consola.');
+        alert('⚠️ Algunos registros no pudieron ser eliminados. Por favor, revisa la consola.');
       }
     } catch (error) {
-      console.error('Error eliminando registros:', error);
+      console.error('❌ Error eliminando registros:', error);
       alert('Error al eliminar los registros');
     }
   };
