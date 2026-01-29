@@ -82,6 +82,12 @@ export const navbarLinks = [
                 path: "/dashboard/level",
                 description: "Administra los niveles del personal.",
             },
+            {
+                label: "Roles",
+                icon: Users,
+                path: "/dashboard/roles",
+                description: "Administra los roles del personal.",
+            },
         ],
     },
     {
