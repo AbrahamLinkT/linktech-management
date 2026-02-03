@@ -409,10 +409,7 @@ export const useProjects = () => {
     setError(null);
 
     try {
-      console.log(`🗑️ Intentando eliminar proyecto ID: ${id}`);
-      
       // Intento 1: DELETE /projects con body { id: id }
-      console.log(`🌐 Intento 1: DELETE ${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)} con body { id }`);
       let response = await axios.delete(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), {
         headers: {
           'Content-Type': 'application/json',
@@ -421,12 +418,9 @@ export const useProjects = () => {
         timeout: 30000,
         validateStatus: () => true,
       });
-      
-      console.log(`   Status: ${response.status}, Data:`, response.data);
 
       // Fallback: Intento 2 - DELETE /projects con query parameter
       if (response.status >= 400) {
-        console.log(`🌐 Intento 1 falló. Intento 2: DELETE /projects?id=${id}`);
         response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}?id=${id}`, {
           headers: {
             'Content-Type': 'application/json',
@@ -435,11 +429,8 @@ export const useProjects = () => {
           validateStatus: () => true,
         });
         
-        console.log(`   Status: ${response.status}, Data:`, response.data);
-        
         // Intento 3: DELETE /projects/{id}
         if (response.status >= 400) {
-          console.log(`🌐 Intento 2 falló. Intento 3: DELETE /projects/${id}`);
           response = await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS)}/${id}`, {
             headers: {
               'Content-Type': 'application/json',
@@ -448,15 +439,26 @@ export const useProjects = () => {
             validateStatus: () => true,
           });
           
-          console.log(`   Status: ${response.status}, Data:`, response.data);
-          
+          // Intento 4: POST /projects con método simulado DELETE
           if (response.status >= 400) {
-            throw new Error(`Delete failed: Tried 3 methods, last status ${response.status}`);
+            response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), 
+              { id: Number(id), _method: 'DELETE' }, 
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                timeout: 30000,
+                validateStatus: () => true,
+              }
+            );
+            
+            if (response.status >= 400) {
+              throw new Error(`Delete failed: status ${response.status}`);
+            }
           }
         }
       }
 
-      console.log('✅ Proyecto eliminado exitosamente');
       setIsDeleting(false);
       return {
         success: true,
@@ -469,16 +471,9 @@ export const useProjects = () => {
         errorMessage = err.message;
       } else {
         const errorObj = err as { response?: { data?: { message?: string; error?: string }; status?: number }; message?: string };
-        if (errorObj?.response?.status === 405) {
-          errorMessage = 'El servidor no soporta DELETE directamente. Intenta con POST o PUT en su lugar.';
-        } else if (errorObj?.response?.status === 400) {
-          errorMessage = `Error de solicitud (400): ${errorObj?.response?.data?.message || errorObj?.response?.data?.error || 'Formato incorrecto'}`;
-        } else {
-          errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error deleting project';
-        }
+        errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error deleting project';
       }
       
-      console.error('❌ deleteProject error:', errorMessage);
       setError(errorMessage);
       setIsDeleting(false);
       
