@@ -259,6 +259,8 @@ export const useProjects = () => {
         cleanedData.department_id = projectData.department_id;
       }
 
+      console.log('📤 Enviando proyecto:', cleanedData);
+
       const response = await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.PROJECTS), cleanedData, {
         headers: {
           'Content-Type': 'application/json',
@@ -277,9 +279,13 @@ export const useProjects = () => {
       if (err instanceof Error) {
         errorMessage = err.message;
       } else {
-        const errorObj = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+        const errorObj = err as { response?: { data?: { message?: string; details?: string }; status?: number; statusText?: string }; message?: string };
         if (errorObj?.response?.status === 500) {
-          errorMessage = 'Error del servidor. Verifica que los IDs de empleados/clientes existan en la base de datos.';
+          errorMessage = `Error del servidor (500): ${errorObj?.response?.data?.message || errorObj?.response?.data?.details || 'Error desconocido. Verifica la consola del servidor.'}`;
+          console.error('❌ Error 500:', errorObj?.response?.data);
+        } else if (errorObj?.response?.status === 400) {
+          errorMessage = `Datos inválidos (400): ${errorObj?.response?.data?.message || 'Verifica que todos los campos sean correctos.'}`;
+          console.error('❌ Error 400:', errorObj?.response?.data);
         } else {
           errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error creating project';
         }
@@ -287,6 +293,7 @@ export const useProjects = () => {
       
       setError(errorMessage);
       setIsLoading(false);
+      console.error('❌ createProject error:', errorMessage);
       
       return {
         success: false,
