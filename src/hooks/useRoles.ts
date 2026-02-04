@@ -5,6 +5,10 @@ export type RoleItem = {
   id: number;
   name: string;
   shortName: string;
+  roleLevel?: number | null;
+  isManager: boolean;
+  canApproveHours: boolean;
+  active: boolean;
 };
 
 export const useRoles = () => {
@@ -21,8 +25,12 @@ export const useRoles = () => {
       const json = await res.json();
       const mapped: RoleItem[] = (json || []).map((it: any) => ({
         id: it.id,
-        name: it.name,
+        name: it.name ?? it.role_name ?? "",
         shortName: it.short_name ?? it.shortName ?? "",
+        roleLevel: it.role_level ?? null,
+        isManager: !!it.is_manager,
+        canApproveHours: !!it.can_approve_hours,
+        active: typeof it.active === "boolean" ? it.active : true,
       }));
       setData(mapped);
     } catch (err: any) {
@@ -36,7 +44,14 @@ export const useRoles = () => {
     fetchRoles();
   }, []);
 
-  const createRole = async (payload: { name: string; short_name: string }) => {
+  const createRole = async (payload: {
+    name: string;
+    short_name: string;
+    role_level?: number | null;
+    is_manager?: boolean;
+    can_approve_hours?: boolean;
+    active?: boolean;
+  }) => {
     setLoading(true);
     setError(null);
     try {
@@ -56,7 +71,17 @@ export const useRoles = () => {
     }
   };
 
-  const updateRole = async (id: string | number, payload: { name: string; short_name: string }) => {
+  const updateRole = async (
+    id: string | number,
+    payload: {
+      name: string;
+      short_name: string;
+      role_level?: number | null;
+      is_manager?: boolean;
+      can_approve_hours?: boolean;
+      active?: boolean;
+    }
+  ) => {
     setLoading(true);
     setError(null);
     try {

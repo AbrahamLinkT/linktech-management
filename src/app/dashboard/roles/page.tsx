@@ -26,6 +26,22 @@ export default function RolesPage() {
     () => [
       { accessorKey: "name", header: "Nombre" },
       { accessorKey: "shortName", header: "Nombre Corto" },
+      { accessorKey: "roleLevel", header: "Nivel" },
+      {
+        accessorFn: (row) => (row.isManager ? "Sí" : "No"),
+        id: "isManager",
+        header: "Es Gerente",
+      },
+      {
+        accessorFn: (row) => (row.canApproveHours ? "Sí" : "No"),
+        id: "canApproveHours",
+        header: "Aprueba Horas",
+      },
+      {
+        accessorFn: (row) => (row.active ? "Activo" : "Inactivo"),
+        id: "active",
+        header: "Activo",
+      },
     ],
     []
   );
