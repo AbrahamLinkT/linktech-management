@@ -80,11 +80,16 @@ export default function NewWorker() {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const updated = { ...form, [e.target.name]: e.target.value } as typeof form;
+        const { name, value } = e.target;
+        // keep form state in sync; when status changes, also set active to the same value
+        let updated = { ...form, [name]: value } as typeof form;
+        if (name === "status") {
+            updated = { ...updated, active: value } as typeof form;
+        }
         setForm(updated);
-        // validate this field
+        // validate this field using the updated state
         const v = validate(updated);
-        setErrors((prev) => ({ ...prev, [e.target.name]: v[e.target.name] }));
+        setErrors((prev) => ({ ...prev, [name]: v[name] }));
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -273,13 +278,8 @@ export default function NewWorker() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block font-medium mb-1">Activo</label>
-                                <select name="active" value={form.active} onChange={handleChange} className={stylesInput}>
-                                    <option value="1">Sí</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
+                            {/* active is synced with 'status' select above; keep hidden input to preserve value in the DOM/state */}
+                            <input type="hidden" name="active" value={form.active} />
 
                         </div>
                     </fieldset>
