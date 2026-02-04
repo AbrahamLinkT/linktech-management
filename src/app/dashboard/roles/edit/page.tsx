@@ -63,7 +63,7 @@ export default function EditRole() {
       setForm({
         name: item.name,
         shortName: item.shortName,
-        roleLevel: item.roleLevel ?? "",
+        roleLevel: item.roleLevel != null ? String(item.roleLevel) : "",
         isManager: !!item.isManager,
         canApproveHours: !!item.canApproveHours,
         active: typeof item.active === "boolean" ? item.active : true,
