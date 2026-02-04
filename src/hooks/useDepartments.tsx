@@ -7,12 +7,16 @@ export interface DepartmentItem {
   departamento: string;
   nombreCorto: string;
   descripcion: string;
+  parent_id?: string | null;
+  active?: boolean;
 }
 
 interface CreateDepartmentDto {
   name: string;
   short_name: string;
   description: string;
+  parent_department_id?: number | null;
+  active?: boolean;
 }
 
 interface DepartmentApiResponse {
@@ -20,6 +24,8 @@ interface DepartmentApiResponse {
   name: string;
   short_name: string;
   description: string;
+  parent_department_id?: number | null;
+  active?: boolean;
 }
 
 export function useDepartments() {
@@ -47,6 +53,8 @@ export function useDepartments() {
         departamento: item.name,
         nombreCorto: item.short_name,
         descripcion: item.description,
+        parent_id: item.parent_department_id != null ? item.parent_department_id.toString() : null,
+        active: item.active ?? true,
       }));
 
       setData(mapped);

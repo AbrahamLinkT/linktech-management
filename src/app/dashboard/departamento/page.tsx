@@ -27,7 +27,27 @@ export default function DepartmentPage() {
     { accessorKey: "departamento", header: "Departamento" },
     { accessorKey: "nombreCorto", header: "Nombre Corto" },
     { accessorKey: "descripcion", header: "Descripción", size: 200 },
-  ], []);
+    {
+      accessorKey: "parent_id",
+      header: "Departamento Padre",
+      size: 150,
+      Cell: ({ cell }) => {
+        const val = cell.getValue() as string | null | undefined;
+        if (!val) return "-";
+        const parent = data.find((d) => d.id === val);
+        return (parent ? parent.departamento : "-") as React.ReactNode;
+      },
+    },
+    {
+      accessorKey: "active",
+      header: "Activo",
+      size: 80,
+      Cell: ({ cell }) => {
+        const val = cell.getValue() as boolean | undefined;
+        return (val ? "Sí" : "No") as React.ReactNode;
+      },
+    },
+  ], [data]);
 
   const actions = { edit: true, add: true, export: true, delete: true };
 

@@ -9,12 +9,14 @@ import { useState } from "react";
 
 export default function New() {
   const router = useRouter();
-  const { createDepartment, loading, error } = useDepartments();
+  const { data: departments, createDepartment, loading, error } = useDepartments();
 
   const [form, setForm] = useState({
     departamento: "",
     short_name: "",
     description: "",
+    parent_id: "",
+    active: true,
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -49,7 +51,7 @@ export default function New() {
     return errs;
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: any) => {
     const updated = { ...form, [field]: value };
     setForm(updated);
 
@@ -77,6 +79,8 @@ export default function New() {
       name: form.departamento.trim(),
       short_name: form.short_name.trim(),
       description: form.description.trim(),
+      parent_department_id: form.parent_id ? parseInt(form.parent_id, 10) : null,
+      active: !!form.active,
     };
 
     const ok = await createDepartment(payload);
@@ -181,6 +185,36 @@ export default function New() {
                 )}
               </div>
             </div>
+
+            {/* Parent and active fields */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block font-medium mb-1">Departamento padre (opcional)</label>
+                <select
+                  className={stylesInput}
+                  value={form.parent_id}
+                  onChange={(e) => handleChange("parent_id", e.target.value)}
+                >
+                  <option value="">-- Ninguno --</option>
+                  {departments && departments.map((d) => (
+                    <option key={d.id} value={d.id}>{d.departamento}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center md:col-span-2">
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={!!form.active}
+                    onChange={(e) => handleChange("active", e.target.checked)}
+                  />
+                  <span className="font-medium">Activo</span>
+                </label>
+              </div>
+            </div>
+
           </fieldset>
 
           <div className="flex justify-end">

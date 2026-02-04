@@ -18,6 +18,8 @@ export default function Edit() {
     departamento: "",
     short_name: "",
     description: "",
+    parent_id: "",
+    active: true,
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -35,6 +37,8 @@ export default function Edit() {
         departamento: dept.departamento || "",
         short_name: dept.nombreCorto || "",
         description: dept.descripcion || "",
+        parent_id: dept.parent_id ?? "",
+        active: dept.active ?? true,
       });
     }
   }, [id, data]);
@@ -65,7 +69,7 @@ export default function Edit() {
     router.push("/dashboard/departamento");
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: any) => {
     setForm((f) => ({ ...f, [field]: value }));
 
     // validate this field
@@ -93,6 +97,8 @@ export default function Edit() {
       name: form.departamento.trim(),
       short_name: form.short_name.trim(),
       description: form.description.trim(),
+      parent_department_id: form.parent_id ? parseInt(form.parent_id, 10) : null,
+      active: !!form.active,
     };
 
     const ok = await updateDepartment(id, payload);
@@ -207,6 +213,35 @@ export default function Edit() {
                     {errors.description}
                   </p>
                 )}
+              </div>
+            </div>
+
+            {/* Parent and active fields */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block font-medium mb-1">Departamento padre (opcional)</label>
+                <select
+                  className={stylesInput}
+                  value={form.parent_id}
+                  onChange={(e) => handleChange("parent_id", e.target.value)}
+                >
+                  <option value="">-- Ninguno --</option>
+                  {data && data.map((d) => (
+                    <option key={d.id} value={d.id}>{d.departamento}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center md:col-span-2">
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={!!form.active}
+                    onChange={(e) => handleChange("active", e.target.checked)}
+                  />
+                  <span className="font-medium">Activo</span>
+                </label>
               </div>
             </div>
           </fieldset>
