@@ -276,7 +276,7 @@ export default function DisponibilidadPage() {
       const maxHoursPerDay = isWorkingDay ? dailyHours : 0;
       
       let totalHours = 0;
-      const projects: string[] = [];
+      const projectHoursMap = new Map<string, number>();
 
       for (const assignment of workerAssignments) {
         // Verificar si esta asignación aplica para esta fecha
@@ -287,8 +287,9 @@ export default function DisponibilidadPage() {
           const hoursForDay = assignment.hoursData[dayName] || 0;
           if (hoursForDay > 0) {
             totalHours += hoursForDay;
-            if (assignment.projectName && !projects.includes(assignment.projectName)) {
-              projects.push(assignment.projectName);
+            if (assignment.projectName) {
+              const prev = projectHoursMap.get(assignment.projectName) || 0;
+              projectHoursMap.set(assignment.projectName, prev + hoursForDay);
             }
           }
         }
@@ -296,6 +297,10 @@ export default function DisponibilidadPage() {
 
       const horasLibres = Math.max(0, maxHoursPerDay - totalHours);
       
+      const projects = Array.from(projectHoursMap.entries())
+        .map(([name, hours]) => ({ name, hours }))
+        .sort((a, b) => b.hours - a.hours);
+
       return {
         totalHours,
         horasLibres,
@@ -481,7 +486,9 @@ export default function DisponibilidadPage() {
                         <strong>Proyectos:</strong>
                         <ul style={{ margin: "4px 0", paddingLeft: 20 }}>
                           {disp.projects.map((p, pidx) => (
-                            <li key={pidx}>{p}</li>
+                            <li key={pidx}>
+                              {p.name}: {p.hours.toFixed(1)}h
+                            </li>
                           ))}
                         </ul>
                       </div>
