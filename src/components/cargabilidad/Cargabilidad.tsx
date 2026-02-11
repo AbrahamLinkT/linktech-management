@@ -27,7 +27,8 @@ export default function CargabilidadComponent() {
     const { data: workers, loading, schemes } = useWorkers();
     const [workSchedules, setWorkSchedules] = useState<Map<number, any>>(new Map());
     const [loadingSchedules, setLoadingSchedules] = useState(true);
-    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+    const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
     
     // Log inicial
     console.log('🎯 CARGABILIDAD RENDER - Workers:', workers?.length, 'Loading:', loading, 'SchedulesLoading:', loadingSchedules, 'SchedulesMap size:', workSchedules.size);
@@ -164,6 +165,25 @@ export default function CargabilidadComponent() {
         }));
     }, [workers, workSchedules, loadingSchedules]);
 
+    const departmentOptions = useMemo(() => {
+        if (!workers || workers.length === 0) return [] as string[];
+        const unique = new Set<string>();
+        workers.forEach((worker) => {
+            const dep = worker.departmentName || 'N/A';
+            unique.add(dep);
+        });
+        return Array.from(unique).sort((a, b) => a.localeCompare(b));
+    }, [workers]);
+
+    const filteredData = useMemo(() => {
+        if (selectedDepartment === "all") return data;
+        return data.filter((row) => row.departamento === selectedDepartment);
+    }, [data, selectedDepartment]);
+
+    useEffect(() => {
+        setRowSelection({});
+    }, [selectedDepartment]);
+
     const actions = { edit: false, add: false, export: false, delete: true };
     
     const handleClick = () => {
@@ -181,13 +201,13 @@ export default function CargabilidadComponent() {
     };
     
     const handleExportExcel = () => {
-        if (!data || data.length === 0) {
+        if (!filteredData || filteredData.length === 0) {
             alert('No hay datos para exportar');
             return;
         }
         
         // Preparar datos para Excel
-        const excelData = data.map(row => ({
+        const excelData = filteredData.map(row => ({
             'Consultor': row.consultor,
             'Especialidad': row.especialidad,
             'Nivel': row.nivel,
@@ -218,7 +238,21 @@ export default function CargabilidadComponent() {
     return (
         <ContentBody title="Cargabilidad"
             btnReg={
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="department-filter" className="text-sm text-gray-600">Departamento</label>
+                        <select
+                            id="department-filter"
+                            value={selectedDepartment}
+                            onChange={(e) => setSelectedDepartment(e.target.value)}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                        >
+                            <option value="all">Todos</option>
+                            {departmentOptions.map((dep) => (
+                                <option key={dep} value={dep}>{dep}</option>
+                            ))}
+                        </select>
+                    </div>
                     <Btn_data
                         text="Exportar Excel"
                         icon={<Download />}
@@ -234,7 +268,7 @@ export default function CargabilidadComponent() {
                 </div>
             }
         >
-            <DataTable<StaffItem> data={data} columns={columns}
+            <DataTable<StaffItem> data={filteredData} columns={columns}
                 menu={true}
                 actions={actions}
                 edit={true}
