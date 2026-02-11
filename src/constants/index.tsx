@@ -3,13 +3,134 @@ import { ReactNode } from "react";
 /* Package, PackagePlus, */
 export const navbarLinks = [
     {
-        title: null,
+        title: "Dashboard",
         links: [
+            {
+                label: "Proyección",
+                icon: Presentation,
+                path: "/dashboard/proyeccion",
+                description: "Consulta horas por trabajador",
+                permission: "proyeccion",
+            },
+            {
+                label: "Proyectos",
+                icon: NotepadText,
+                path: "/dashboard/projects",
+                description: "Administra el estado y avance de los proyectos.",
+                permission: "projects",
+            },
+            {
+                label: "Disponibilidad",
+                icon: UserCheck,
+                path: "/dashboard/disponibilidad",
+                description: "Consulta la disponibilidad de los trabajadores.",
+                permission: "disponibilidad",
+            }
+        ],
+    },
+    {
+        title: "Trabajadores",
+        links: [
+            {
+                label: "Trabajadores",
+                icon: Users,
+                path: "/dashboard/workers",
+                description: "Consulta y gestiona la información del personal.",
+                permission: "workers",
+            },
+            {
+                label: "Cargabilidad",
+                icon: UserCheck,
+                path: "/dashboard/cargabilidad",
+                description: "Controla la carga de trabajo del equipo.",
+                permission: "cargabilidad",
+            },
+            {
+                label: "Departamento",
+                icon: Users,
+                path: "/dashboard/departamento",
+                description: "Visualiza los distintos departamentos",
+                permission: "departamentos",
+            },
+            {
+                label: "Esquema contractual",
+                icon: UserCheck,
+                path: "/dashboard/esquema-contratacion",
+                description: "Administra los tipos de contratación.",
+                permission: "esquemaContratacion",
+            },
+            {
+                label: "Asuetos",
+                icon: UserCheck,
+                path: "/dashboard/asuetos",
+                description: "Gestiona los días festivos y permisos de cada trabajador.",
+                permission: "asuetos",
+            },
+            {
+                label: "Horas por aprobar",
+                icon: NotepadText,
+                path: "/dashboard/horas-por-aprobar",
+                description: "Revisa y aprueba las horas trabajadas.",
+                permission: "horasPorAprobar",
+            },
+            {
+                label: "Lider de departamentos",
+                icon: Users,
+                path: "/dashboard/manager",
+                description: "Administra accesos y lideres.",
+                permission: "manager",
+            },
+            {
+                label: "Niveles",
+                icon: Users,
+                path: "/dashboard/level",
+                description: "Administra los niveles del personal.",
+                permission: "level",
+            },
+            {
+                label: "Roles",
+                icon: Users,
+                path: "/dashboard/roles",
+                description: "Administra los roles del personal.",
+                permission: "roles",
+            },
+        ],
+    },
+    {
+        title: "Clientes",
+        links: [
+            {
+                label: "Clientes",
+                icon: Users,
+                path: "/dashboard/client",
+                description: "Consulta y gestiona la información de los clientes.",
+                permission: "client",
+            },
+        ],
+    },
+    {
+        title: "Configuracion",
+        links: [
+            {
+                label: "Roles",
+                icon: Settings,
+                path: "/dashboard/settings/roles",
+                description: "Define y asigna roles en la organización.",
+                permission: "roles",
+            },
+            {
+                label: "Permisos",
+                icon: Settings,
+                path: "/dashboard/settings/permisos",
+                description: "Configura niveles de acceso y seguridad a la aplicación.",
+                permission: "permisos",
+            },
             {
                 label: "Configuracion",
                 icon: Settings,
                 path: "/settings",
                 description: "Ajusta las preferencias del sistema.",
+                permission: null, // Siempre visible
             },
         ],
     },
