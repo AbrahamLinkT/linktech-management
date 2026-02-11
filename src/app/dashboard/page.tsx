@@ -5,7 +5,7 @@ import { navbarLinks } from "@/constants";
 import { usePermissions } from "@/contexts/permissions-context";
 
 const DashboardPage = () => {
-  const { hasPermission, role, loading } = usePermissions();
+  const { hasPermission, loading } = usePermissions();
 
   if (loading) {
     return (
@@ -25,14 +25,8 @@ const DashboardPage = () => {
       links: section.links.filter((link) => {
         // Si no tiene permission definido (como Configuración), siempre mostrar
         if (!link.permission) return true;
-        
-        // Si es admin, mostrar todo
-        if (role === 'admin') return true;
-        
-        // Si es lider, mostrar todo excepto usuarios
-        if (role === 'lider' && link.permission !== 'usuarios') return true;
-        
-        // Para otros roles, verificar permiso específico
+
+        // Validar según permisos del usuario
         return hasPermission(link.permission);
       }),
     }))
