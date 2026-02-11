@@ -41,6 +41,7 @@ type DataTableProps<T extends { id: string }> = {
     rowSelection?: Record<string, boolean>;
     onRowSelectionChange?: (updater: Record<string, boolean> | ((old: Record<string, boolean>) => Record<string, boolean>)) => void;
     onDelete?: (ids: string[]) => void;
+    topToolbarContent?: React.ReactNode;
 };
 
 export function DataTable<T extends { id: string }>({
@@ -57,6 +58,7 @@ export function DataTable<T extends { id: string }>({
     rowSelection,
     onRowSelectionChange,
     onDelete,
+    topToolbarContent,
 
 }: DataTableProps<T>) {
     // =============== ESTADOS ================
@@ -125,6 +127,7 @@ export function DataTable<T extends { id: string }>({
                     >
                         Selecciona
                     </Button>
+                    {topToolbarContent}
 
                     <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
                         {/* EDITAR */}

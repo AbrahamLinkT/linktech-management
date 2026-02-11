@@ -239,20 +239,6 @@ export default function CargabilidadComponent() {
         <ContentBody title="Cargabilidad"
             btnReg={
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="department-filter" className="text-sm text-gray-600">Departamento</label>
-                        <select
-                            id="department-filter"
-                            value={selectedDepartment}
-                            onChange={(e) => setSelectedDepartment(e.target.value)}
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                        >
-                            <option value="all">Todos</option>
-                            {departmentOptions.map((dep) => (
-                                <option key={dep} value={dep}>{dep}</option>
-                            ))}
-                        </select>
-                    </div>
                     <Btn_data
                         text="Exportar Excel"
                         icon={<Download />}
@@ -272,6 +258,22 @@ export default function CargabilidadComponent() {
                 menu={true}
                 actions={actions}
                 edit={true}
+                topToolbarContent={
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="department-filter" className="text-sm text-gray-600">Departamento</label>
+                        <select
+                            id="department-filter"
+                            value={selectedDepartment}
+                            onChange={(e) => setSelectedDepartment(e.target.value)}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                        >
+                            <option value="all">Todos</option>
+                            {departmentOptions.map((dep) => (
+                                <option key={dep} value={dep}>{dep}</option>
+                            ))}
+                        </select>
+                    </div>
+                }
                 rowSelection={rowSelection}
                 onRowSelectionChange={setRowSelection}
             />
