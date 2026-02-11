@@ -43,6 +43,16 @@ export function AuthCallbackHandler() {
           return;
         }
 
+        // Validar que el email sea del dominio @linktech.com.mx
+        if (!email.endsWith('@linktech.com.mx')) {
+          console.error('❌ Email no autorizado. Solo se permiten correos del dominio @linktech.com.mx');
+          alert('Acceso denegado: Solo se permiten correos corporativos del dominio @linktech.com.mx');
+          // Redirigir a página de no autorizado
+          router.push('/unauthorized');
+          setIsProcessing(false);
+          return;
+        }
+
         // Paso 1: Verificar si existe en MongoDB
         const checkResponse = await fetch(
           `https://linktech-management-a.vercel.app/api/permissions?email=${encodeURIComponent(email)}`
