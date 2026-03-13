@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Autodeploy trigger
 const BACKEND_URL = 'http://backend.linktech.com.mx';
 
 export async function GET(
