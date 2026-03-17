@@ -4,6 +4,7 @@ import { renderChangeHoursEmailBody, renderHumanResourceRequestEmailBody, xlsxTo
 export interface SendChangeHoursEmailParams {
   toName: string;
   toEmail: string;
+  projectName?: string;
   xlsxBuffer?: Buffer;
   message?: string;
 }
@@ -37,7 +38,7 @@ function getTransporter() {
 }
 
 export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
-  const { toName, toEmail, xlsxBuffer, message } = params;
+  const { toName, toEmail, projectName, xlsxBuffer, message } = params;
   const transporter = getTransporter();
 
   let tableHtml: string | undefined;
@@ -49,17 +50,18 @@ export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
     }
   }
 
-  const html = renderChangeHoursEmailBody({ name: toName, tableHtml, message });
+  const messageContent = message || (projectName ? `Proyecto: ${projectName}` : undefined);
+  const html = renderChangeHoursEmailBody({ name: toName, tableHtml, message: messageContent });
 
   const attachments: Array<{ filename: string; content: Buffer }> = [];
   if (xlsxBuffer && xlsxBuffer.length > 0) {
-    attachments.push({ filename: 'cambio_horas.xlsx', content: xlsxBuffer });
+    attachments.push({ filename: 'asignacion_recurso.xlsx', content: xlsxBuffer });
   }
 
   const info = await transporter.sendMail({
     from: process.env.MAIL_USER,
     to: toEmail,
-    subject: 'Solicitud de cambio de horas',
+    subject: `Solicitud de asignación de recurso${projectName ? ` - ${projectName}` : ''}`,
     html,
     attachments,
   });
