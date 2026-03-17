@@ -152,6 +152,27 @@ export async function approveRequest(requestId: string, approvedBy: string) {
 }
 
 /**
+ * Aprobar solicitud de asignación y crear la asignación
+ */
+export async function approveAndAssignRequest(requestId: string, approvedBy: string) {
+  const response = await fetch(
+    `${API_BASE}/api/staff-assignment-requests/approve-and-assign/${requestId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved_by: approvedBy })
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Error aprobando solicitud');
+  }
+
+  return response.json();
+}
+
+/**
  * Rechazar solicitud de asignación
  */
 export async function rejectRequest(

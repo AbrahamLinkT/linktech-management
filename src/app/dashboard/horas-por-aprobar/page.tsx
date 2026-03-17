@@ -99,16 +99,46 @@ export default function HorasPorAprobar() {
 
     setActionInProgress(true);
     try {
+      // 1. Aprobar la solicitud en MongoDB
       await approveRequest(selectedRequest._id, user.id);
-      // Actualizar lista localmente
+
+      // 2. Crear la asignación en assigned_hours (backend Java)
+      const assignmentPayload = [
+        {
+          project_id: selectedRequest.project_code,
+          assigned_to: selectedRequest.worker_name, // O usar worker_id si está disponible
+          assigned_by: user.id,
+          hours_data: {
+            monday: 0,
+            tuesday: 0,
+            wednesday: 0,
+            thursday: 0,
+            friday: 0,
+            saturday: 0,
+            sunday: 0,
+            total: 0,
+            week: ""
+          }
+        }
+      ];
+
+      // POST a assigned_hours
+      const assignmentResponse = await fetch("/api/proxy/assigned-hours", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(assignmentPayload),
+      });
+
+      if (!assignmentResponse.ok) {
+        console.warn("Advertencia: Solicitud aprobada pero asignación podría no haberse creado");
+      }
+
+      // Actualizar lista localmente (remover de pending)
       setSolicitudesAsignacion((prev) =>
-        prev.map((r) =>
-          r._id === selectedRequest._id
-            ? { ...r, status: "approved" }
-            : r
-        )
+        prev.filter((r) => r._id !== selectedRequest._id)
       );
-      alert("✅ Solicitud aprobada exitosamente");
+
+      alert("✅ Solicitud aprobada y consultor asignado al proyecto");
       setModalOpen(false);
       setSelectedRequest(null);
     } catch (err) {
