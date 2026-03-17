@@ -21,7 +21,14 @@ export function renderChangeHoursEmailBody({ name, projectName, tableHtml, messa
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;color:#222">
     <p>Hola ${name},</p>
-    <p><strong>Se ha realizado una solicitud de asignación de recurso humano${projectName ? ` para el proyecto: <strong style="color:#0066cc">${projectName}</strong>` : ''}</strong></p>
+    <p><strong>Se ha realizado una solicitud de asignación de recurso humano</strong></p>
+    
+    ${projectName ? `
+    <div style="background:#e3f2fd;padding:12px;border-left:4px solid #0066cc;margin:16px 0">
+      <p style="margin:0"><strong>Proyecto:</strong> <span style="color:#0066cc;font-size:16px">${projectName}</span></p>
+    </div>
+    ` : ''}
+    
     ${tableHtml
       ? `<div style=\"margin:16px 0\">${tableHtml}</div>`
       : message

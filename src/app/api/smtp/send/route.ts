@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     const contentType = req.headers.get('content-type') || '';
     let name = '';
     let email = '';
+    let projectName: string | undefined;
     let xlsxBuffer: Buffer | undefined;
     let message: string | undefined;
 
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
       const form = await req.formData();
       name = String(form.get('name') || '').trim();
       email = String(form.get('email') || '').trim();
+      projectName = String(form.get('projectName') || '').trim() || undefined;
       const file = form.get('file') as File | null;
       message = String(form.get('message') || '').trim() || undefined;
       if (file) {
@@ -40,6 +42,7 @@ export async function POST(req: NextRequest) {
       const body = await req.json();
       name = String(body?.name || '').trim();
       email = String(body?.email || '').trim();
+      projectName = String(body?.projectName || '').trim() || undefined;
       message = String(body?.message || '').trim() || undefined;
       // opcional: soportar xlsx como base64
       const base64 = body?.xlsxBase64 as string | undefined;
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Campos requeridos: name, email' }, { status: 400 });
     }
 
-    const result = await sendChangeHoursEmail({ toName: name, toEmail: email, xlsxBuffer, message });
+    const result = await sendChangeHoursEmail({ toName: name, toEmail: email, projectName, xlsxBuffer, message });
     return NextResponse.json({ ok: true, result });
   } catch (err: any) {
     console.error('SMTP send error:', err);
