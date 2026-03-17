@@ -14,6 +14,7 @@ import { useAssignedHours } from "@/hooks/useAssignedHours";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useUser } from "@clerk/nextjs";
 import { buildApiUrl, API_CONFIG } from "@/config/api";
+import { createAssignmentRequest } from "@/services/staffAssignmentService";
 
 
 // =================== TIPOS ===================
@@ -557,8 +558,8 @@ export default function ProyeccionPage() {
       const sameDeptWorkers = selectedWorkers.filter(w => w.department_id === creatorDepartmentId);
       const diffDeptWorkers = selectedWorkers.filter(w => w.department_id !== creatorDepartmentId);
 
-      // Crear el payload para todos los workers
-      const payload = selectedWorkers.map(worker => ({
+      // Crear el payload SOLO para workers del mismo departamento
+      const sameDeptPayload = sameDeptWorkers.map(worker => ({
         project_id: project.project_id,
         assigned_to: worker.id,
         assigned_by: assignedById,
@@ -575,18 +576,132 @@ export default function ProyeccionPage() {
         }
       }));
 
-      console.log('✅ Creando asignaciones:', payload);
-      const success = await createAssignedHours(payload);
+      // Asignar directamente los workers del mismo departamento
+      let sameDeptSuccess = true;
+      if (sameDeptPayload.length > 0) {
+        console.log('✅ Creando asignaciones del mismo departamento:', sameDeptPayload);
+        sameDeptSuccess = await createAssignedHours(sameDeptPayload);
+      }
 
-      if (success) {
-        // ==================== ENVIAR NOTIFICACIONES POR DEPARTAMENTO ====================
-        const emailPromises: Promise<void>[] = [];
+      if (!sameDeptSuccess) {
+        alert('❌ Error creando asignaciones del mismo departamento');
+        return;
+      }
 
-        for (const worker of diffDeptWorkers) {
-          const departmentHead = await findDepartmentHead(worker.department_id);
-          console.log(`🔍 Worker ${worker.name}, Líder encontrado:`, departmentHead);
-          
-          if (departmentHead && departmentHead.email) {
+      // ==================== CREAR SOLICITUDES PENDIENTES PARA OTROS DEPARTAMENTOS ====================
+      const assignmentRequests: Promise<any>[] = [];
+
+      for (const worker of diffDeptWorkers) {
+        const departmentHead = await findDepartmentHead(worker.department_id);
+        console.log(`🔍 Worker ${worker.name}, Líder encontrado:`, departmentHead);
+        
+        if (departmentHead && departmentHead.email) {
+          // Crear solicitud pendiente en lugar de asignar directamente
+          const assignmentRequestPromise = (async () => {
+            try {
+              const requestResult = await createAssignmentRequest({
+                project_id: project.project_id,
+                project_name: project.project_name,
+                project_code: project.project_code || '',
+                worker_id: worker.id,
+                worker_name: worker.name,
+                worker_email: worker.email || '',
+                worker_department_id: worker.department_id,
+                worker_department_name: worker.departamento || '',
+                department_head_id: departmentHead.id,
+                department_head_name: departmentHead.name,
+                department_head_email: departmentHead.email,
+                requested_by_id: creator.id,
+                requested_by_name: creator.name,
+                requested_by_email: creator.email || '',
+                assignment_data: {
+                  assigned_by: assignedById,
+                  hours_data: {
+                    monday: 0,
+                    tuesday: 0,
+                    wednesday: 0,
+                    thursday: 0,
+                    friday: 0,
+                    saturday: 0,
+                    sunday: 0,
+                    total: 0,
+                    week: ""
+                  }
+                }
+              });
+
+              console.log(`✅ Solicitud de asignación creada para ${worker.name}:`, requestResult);
+
+              // Enviar email de notificación al líder del departamento
+              const xlsxBlob = generateWorkerXLSX([worker]);
+              if (xlsxBlob) {
+                const xlsxFile = new File(
+                  [xlsxBlob],
+                  `worker_${worker.id}_${Date.now()}.xlsx`,
+                  { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+                );
+
+                const formData = new FormData();
+                formData.append('name', departmentHead.name || 'Líder de Departamento');
+                formData.append('email', departmentHead.email!);
+                formData.append('projectName', project.project_name);
+                formData.append('file', xlsxFile);
+
+                const smtpUrl = '/api/smtp/send';
+                console.log(`📧 Enviando email de solicitud a ${departmentHead.email}, projectName: ${project.project_name}`);
+
+                const emailResponse = await fetch(smtpUrl, {
+                  method: 'POST',
+                  body: formData,
+                });
+
+                const responseText = await emailResponse.text();
+                console.log(`📬 Respuesta del servidor (${emailResponse.status}):`, responseText);
+
+                if (emailResponse.ok) {
+                  console.log(`✅ Email enviado exitosamente a ${departmentHead.email} (${worker.name})`);
+                } else {
+                  console.warn(`⚠️ Email retornó estado ${emailResponse.status} para ${departmentHead.email}`);
+                }
+              }
+            } catch (err) {
+              console.error(`❌ Error creando solicitud para ${worker.name}:`, err);
+              throw err;
+            }
+          })();
+
+          assignmentRequests.push(assignmentRequestPromise);
+        }
+      }
+
+      // Esperar a que todas las solicitudes se creen
+      try {
+        if (assignmentRequests.length > 0) {
+          console.log(`📊 Esperando ${assignmentRequests.length} solicitudes de asignación...`);
+          await Promise.all(assignmentRequests);
+          console.log(`✅ Todas las solicitudes han sido creadas`);
+        }
+
+        // Mensaje de confirmación
+        let message = `✅ ${selectedWorkers.length} consultor(es) procesado(s)`;
+        if (sameDeptWorkers.length > 0 && diffDeptWorkers.length > 0) {
+          message += `\n✅ ${sameDeptWorkers.length} asignado(s) directamente (mismo departamento)`;
+          message += `\n⏳ ${diffDeptWorkers.length} en estado PENDIENTE (esperando aprobación del líder)`;
+        } else if (sameDeptWorkers.length > 0) {
+          message += `\n✅ ${sameDeptWorkers.length} asignado(s) directamente`;
+        } else if (diffDeptWorkers.length > 0) {
+          message += `\n⏳ ${diffDeptWorkers.length} en estado PENDIENTE`;
+        }
+        alert(message);
+        
+        // Recargar datos del proyecto
+        const allHours = await getAssignedHours();
+        const projectHours = allHours.filter(h => h.projectId === project.project_id);
+        
+        // Obtener workers únicos
+        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
+        
+        const tableData: RowData[] = await Promise.all(
             // Generar XLSX solo para este worker
             const xlsxBlob = generateWorkerXLSX([worker]);
             console.log(`📄 XLSX generado para ${worker.name}:`, xlsxBlob);

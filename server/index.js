@@ -6,6 +6,7 @@ const connectDB = isProduction
   ? require('./config/database-vercel') 
   : require('./config/database');
 const permissionsRoutes = require('./routes/permissions');
+const staffAssignmentRequestsRoutes = require('./routes/staffAssignmentRequests');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,6 +29,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/permissions', permissionsRoutes);
+app.use('/api/staff-assignment-requests', staffAssignmentRequestsRoutes);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
