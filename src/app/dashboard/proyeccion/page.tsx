@@ -600,22 +600,22 @@ export default function ProyeccionPage() {
           const assignmentRequestPromise = (async () => {
             try {
               const requestResult = await createAssignmentRequest({
-                project_id: project.project_id,
+                project_id: String(project.project_id),
                 project_name: project.project_name,
-                project_code: project.project_code || '',
-                worker_id: worker.id,
+                project_code: String(project.project_code || ''),
+                worker_id: String(worker.id),
                 worker_name: worker.name,
                 worker_email: worker.email || '',
-                worker_department_id: worker.department_id,
+                worker_department_id: String(worker.department_id),
                 worker_department_name: worker.departamento || '',
-                department_head_id: departmentHead.id,
+                department_head_id: String(departmentHead.id),
                 department_head_name: departmentHead.name,
                 department_head_email: departmentHead.email,
-                requested_by_id: creator.id,
+                requested_by_id: String(creator.id),
                 requested_by_name: creator.name,
                 requested_by_email: creator.email || '',
                 assignment_data: {
-                  assigned_by: assignedById,
+                  assigned_by: String(assignedById),
                   hours_data: {
                     monday: 0,
                     tuesday: 0,
