@@ -60,7 +60,13 @@ export default function HorasPorAprobar() {
         const result = await getPendingRequests(user.primaryEmailAddress.emailAddress);
         setSolicitudesAsignacion(result.requests || []);
       } catch (err) {
-        setErrorAssignments((err as Error).message);
+        const errorMsg = (err as Error).message;
+        // Solo mostrar error si no es conexión rechazada (servidor no disponible)
+        if (errorMsg.includes('Failed to fetch') || errorMsg.includes('ERR_CONNECTION_REFUSED')) {
+          setErrorAssignments('Servidor de solicitudes no disponible. Por favor, verifica que el servidor Node.js esté corriendo en puerto 3001.');
+        } else {
+          setErrorAssignments(errorMsg);
+        }
         console.error("Error cargando solicitudes de asignación:", err);
       } finally {
         setLoadingAssignments(false);
