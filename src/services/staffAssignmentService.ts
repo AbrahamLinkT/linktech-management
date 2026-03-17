@@ -1,9 +1,7 @@
 /**
  * Servicio para manejar solicitudes de asignación de consultores
- * Usa el proxy de Next.js en /api/staff-assignment-requests
+ * Usa los API routes de Next.js como proxy
  */
-
-const API_BASE = '/api/staff-assignment-requests';
 
 export interface CreateAssignmentRequestParams {
   project_id: string;
@@ -53,7 +51,7 @@ export interface StaffAssignmentRequest {
  * Crear nueva solicitud de asignación
  */
 export async function createAssignmentRequest(params: CreateAssignmentRequestParams) {
-  const response = await fetch(`${API_BASE}/api/staff-assignment-requests/create`, {
+  const response = await fetch('/api/staff-assignment-requests/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -72,7 +70,7 @@ export async function createAssignmentRequest(params: CreateAssignmentRequestPar
  */
 export async function getPendingRequests(departmentHeadEmail: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/pending/${encodeURIComponent(departmentHeadEmail)}`
+    `/api/staff-assignment-requests/pending?email=${encodeURIComponent(departmentHeadEmail)}`
   );
 
   if (!response.ok) {
@@ -88,7 +86,7 @@ export async function getPendingRequests(departmentHeadEmail: string) {
  */
 export async function getProjectRequests(projectId: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/project/${projectId}`
+    `/api/staff-assignment-requests/project?id=${projectId}`
   );
 
   if (!response.ok) {
@@ -104,7 +102,7 @@ export async function getProjectRequests(projectId: string) {
  */
 export async function getWorkerRequests(workerId: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/worker/${workerId}`
+    `/api/staff-assignment-requests/worker?id=${workerId}`
   );
 
   if (!response.ok) {
@@ -120,7 +118,7 @@ export async function getWorkerRequests(workerId: string) {
  */
 export async function getRequest(requestId: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/${requestId}`
+    `/api/staff-assignment-requests/get?id=${requestId}`
   );
 
   if (!response.ok) {
@@ -136,7 +134,7 @@ export async function getRequest(requestId: string) {
  */
 export async function approveRequest(requestId: string, approvedBy: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/approve/${requestId}`,
+    `/api/staff-assignment-requests/action?id=${requestId}&action=approve`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -157,7 +155,7 @@ export async function approveRequest(requestId: string, approvedBy: string) {
  */
 export async function approveAndAssignRequest(requestId: string, approvedBy: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/approve-and-assign/${requestId}`,
+    `/api/staff-assignment-requests/action?id=${requestId}&action=approve`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -182,7 +180,7 @@ export async function rejectRequest(
   rejectionReason?: string
 ) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/reject/${requestId}`,
+    `/api/staff-assignment-requests/action?id=${requestId}&action=reject`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -206,7 +204,7 @@ export async function rejectRequest(
  */
 export async function deleteRequest(requestId: string) {
   const response = await fetch(
-    `${API_BASE}/api/staff-assignment-requests/${requestId}`,
+    `/api/staff-assignment-requests/delete?id=${requestId}`,
     { method: 'DELETE' }
   );
 
