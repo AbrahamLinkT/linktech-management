@@ -11,7 +11,7 @@ import { useDepartments } from "@/hooks/useDepartments";
 export default function EditWorker() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const idParam = searchParams.get("id");
+  const idParam = searchParams?.get("id");
   const id = idParam ? Number(idParam) : null;
 
   const { getWorkerById, updateWorker, levels, schemes, roles, managers, fetchLevels, fetchSchemes, fetchRoles, fetchWorkers } = useWorkers();

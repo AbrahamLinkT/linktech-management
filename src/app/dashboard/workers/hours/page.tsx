@@ -20,7 +20,7 @@ type RowHoras = {
 
 export default function HoursPage() {
     const searchParams = useSearchParams();
-    const id = searchParams.get("id");
+    const id = searchParams?.get("id");
     const router = useRouter();
     const handleClick = () => {
         router.back();

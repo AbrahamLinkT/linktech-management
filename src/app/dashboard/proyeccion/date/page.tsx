@@ -60,7 +60,7 @@ function TitleOnlyHeader({ title }: { title: string }) {
 function ProyeccionTablePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const projectName = searchParams.get('project');
+  const projectName = searchParams?.get('project');
   
   const [vistaError, setVistaError] = useState('');
   // Estado para modal de cambiar vista

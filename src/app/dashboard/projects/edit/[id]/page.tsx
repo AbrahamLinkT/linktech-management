@@ -29,7 +29,7 @@ interface FormData {
 }
 
 export default function EditProject() {
-  const params = useParams();
+  const params = useParams() as { id: string };
   const router = useRouter();
   const { updateProject, isUpdating, error } = useProjects();
   const { data: clients } = useClients();

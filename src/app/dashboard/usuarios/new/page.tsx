@@ -9,7 +9,7 @@ import { useUsuarios } from "@/hooks/useUsuarios";
 export default function New() {
   const router = useRouter();
   const pathname = usePathname();
-  const returnTo = pathname.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
+  const returnTo = pathname?.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
   const {
     departments,
     workers,

@@ -18,7 +18,7 @@ export default function EditPropuesta() {
   `;
 
     const router = useRouter();
-    const params = useParams();
+    const params = useParams() as { id: string };
     const idNum = Number(params.id);
 
 

@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 export default function Edit() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
 
   const { data, updateDepartment, loading, error } = useDepartments();
 

@@ -31,7 +31,7 @@ type ProjectDetail = {
 
 export default function Project() {
     const searchParams = useSearchParams();
-    const id = searchParams.get("id") || "";
+    const id = searchParams?.get("id") || "";
     const router = useRouter();
     const { getProjectById } = useProjects();
     const [project, setProject] = useState<ProjectDetail | null>(null);

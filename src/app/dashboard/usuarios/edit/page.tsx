@@ -10,9 +10,9 @@ import { useUsuarios } from "@/hooks/useUsuarios";
 export default function Edit() {
   const router = useRouter();
   const pathname = usePathname();
-  const returnTo = pathname.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
+  const returnTo = pathname?.includes("/dashboard/manager") ? "/dashboard/manager" : "/dashboard/usuarios";
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
 
   const {
     data,

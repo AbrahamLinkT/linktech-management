@@ -32,7 +32,7 @@ interface AsuetoData {
 export default function EditAsueto() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const asuetoId = searchParams.get('id');
+  const asuetoId = searchParams?.get('id');
 
   const { updateAsueto, isLoading, error } = useAsuetos();
   const { employees, isLoading: employeesLoading } = useAutoLoadEmployees();

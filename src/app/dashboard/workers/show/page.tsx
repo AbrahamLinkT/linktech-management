@@ -15,7 +15,7 @@ export default function Show() {
 
     // estados
     const searchParams = useSearchParams();
-    const id = searchParams.get("id");
+    const id = searchParams?.get("id");
     const route = useRouter();
     // ========= busqeuda de usuario ==================
     const user = staffData.staff.find((user) => user.id === id);

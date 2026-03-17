@@ -10,7 +10,7 @@ import { useRoles } from "@/hooks/useRoles";
 export default function EditRole() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
 
   const { data, updateRole, loading, error } = useRoles();
 

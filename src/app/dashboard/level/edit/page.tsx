@@ -10,7 +10,7 @@ import { useLevels } from "@/hooks/useLevels";
 export default function EditLevel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
 
   const { data, updateLevel, loading, error } = useLevels();
 

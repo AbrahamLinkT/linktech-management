@@ -11,7 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 export default function ManagerEdit() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const id = searchParams.get("id");
+	const id = searchParams?.get("id");
 
 	const {
 		data,

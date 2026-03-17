@@ -27,7 +27,7 @@ export function AuthCallbackHandler() {
 
       // SOLO redirigir si estamos en la home page
       // Si ya estamos en /dashboard o sus subrutas, no hacer nada
-      if (pathname.startsWith('/dashboard') || pathname.startsWith('/settings')) {
+      if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/settings')) {
         return;
       }
 
