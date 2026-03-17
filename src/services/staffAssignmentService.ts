@@ -2,7 +2,7 @@
  * Servicio para manejar solicitudes de asignación de consultores
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://linktech-management-a.vercel.app';
 
 export interface CreateAssignmentRequestParams {
   project_id: string;
