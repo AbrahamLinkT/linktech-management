@@ -124,6 +124,43 @@ router.get('/worker/:workerId', async (req, res) => {
   }
 });
 
+// Aprobar solicitud de asignación Y crear la asignación en assigned_hours
+router.put('/approve-and-assign/:requestId', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { approved_by } = req.body;
+
+    if (!requestId) {
+      return res.status(400).json({ error: 'ID de solicitud requerido' });
+    }
+
+    const request = await StaffAssignmentRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ error: 'Solicitud no encontrada' });
+    }
+
+    // Actualizar estado de la solicitud
+    request.status = 'approved';
+    request.approved_by = approved_by;
+    request.approved_at = new Date();
+    request.updated_at = new Date();
+    await request.save();
+
+    // TODO: Aquí iría el código para crear la asignación en assigned_hours
+    // Esto se puede hacer directamente en el frontend haciendo un POST al endpoint de assigned_hours
+    // O puedes hacer un POST aquí que envíe los datos al backend Java
+
+    res.json({
+      success: true,
+      message: 'Solicitud aprobada. Procede a asignar el consultor.',
+      request
+    });
+  } catch (error) {
+    console.error('Error aprobando solicitud:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Aprobar solicitud de asignación
 router.put('/approve/:requestId', async (req, res) => {
   try {

@@ -702,77 +702,6 @@ export default function ProyeccionPage() {
         const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
         
         const tableData: RowData[] = await Promise.all(
-            // Generar XLSX solo para este worker
-            const xlsxBlob = generateWorkerXLSX([worker]);
-            console.log(`📄 XLSX generado para ${worker.name}:`, xlsxBlob);
-            
-            if (xlsxBlob) {
-              // Crear una promesa que envía el email con el archivo XLSX
-              const emailPromise = (async () => {
-                try {
-                  // Crear un File a partir del Blob
-                  const xlsxFile = new File(
-                    [xlsxBlob],
-                    `worker_${worker.id}_${Date.now()}.xlsx`,
-                    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-                  );
-
-                  const formData = new FormData();
-                  formData.append('name', departmentHead.name || 'Líder de Departamento');
-                  formData.append('email', departmentHead.email!);
-                  formData.append('projectName', project.project_name);
-                  formData.append('file', xlsxFile);
-
-                  // URL directa sin proxy (endpoint de Next.js, no backend Java)
-                  const smtpUrl = '/api/smtp/send';
-                  console.log(`📧 Enviando email a ${departmentHead.email}, URL: ${smtpUrl}, projectName: ${project.project_name}`);
-
-                  const response = await fetch(smtpUrl, {
-                    method: 'POST',
-                    body: formData,
-                  });
-
-                  const responseText = await response.text();
-                  console.log(`📬 Respuesta del servidor (${response.status}):`, responseText);
-
-                  if (response.ok) {
-                    console.log(`✅ Email enviado exitosamente a ${departmentHead.email} (${worker.name})`);
-                  } else {
-                    console.warn(`⚠️ Email retornó estado ${response.status} para ${departmentHead.email}`);
-                  }
-                } catch (err) {
-                  console.error(`❌ Error enviando email a ${departmentHead.email}:`, err);
-                }
-              })();
-
-              emailPromises.push(emailPromise);
-            }
-          }
-        }
-
-        // Esperar a que todos los emails se envíen
-        console.log(`📊 Esperando ${emailPromises.length} promesas de email...`);
-        await Promise.all(emailPromises);
-        console.log(`✅ Todas las notificaciones han sido procesadas`);
-
-        // Mensaje de confirmación
-        let message = `✅ ${selectedWorkers.length} consultor(es) agregado(s) exitosamente`;
-        if (sameDeptWorkers.length > 0 && diffDeptWorkers.length > 0) {
-          message += `\n📌 ${sameDeptWorkers.length} del mismo departamento (sin notificación)`;
-          message += `\n📧 ${diffDeptWorkers.length} de otros departamentos (notificados)`;
-        } else if (diffDeptWorkers.length > 0) {
-          message += `\n📧 Se enviaron notificaciones a ${diffDeptWorkers.length} líder(es) de departamento`;
-        }
-        alert(message);
-        
-        // Recargar datos del proyecto
-        const allHours = await getAssignedHours();
-        const projectHours = allHours.filter(h => h.projectId === project.project_id);
-        
-        // Obtener workers únicos
-        const uniqueWorkerIds = new Set(projectHours.map(h => h.assignedTo));
-        
-        const tableData: RowData[] = await Promise.all(
           Array.from(uniqueWorkerIds).map(async (workerId) => {
           const worker = workers.find(w => w.id === workerId);
           const firstHour = projectHours.find(h => h.assignedTo === workerId);
@@ -795,8 +724,9 @@ export default function ProyeccionPage() {
         
         // Limpiar selección del modal
         setSelectedModalRows({});
-      } else {
-        alert('Error al agregar consultores. Por favor intenta de nuevo.');
+      } catch (err) {
+        console.error('❌ Error en el proceso de asignación:', err);
+        alert('❌ Error procesando las solicitudes. Por favor intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error agregando consultores:', error);
