@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://linktech-management.vercel.app', 'https://clerk.linktech.com.mx'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://linktech-management.vercel.app', 'https://linktech-management-a.vercel.app', 'https://manage.linktech.com.mx', 'https://clerk.linktech.com.mx'],
   credentials: true
 }));
 app.use(express.json());
