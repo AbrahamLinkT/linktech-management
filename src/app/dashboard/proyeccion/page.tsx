@@ -609,10 +609,10 @@ export default function ProyeccionPage() {
                 worker_department_id: String(worker.department_id),
                 worker_department_name: worker.departmentName || '',
                 department_head_id: String(departmentHead.id),
-                department_head_name: departmentHead.name,
-                department_head_email: departmentHead.email,
+                department_head_name: departmentHead.name || 'Líder',
+                department_head_email: departmentHead.email || '',
                 requested_by_id: String(creator.id),
-                requested_by_name: creator.name,
+                requested_by_name: creator.name || 'Manager',
                 requested_by_email: creator.email || '',
                 assignment_data: {
                   assigned_by: String(assignedById),
