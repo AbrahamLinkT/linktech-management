@@ -1,8 +1,9 @@
 /**
  * Servicio para manejar solicitudes de asignación de consultores
+ * Usa el proxy de Next.js en /api/staff-assignment-requests
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://linktech-management-a.vercel.app';
+const API_BASE = '/api/staff-assignment-requests';
 
 export interface CreateAssignmentRequestParams {
   project_id: string;
