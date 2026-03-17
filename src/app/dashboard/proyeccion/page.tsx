@@ -607,7 +607,7 @@ export default function ProyeccionPage() {
                 worker_name: worker.name,
                 worker_email: worker.email || '',
                 worker_department_id: String(worker.department_id),
-                worker_department_name: worker.departamento || '',
+                worker_department_name: worker.departmentName || '',
                 department_head_id: String(departmentHead.id),
                 department_head_name: departmentHead.name,
                 department_head_email: departmentHead.email,
