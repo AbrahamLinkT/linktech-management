@@ -334,6 +334,18 @@ export default function ResumenCargabilidad() {
     });
   }, [allWorkers, selectedWorkerIds, assignedHours, allDays, workSchedules, loadingSchedules]);
   
+  // calcular promedio por columna (por día) - mostrará la media redondeada del % entre todos los workers
+  const columnAverages = useMemo(() => {
+    if (!occupancyData || occupancyData.length === 0) return new Array(allDays.length).fill(0);
+    const sums = new Array(allDays.length).fill(0);
+    occupancyData.forEach((w) => {
+      w.weeklyData.forEach((val, idx) => {
+        sums[idx] = (sums[idx] || 0) + (typeof val === 'number' ? val : 0);
+      });
+    });
+    return sums.map((s) => Math.round(s / occupancyData.length));
+  }, [occupancyData, allDays.length]);
+
   // Función para exportar a Excel
   const handleExportExcel = () => {
     if (occupancyData.length === 0) {
@@ -519,8 +531,24 @@ export default function ResumenCargabilidad() {
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+          {/* fila de promedios por columna */}
+          <tfoot>
+            <tr className="bg-blue-50">
+              <td className="border px-2 py-1 font-semibold text-center" colSpan={3}>Promedio</td>
+              {columnAverages.map((avg, idx) => {
+                let bg = 'bg-green-100';
+                if (avg === 0) bg = 'bg-red-100';
+                else if (avg > 100) bg = 'bg-yellow-100';
+                return (
+                  <td key={idx} className={`border px-2 py-1 text-center ${bg}`}>
+                    {avg}%
+                  </td>
+                );
+              })}
+            </tr>
+          </tfoot>
+         </table>
+       </div>
+     </div>
+   );
+ }
