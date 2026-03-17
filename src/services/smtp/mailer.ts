@@ -41,6 +41,8 @@ export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
   const { toName, toEmail, projectName, xlsxBuffer, message } = params;
   const transporter = getTransporter();
 
+  console.log('📧 sendChangeHoursEmail received:', { toName, toEmail, projectName, hasXlsx: !!xlsxBuffer });
+
   let tableHtml: string | undefined;
   if (xlsxBuffer && xlsxBuffer.length > 0) {
     try {

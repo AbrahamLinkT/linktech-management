@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Campos requeridos: name, email' }, { status: 400 });
     }
 
+    console.log('📧 DEBUG email params:', { name, email, projectName, hasXlsx: !!xlsxBuffer, message });
     const result = await sendChangeHoursEmail({ toName: name, toEmail: email, projectName, xlsxBuffer, message });
     return NextResponse.json({ ok: true, result });
   } catch (err: any) {

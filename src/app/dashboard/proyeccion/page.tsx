@@ -610,7 +610,7 @@ export default function ProyeccionPage() {
 
                   // URL directa sin proxy (endpoint de Next.js, no backend Java)
                   const smtpUrl = '/api/smtp/send';
-                  console.log(`📧 Enviando email a ${departmentHead.email}, URL: ${smtpUrl}`);
+                  console.log(`📧 Enviando email a ${departmentHead.email}, URL: ${smtpUrl}, projectName: ${project.project_name}`);
 
                   const response = await fetch(smtpUrl, {
                     method: 'POST',
