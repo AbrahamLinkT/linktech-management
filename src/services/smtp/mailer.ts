@@ -51,7 +51,7 @@ export async function sendChangeHoursEmail(params: SendChangeHoursEmailParams) {
   }
 
   const messageContent = message || (projectName ? `Proyecto: ${projectName}` : undefined);
-  const html = renderChangeHoursEmailBody({ name: toName, tableHtml, message: messageContent });
+  const html = renderChangeHoursEmailBody({ name: toName, projectName, tableHtml, message: messageContent });
 
   const attachments: Array<{ filename: string; content: Buffer }> = [];
   if (xlsxBuffer && xlsxBuffer.length > 0) {

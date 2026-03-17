@@ -17,11 +17,11 @@ export function xlsxToHtmlTable(buffer: Buffer): string {
   return `<table style="border-collapse:collapse;width:100%">${thead}${tbody}</table>`;
 }
 
-export function renderChangeHoursEmailBody({ name, tableHtml, message }: { name: string; tableHtml?: string; message?: string }) {
+export function renderChangeHoursEmailBody({ name, projectName, tableHtml, message }: { name: string; projectName?: string; tableHtml?: string; message?: string }) {
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;color:#222">
     <p>Hola ${name},</p>
-    <p><strong>Se ha realizado una solicitud de asignación de recurso humano</strong></p>
+    <p><strong>Se ha realizado una solicitud de asignación de recurso humano${projectName ? ` para el proyecto: <strong style="color:#0066cc">${projectName}</strong>` : ''}</strong></p>
     ${tableHtml
       ? `<div style=\"margin:16px 0\">${tableHtml}</div>`
       : message
