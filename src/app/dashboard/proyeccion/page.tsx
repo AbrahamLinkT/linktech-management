@@ -605,6 +605,7 @@ export default function ProyeccionPage() {
                   const formData = new FormData();
                   formData.append('name', departmentHead.name || 'Líder de Departamento');
                   formData.append('email', departmentHead.email!);
+                  formData.append('projectName', project.project_name);
                   formData.append('file', xlsxFile);
 
                   // URL directa sin proxy (endpoint de Next.js, no backend Java)
