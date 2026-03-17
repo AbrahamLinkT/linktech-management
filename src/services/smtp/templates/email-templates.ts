@@ -33,3 +33,42 @@ export function renderChangeHoursEmailBody({ name, tableHtml, message }: { name:
   </div>
   `;
 }
+
+export function renderHumanResourceRequestEmailBody({ 
+  departmentHeadName, 
+  workerName, 
+  projectName, 
+  projectCode,
+  tableHtml 
+}: { 
+  departmentHeadName: string; 
+  workerName: string; 
+  projectName: string;
+  projectCode: string;
+  tableHtml?: string;
+}) {
+  return `
+  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;color:#222">
+    <p>Hola ${departmentHeadName},</p>
+    <p style="font-weight:600;color:#0066cc">Se ha solicitado un consultor de tu departamento para un nuevo proyecto</p>
+    
+    <div style="background:#f0f8ff;padding:16px;border-left:4px solid #0066cc;margin:16px 0">
+      <p style="margin:8px 0"><strong>Consultor Solicitado:</strong> ${workerName}</p>
+      <p style="margin:8px 0"><strong>Proyecto Destino:</strong> ${projectName}</p>
+      <p style="margin:8px 0"><strong>Código de Proyecto:</strong> ${projectCode}</p>
+    </div>
+
+    ${tableHtml ? `
+    <div style="margin:16px 0">
+      <p style="font-weight:600;margin-bottom:12px">Detalles del Consultor:</p>
+      ${tableHtml}
+    </div>
+    ` : ''}
+
+    <p style="margin-top:20px;color:#555">Puedes revisar esta solicitud en tu panel de control de proyectos. Si tienes alguna pregunta o necesitas información adicional, por favor responde a este correo.</p>
+    
+    <hr style="margin:24px 0;border:none;border-top:1px solid #eee"/>
+    <p style="font-size:12px;color:#666">Este correo fue enviado automáticamente por Linktech Management.</p>
+  </div>
+  `;
+}
