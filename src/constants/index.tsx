@@ -46,6 +46,13 @@ export const navbarLinks = [
                 permission: "cargabilidad",
             },
             {
+                label: "Carga Departamento",
+                icon: UserCheck,
+                path: "/dashboard/cargabilidad/departamento",
+                description: "Cargabilidad por departamento.",
+                permission: "cargabilidad",
+            },
+            {
                 label: "Departamento",
                 icon: Users,
                 path: "/dashboard/departamento",
