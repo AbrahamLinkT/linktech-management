@@ -238,60 +238,68 @@ export default function CargaDepartamento() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
-          <thead>
-            <tr className="bg-blue-200">
-              <th className="border px-2 py-1" colSpan={3}></th>
-              {semanasAgrupadas.map((semana, idx) => (
-                <th key={idx} className="border px-2 py-1 text-center font-bold" colSpan={semana.dias.length}>{semana.nombre}</th>
+      {/* Si no hay departamento seleccionado mostramos un mensaje, sino la tabla */}
+      {!selectedDepartment ? (
+        <div className="p-6">
+          <h3 className="text-lg font-semibold">Seleccione un departamento</h3>
+          <p className="text-sm text-gray-600">Por favor seleccione un departamento y presione "Aceptar" para ver la carga.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
+            <thead>
+              <tr className="bg-blue-200">
+                <th className="border px-2 py-1" colSpan={3}></th>
+                {semanasAgrupadas.map((semana, idx) => (
+                  <th key={idx} className="border px-2 py-1 text-center font-bold" colSpan={semana.dias.length}>{semana.nombre}</th>
+                ))}
+              </tr>
+              <tr className="bg-blue-100">
+                <th className="border px-2 py-1">Consultor</th>
+                <th className="border px-2 py-1">Esquema</th>
+                <th className="border px-2 py-1">Tiempo</th>
+                {allDays.map((dia, idx) => (
+                  <th key={idx} className="border px-2 py-1">{dia.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' })}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {occupancyData.map((worker, i) => (
+                <tr key={worker.workerId} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <td className="border px-2 py-1 font-semibold whitespace-nowrap">{worker.workerName}</td>
+                  <td className="border px-2 py-1 whitespace-nowrap">{worker.esquema}</td>
+                  <td className="border px-2 py-1 whitespace-nowrap">{worker.tiempo}</td>
+                  {worker.weeklyData.map((percentage, j) => {
+                    let bg = 'bg-green-100';
+                    if (percentage === 0) bg = 'bg-red-100';
+                    else if (percentage > 100) bg = 'bg-yellow-100';
+                    return (
+                      <td key={j} className={`border px-2 py-1 text-center ${bg}`}>
+                        {percentage}%
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </tr>
-            <tr className="bg-blue-100">
-              <th className="border px-2 py-1">Consultor</th>
-              <th className="border px-2 py-1">Esquema</th>
-              <th className="border px-2 py-1">Tiempo</th>
-              {allDays.map((dia, idx) => (
-                <th key={idx} className="border px-2 py-1">{dia.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' })}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {occupancyData.map((worker, i) => (
-              <tr key={worker.workerId} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="border px-2 py-1 font-semibold whitespace-nowrap">{worker.workerName}</td>
-                <td className="border px-2 py-1 whitespace-nowrap">{worker.esquema}</td>
-                <td className="border px-2 py-1 whitespace-nowrap">{worker.tiempo}</td>
-                {worker.weeklyData.map((percentage, j) => {
+            </tbody>
+            <tfoot>
+              <tr className="bg-blue-50">
+                <td className="border px-2 py-1 font-semibold text-center" colSpan={3}>Promedio</td>
+                {columnAverages.map((avg, idx) => {
                   let bg = 'bg-green-100';
-                  if (percentage === 0) bg = 'bg-red-100';
-                  else if (percentage > 100) bg = 'bg-yellow-100';
+                  if (avg === 0) bg = 'bg-red-100';
+                  else if (avg > 100) bg = 'bg-yellow-100';
                   return (
-                    <td key={j} className={`border px-2 py-1 text-center ${bg}`}>
-                      {percentage}%
+                    <td key={idx} className={`border px-2 py-1 text-center ${bg}`}>
+                      {avg}%
                     </td>
                   );
                 })}
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-blue-50">
-              <td className="border px-2 py-1 font-semibold text-center" colSpan={3}>Promedio</td>
-              {columnAverages.map((avg, idx) => {
-                let bg = 'bg-green-100';
-                if (avg === 0) bg = 'bg-red-100';
-                else if (avg > 100) bg = 'bg-yellow-100';
-                return (
-                  <td key={idx} className={`border px-2 py-1 text-center ${bg}`}>
-                    {avg}%
-                  </td>
-                );
-              })}
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+            </tfoot>
+          </table>
+        </div>
+      )}
     </ContentBody>
   );
 }
