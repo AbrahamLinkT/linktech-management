@@ -22,7 +22,7 @@ interface WorkerOccupancy {
 export default function ResumenCargabilidad() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const workersParam = searchParams?.get('workers');
+  const workersParam = searchParams.get('workers');
   
   const { data: allWorkers, loading: workersLoading, schemes } = useWorkers();
   const { getAssignedHours } = useAssignedHours();
@@ -491,7 +491,9 @@ export default function ResumenCargabilidad() {
         </LocalizationProvider>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
+        {/* Padding wrapper specific to ResumenCargabilidad so card content has extra spacing */}
+        <div className="p-4">
+         <table className="min-w-max w-full border border-gray-300 text-xs md:text-sm">
           <thead>
             <tr className="bg-blue-200">
               <th className="border px-2 py-1" colSpan={3}></th>
@@ -548,7 +550,8 @@ export default function ResumenCargabilidad() {
             </tr>
           </tfoot>
          </table>
-       </div>
-     </div>
-   );
+        </div>
+      </div>
+    </div>
+  );
  }
