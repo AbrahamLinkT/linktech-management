@@ -15,6 +15,7 @@ import { useWorkers } from "@/hooks/useWorkers";
 import { useUser } from "@clerk/nextjs";
 import { buildApiUrl, API_CONFIG } from "@/config/api";
 import { createAssignmentRequest } from "@/services/staffAssignmentService";
+import { createHoursRequest } from "@/services/hoursRequestService";
 
 
 // =================== TIPOS ===================
@@ -596,9 +597,10 @@ export default function ProyeccionPage() {
         console.log(`🔍 Worker ${worker.name}, Líder encontrado:`, departmentHead);
         
         if (departmentHead && departmentHead.email) {
-          // Crear solicitud pendiente en lugar de asignar directamente
+          // Crear AMBAS solicitudes: de asignación de consultor y de horas
           const assignmentRequestPromise = (async () => {
             try {
+              // 1. Crear solicitud de asignación del consultor
               const requestResult = await createAssignmentRequest({
                 project_id: String(project.project_id),
                 project_name: project.project_name,
@@ -631,6 +633,44 @@ export default function ProyeccionPage() {
               });
 
               console.log(`✅ Solicitud de asignación creada para ${worker.name}:`, requestResult);
+
+              // 2. Crear solicitud de horas
+              const hoursRequestResult = await createHoursRequest({
+                project_id: String(project.project_id),
+                project_name: project.project_name,
+                project_code: String(project.project_code || ''),
+                worker_id: String(worker.id),
+                worker_name: worker.name,
+                worker_email: worker.email || '',
+                worker_department_id: String(worker.department_id),
+                worker_department_name: worker.departmentName || '',
+                department_head_id: String(departmentHead.id),
+                department_head_name: departmentHead.name || 'Líder',
+                department_head_email: departmentHead.email || '',
+                requested_by_id: String(creator.id),
+                requested_by_name: creator.name || 'Manager',
+                requested_by_email: creator.email || '',
+                requested_hours: 0,
+                reason: `Asignación al proyecto ${project.project_name}`,
+                start_date: new Date().toISOString().split('T')[0],
+                end_date: new Date().toISOString().split('T')[0],
+                assignment_data: {
+                  assigned_by: String(assignedById),
+                  hours_data: {
+                    monday: 0,
+                    tuesday: 0,
+                    wednesday: 0,
+                    thursday: 0,
+                    friday: 0,
+                    saturday: 0,
+                    sunday: 0,
+                    total: 0,
+                    week: ""
+                  }
+                }
+              });
+
+              console.log(`✅ Solicitud de horas creada para ${worker.name}:`, hoursRequestResult);
 
               // Enviar email de notificación al líder del departamento
               const xlsxBlob = generateWorkerXLSX([worker]);
@@ -665,7 +705,7 @@ export default function ProyeccionPage() {
                 }
               }
             } catch (err) {
-              console.error(`❌ Error creando solicitud para ${worker.name}:`, err);
+              console.error(`❌ Error creando solicitudes para ${worker.name}:`, err);
               throw err;
             }
           })();

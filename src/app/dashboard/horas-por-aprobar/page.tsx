@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { getPendingRequests, approveRequest, rejectRequest } from "@/services/staffAssignmentService";
+import { getPendingHoursRequests, approveHoursRequest, rejectHoursRequest } from "@/services/hoursRequestService";
 import { Box, Button, Modal, TextField, Typography, Alert } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
@@ -36,16 +37,36 @@ interface SolicitudAsignacion {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+interface HoursRequestItem {
+  _id: string;
+  project_name: string;
+  project_code: string;
+  worker_name: string;
+  worker_department_name: string;
+  requested_by_name: string;
+  requested_hours: number;
+  reason: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export default function HorasPorAprobar() {
   const router = useRouter();
   const { user, isLoaded, isSignedIn } = useUser();
   const [solicitudesAsignacion, setSolicitudesAsignacion] = useState<SolicitudAsignacion[]>([]);
+  const [solicitudesHoras, setSolicitudesHoras] = useState<HoursRequestItem[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [loadingHours, setLoadingHours] = useState(false);
   const [errorAssignments, setErrorAssignments] = useState<string | null>(null);
+  const [errorHours, setErrorHours] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<SolicitudAsignacion | null>(null);
+  const [selectedHoursRequest, setSelectedHoursRequest] = useState<HoursRequestItem | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [requestType, setRequestType] = useState<'assignment' | 'hours'>('assignment');
 
   // Cargar solicitudes de asignación pendientes
   useEffect(() => {
@@ -76,6 +97,34 @@ export default function HorasPorAprobar() {
     loadPendingRequests();
   }, [isLoaded, isSignedIn, user?.primaryEmailAddress?.emailAddress]);
 
+  // Cargar solicitudes de horas pendientes
+  useEffect(() => {
+    const loadPendingHoursRequests = async () => {
+      if (!isLoaded || !isSignedIn || !user?.primaryEmailAddress?.emailAddress) {
+        return;
+      }
+
+      setLoadingHours(true);
+      setErrorHours(null);
+      try {
+        const result = await getPendingHoursRequests(user.primaryEmailAddress.emailAddress);
+        setSolicitudesHoras(result.requests || []);
+      } catch (err) {
+        const errorMsg = (err as Error).message;
+        if (errorMsg.includes('Failed to fetch') || errorMsg.includes('ERR_CONNECTION_REFUSED')) {
+          setErrorHours('Servidor de solicitudes no disponible. Por favor, verifica que el servidor Node.js esté corriendo en puerto 3001.');
+        } else {
+          setErrorHours(errorMsg);
+        }
+        console.error("Error cargando solicitudes de horas:", err);
+      } finally {
+        setLoadingHours(false);
+      }
+    };
+
+    loadPendingHoursRequests();
+  }, [isLoaded, isSignedIn, user?.primaryEmailAddress?.emailAddress]);
+
   // Columnas para asignaciones
   const columnasAsignacion = useMemo<MRT_ColumnDef<SolicitudAsignacion>[]>(
     () => [
@@ -94,59 +143,75 @@ export default function HorasPorAprobar() {
     []
   );
 
-  const handleApprove = async (request: SolicitudAsignacion) => {
-    setSelectedRequest(request);
+  const handleApprove = async (request: SolicitudAsignacion | HoursRequestItem, type: 'assignment' | 'hours') => {
+    setRequestType(type);
+    if (type === 'assignment') {
+      setSelectedRequest(request as SolicitudAsignacion);
+    } else {
+      setSelectedHoursRequest(request as HoursRequestItem);
+    }
     setModalOpen(true);
     setRejectionReason("");
   };
 
   const handleConfirmApprove = async () => {
-    if (!selectedRequest || !user?.id) return;
+    if (!user?.id) return;
 
     setActionInProgress(true);
     try {
-      // 1. Aprobar la solicitud en MongoDB
-      await approveRequest(selectedRequest._id, user.id);
+      if (requestType === 'assignment' && selectedRequest) {
+        // 1. Aprobar la solicitud en MongoDB
+        await approveRequest(selectedRequest._id, user.id);
 
-      // 2. Crear la asignación en assigned_hours (backend Java)
-      const assignmentPayload = [
-        {
-          project_id: selectedRequest.project_code,
-          assigned_to: selectedRequest.worker_name, // O usar worker_id si está disponible
-          assigned_by: user.id,
-          hours_data: {
-            monday: 0,
-            tuesday: 0,
-            wednesday: 0,
-            thursday: 0,
-            friday: 0,
-            saturday: 0,
-            sunday: 0,
-            total: 0,
-            week: ""
+        // 2. Crear la asignación en assigned_hours (backend Java)
+        const assignmentPayload = [
+          {
+            project_id: selectedRequest.project_code,
+            assigned_to: selectedRequest.worker_name,
+            assigned_by: user.id,
+            hours_data: {
+              monday: 0,
+              tuesday: 0,
+              wednesday: 0,
+              thursday: 0,
+              friday: 0,
+              saturday: 0,
+              sunday: 0,
+              total: 0,
+              week: ""
+            }
           }
+        ];
+
+        const assignmentResponse = await fetch("/api/proxy/assigned-hours", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(assignmentPayload),
+        });
+
+        if (!assignmentResponse.ok) {
+          console.warn("Advertencia: Solicitud aprobada pero asignación podría no haberse creado");
         }
-      ];
 
-      // POST a assigned_hours
-      const assignmentResponse = await fetch("/api/proxy/assigned-hours", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(assignmentPayload),
-      });
+        setSolicitudesAsignacion((prev) =>
+          prev.filter((r) => r._id !== selectedRequest._id)
+        );
 
-      if (!assignmentResponse.ok) {
-        console.warn("Advertencia: Solicitud aprobada pero asignación podría no haberse creado");
+        alert("✅ Solicitud de asignación aprobada y consultor asignado al proyecto");
+      } else if (requestType === 'hours' && selectedHoursRequest) {
+        // Aprobar solicitud de horas
+        await approveHoursRequest(selectedHoursRequest._id, user.id);
+
+        setSolicitudesHoras((prev) =>
+          prev.filter((r) => r._id !== selectedHoursRequest._id)
+        );
+
+        alert("✅ Solicitud de horas aprobada");
       }
 
-      // Actualizar lista localmente (remover de pending)
-      setSolicitudesAsignacion((prev) =>
-        prev.filter((r) => r._id !== selectedRequest._id)
-      );
-
-      alert("✅ Solicitud aprobada y consultor asignado al proyecto");
       setModalOpen(false);
       setSelectedRequest(null);
+      setSelectedHoursRequest(null);
     } catch (err) {
       alert("❌ Error aprobando solicitud: " + (err as Error).message);
     } finally {
@@ -154,7 +219,7 @@ export default function HorasPorAprobar() {
     }
   };
 
-  const handleReject = async (request: SolicitudAsignacion) => {
+  const handleReject = async (request: SolicitudAsignacion | HoursRequestItem, type: 'assignment' | 'hours') => {
     if (!user?.id) return;
 
     const reason = prompt(
@@ -165,11 +230,17 @@ export default function HorasPorAprobar() {
 
     setActionInProgress(true);
     try {
-      await rejectRequest(selectedRequest?._id || request._id, user.id, reason);
-      // Actualizar lista localmente
-      setSolicitudesAsignacion((prev) =>
-        prev.filter((r) => r._id !== request._id)
-      );
+      if (type === 'assignment') {
+        await rejectRequest((request as SolicitudAsignacion)._id, user.id, reason);
+        setSolicitudesAsignacion((prev) =>
+          prev.filter((r) => r._id !== request._id)
+        );
+      } else {
+        await rejectHoursRequest((request as HoursRequestItem)._id, user.id, reason);
+        setSolicitudesHoras((prev) =>
+          prev.filter((r) => r._id !== request._id)
+        );
+      }
       alert("✅ Solicitud rechazada");
     } catch (err) {
       alert("❌ Error rechazando solicitud: " + (err as Error).message);
@@ -298,7 +369,7 @@ export default function HorasPorAprobar() {
                             color="success"
                             size="small"
                             startIcon={<CheckIcon />}
-                            onClick={() => handleApprove(request)}
+                            onClick={() => handleApprove(request, 'assignment')}
                             disabled={actionInProgress}
                             sx={{ marginRight: 1 }}
                           >
@@ -309,7 +380,7 @@ export default function HorasPorAprobar() {
                             color="error"
                             size="small"
                             startIcon={<CloseIcon />}
-                            onClick={() => handleReject(request)}
+                            onClick={() => handleReject(request, 'assignment')}
                             disabled={actionInProgress}
                           >
                             Rechazar
@@ -326,21 +397,85 @@ export default function HorasPorAprobar() {
         {/* SECCIÓN: SOLICITUDES DE HORAS */}
         <Box sx={{ marginTop: 4 }}>
           <Typography variant="h5" sx={{ fontWeight: 700, color: "#2563eb", marginBottom: 2 }}>
-            ⏰ Solicitudes de Horas
+            ⏰ Solicitudes de Horas Pendientes
           </Typography>
-          {proyectos.map((proy) => (
-            <div key={proy} style={{ marginBottom: 32 }}>
-              <h2 style={{ fontWeight: 700, fontSize: 20, margin: "24px 0 12px 0", color: "#2563eb" }}>
-                {proy}
-              </h2>
-              <DataTable<Solicitud>
-                data={data.filter((d) => d.proyecto === proy)}
-                columns={columns}
-                menu={true}
-                actions={actions}
-              />
-            </div>
-          ))}
+
+          {loadingHours && (
+            <Typography>Cargando solicitudes de horas...</Typography>
+          )}
+
+          {errorHours && (
+            <Alert severity="error">{errorHours}</Alert>
+          )}
+
+          {solicitudesHoras.length === 0 && !loadingHours && (
+            <Alert severity="info">No tienes solicitudes de horas pendientes</Alert>
+          )}
+
+          {solicitudesHoras.length > 0 && (
+            <Box sx={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f0f0f0" }}>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Consultor</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Departamento</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Proyecto</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Código</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Horas</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Fechas</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Solicitado por</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Razón</th>
+                    <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Fecha</th>
+                    <th style={{ padding: "12px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudesHoras
+                    .filter((r) => r.status === "pending")
+                    .map((request) => (
+                      <tr key={request._id} style={{ borderBottom: "1px solid #ddd" }}>
+                        <td style={{ padding: "12px" }}>{request.worker_name}</td>
+                        <td style={{ padding: "12px" }}>{request.worker_department_name}</td>
+                        <td style={{ padding: "12px" }}>{request.project_name}</td>
+                        <td style={{ padding: "12px" }}>{request.project_code}</td>
+                        <td style={{ padding: "12px" }}>{request.requested_hours}h</td>
+                        <td style={{ padding: "12px" }}>
+                          {new Date(request.start_date).toLocaleDateString("es-MX")} - {new Date(request.end_date).toLocaleDateString("es-MX")}
+                        </td>
+                        <td style={{ padding: "12px" }}>{request.requested_by_name}</td>
+                        <td style={{ padding: "12px" }}>{request.reason}</td>
+                        <td style={{ padding: "12px" }}>
+                          {new Date(request.created_at).toLocaleDateString("es-MX")}
+                        </td>
+                        <td style={{ padding: "12px", textAlign: "center" }}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            startIcon={<CheckIcon />}
+                            onClick={() => handleApprove(request, 'hours')}
+                            disabled={actionInProgress}
+                            sx={{ marginRight: 1 }}
+                          >
+                            Aprobar
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<CloseIcon />}
+                            onClick={() => handleReject(request, 'hours')}
+                            disabled={actionInProgress}
+                          >
+                            Rechazar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </Box>
+          )}
         </Box>
 
         {/* MODAL DE CONFIRMACIÓN DE APROBACIÓN */}
@@ -359,12 +494,20 @@ export default function HorasPorAprobar() {
             }}
           >
             <Typography variant="h6" sx={{ marginBottom: 2 }}>
-              Confirmar aprobación
+              {requestType === 'assignment' ? 'Confirmar aprobación de asignación' : 'Confirmar aprobación de horas'}
             </Typography>
-            <Typography sx={{ marginBottom: 3 }}>
-              ¿Apruebas la asignación de <strong>{selectedRequest?.worker_name}</strong> al proyecto{" "}
-              <strong>{selectedRequest?.project_name}</strong>?
-            </Typography>
+            {requestType === 'assignment' ? (
+              <Typography sx={{ marginBottom: 3 }}>
+                ¿Apruebas la asignación de <strong>{selectedRequest?.worker_name}</strong> al proyecto{" "}
+                <strong>{selectedRequest?.project_name}</strong>?
+              </Typography>
+            ) : (
+              <Typography sx={{ marginBottom: 3 }}>
+                ¿Apruebas la solicitud de <strong>{selectedHoursRequest?.requested_hours} horas</strong> para{" "}
+                <strong>{selectedHoursRequest?.worker_name}</strong> en el proyecto{" "}
+                <strong>{selectedHoursRequest?.project_name}</strong>?
+              </Typography>
+            )}
             <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
               <Button variant="outlined" onClick={() => setModalOpen(false)}>
                 Cancelar

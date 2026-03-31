@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useProjects } from "@/hooks/useProjects";
 import { useAssignedHours } from "@/hooks/useAssignedHours";
+import { getProjectHoursRequests } from "@/services/hoursRequestService";
 import { buildApiUrl, API_CONFIG } from '@/config/api';
 
 // ---- Tipos ----
@@ -74,6 +75,7 @@ function ProyeccionTablePage() {
   const { getAssignedHours, getWorkersForAssignedHours, createAssignedHours } = useAssignedHours();
   const [isLoading, setIsLoading] = useState(true);
   const [schemes, setSchemes] = useState<SchemeItem[]>([]);
+  const [pendingHoursRequests, setPendingHoursRequests] = useState<any[]>([]);
 
   // Cargar esquemas (schemes) al inicio
   useEffect(() => {
@@ -526,6 +528,31 @@ function ProyeccionTablePage() {
     // Solo recargar cuando cambie el nombre del proyecto o los proyectos disponibles
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectName, projects.length, schemes.length]);
+
+  // Cargar solicitudes de horas pendientes para el proyecto
+  useEffect(() => {
+    const loadPendingHours = async () => {
+      if (!currentProjectId) {
+        setPendingHoursRequests([]);
+        return;
+      }
+
+      try {
+        console.log('📋 Cargando solicitudes pendientes de horas para proyecto:', currentProjectId);
+        const result = await getProjectHoursRequests(String(currentProjectId));
+        const pending = (result.requests || []).filter((r: any) => r.status === 'pending');
+        console.log('✅ Solicitudes pendientes cargadas:', pending.length);
+        setPendingHoursRequests(pending);
+      } catch (err) {
+        console.error('❌ Error cargando solicitudes de horas:', err);
+        setPendingHoursRequests([]);
+      }
+    };
+
+    if (currentProjectId) {
+      loadPendingHours();
+    }
+  }, [currentProjectId]);
 
   // Función para abrir el modal y seleccionar el día
   const handleAbrirModal = (diaIdx: number) => {
@@ -1187,6 +1214,46 @@ function ProyeccionTablePage() {
           Regresar
         </Button>
       </Box>
+
+      {/* SECCIÓN: HORAS PENDIENTES DE APROBACIÓN */}
+      {pendingHoursRequests.length > 0 && (
+        <Box sx={{ mb: 3, p: 2, bgcolor: "#fff3cd", border: "2px solid #ffc107", borderRadius: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#856404", mb: 2 }}>
+            ⚠️ Solicitudes de Horas Pendientes de Aprobación
+          </Typography>
+          <Box sx={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#fff59d" }}>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Consultor</th>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Departamento</th>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Horas</th>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Período</th>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Razón</th>
+                  <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ffc107" }}>Solicitado por</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingHoursRequests.map((request: any, idx: number) => (
+                  <tr key={idx} style={{ borderBottom: "1px solid #ffc107" }}>
+                    <td style={{ padding: "12px" }}>{request.worker_name}</td>
+                    <td style={{ padding: "12px" }}>{request.worker_department_name}</td>
+                    <td style={{ padding: "12px", fontWeight: 600 }}>{request.requested_hours}h</td>
+                    <td style={{ padding: "12px" }}>
+                      {new Date(request.start_date).toLocaleDateString("es-MX")} - {new Date(request.end_date).toLocaleDateString("es-MX")}
+                    </td>
+                    <td style={{ padding: "12px" }}>{request.reason}</td>
+                    <td style={{ padding: "12px" }}>{request.requested_by_name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+          <Typography variant="caption" sx={{ mt: 1, display: "block", color: "#856404" }}>
+            💡 Estas solicitudes están esperando aprobación del líder del departamento en la sección "Horas por Aprobar"
+          </Typography>
+        </Box>
+      )}
 
       <MaterialReactTable
         columns={columns.slice(0, 7).concat(columns.slice(7, 7 + vistaSemanas))}

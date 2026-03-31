@@ -22,7 +22,7 @@ interface WorkerOccupancy {
 export default function ResumenCargabilidad() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const workersParam = searchParams.get('workers');
+  const workersParam = searchParams?.get('workers');
   
   const { data: allWorkers, loading: workersLoading, schemes } = useWorkers();
   const { getAssignedHours } = useAssignedHours();
