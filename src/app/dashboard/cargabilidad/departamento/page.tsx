@@ -220,7 +220,7 @@ export default function CargaDepartamento() {
     <ContentBody title="Carga Departamento">
       {/* Filtros combinados: número de semanas, fechas y departamento en la misma fila */}
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-        <Box className="flex gap-4 items-center flex-wrap mb-4 bg-white p-4 rounded-lg shadow">
+        <Box className="flex gap-4 items-center mb-4 bg-white p-4 rounded-lg shadow overflow-x-auto" style={{ whiteSpace: 'nowrap' }}>
           <FormControl size="small" style={{ minWidth: 150 }}>
             <InputLabel>Número de Semanas</InputLabel>
             <Select
@@ -265,10 +265,15 @@ export default function CargaDepartamento() {
             </Select>
           </FormControl>
 
-          <Button variant="outlined" size="small" onClick={() => { setStartDate(null); setEndDate(null); }}>Limpiar Fechas</Button>
-          <Button variant="outlined" size="small" onClick={() => { setSelectedDepartment(''); }}>Limpiar</Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => { setStartDate(null); setEndDate(null); setSelectedDepartment(''); }}
+          >
+            Limpiar
+          </Button>
 
-          <div className="ml-auto flex gap-2">
+          <div className="ml-auto flex gap-2 flex-shrink-0">
             <Button onClick={handleExportExcel} variant="contained" color="success">📥 Exportar Excel</Button>
           </div>
         </Box>
