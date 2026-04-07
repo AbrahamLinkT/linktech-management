@@ -1,15 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB } from '@/lib/mongodb';
 
-// Tipos
-interface HoursRequest {
-  _id: string;
-  project_id: string;
-  worker_id: string;
-  department_head_email: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -30,12 +21,12 @@ export default async function handler(
     }
 
     const db = await connectDB();
-    const collection = db.collection('hoursrequests');
+    const collection = db.collection('staffassignmentrequests');
 
     switch (method) {
       case 'GET':
         if (action === 'pending' && email) {
-          // GET /api/hours-requests-backend?action=pending&email=...
+          // GET /api/staff-assignment-backend?action=pending&email=...
           const requests = await collection
             .find({
               department_head_email: email.toLowerCase(),
@@ -51,7 +42,7 @@ export default async function handler(
         }
 
         if (action === 'project' && projectId) {
-          // GET /api/hours-requests-backend?action=project&projectId=...
+          // GET /api/staff-assignment-backend?action=project&projectId=...
           const requests = await collection
             .find({ project_id: projectId })
             .sort({ created_at: -1 })
@@ -67,20 +58,16 @@ export default async function handler(
 
       case 'POST':
         if (action === 'create') {
-          // POST /api/hours-requests-backend?action=create
+          // POST /api/staff-assignment-backend?action=create
           const {
             project_id,
             project_name,
             worker_id,
             worker_name,
             department_head_email,
-            requested_hours,
-            reason,
-            start_date,
-            end_date,
           } = req.body;
 
-          if (!project_id || !worker_id || !department_head_email || !requested_hours) {
+          if (!project_id || !worker_id || !department_head_email) {
             return res.status(400).json({
               error: 'Missing required fields'
             });
@@ -105,7 +92,7 @@ export default async function handler(
 
       case 'PUT':
         if (action === 'approve') {
-          // PUT /api/hours-requests-backend?action=approve&id=...
+          // PUT /api/staff-assignment-backend?action=approve&id=...
           const { id } = query;
           const { approved_by } = req.body;
 
@@ -138,7 +125,7 @@ export default async function handler(
         }
 
         if (action === 'reject') {
-          // PUT /api/hours-requests-backend?action=reject&id=...
+          // PUT /api/staff-assignment-backend?action=reject&id=...
           const { id } = query;
           const { approved_by, reason } = req.body;
 
@@ -177,7 +164,7 @@ export default async function handler(
         res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error: any) {
-    console.error('❌ API Error en /api/hours-requests-backend:', error);
+    console.error('❌ API Error en /api/staff-assignment-backend:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     
