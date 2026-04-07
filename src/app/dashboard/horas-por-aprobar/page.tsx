@@ -82,13 +82,16 @@ export default function HorasPorAprobar() {
         setSolicitudesAsignacion(result.requests || []);
       } catch (err) {
         const errorMsg = (err as Error).message;
-        // Solo mostrar error si no es conexión rechazada (servidor no disponible)
         if (errorMsg.includes('Failed to fetch') || errorMsg.includes('ERR_CONNECTION_REFUSED')) {
-          setErrorAssignments('Servidor de solicitudes no disponible. Por favor, verifica que el servidor Node.js esté corriendo en puerto 3001.');
+          setErrorAssignments('No se pudo conectar al servidor. Verifica tu conexión a internet.');
+        } else if (errorMsg.includes('Database connection not configured')) {
+          setErrorAssignments('La base de datos aún está siendo configurada. Por favor, actualiza la página en unos momentos.');
+        } else if (errorMsg.includes('unauthorized') || errorMsg.includes('permission')) {
+          setErrorAssignments('No tienes permiso para ver estas solicitudes.');
         } else {
-          setErrorAssignments(errorMsg);
+          setErrorAssignments(errorMsg || 'Error desconocido al cargar solicitudes de asignación');
         }
-        console.error("Error cargando solicitudes de asignación:", err);
+        console.error("❌ Error cargando solicitudes de asignación:", err);
       } finally {
         setLoadingAssignments(false);
       }
@@ -112,11 +115,15 @@ export default function HorasPorAprobar() {
       } catch (err) {
         const errorMsg = (err as Error).message;
         if (errorMsg.includes('Failed to fetch') || errorMsg.includes('ERR_CONNECTION_REFUSED')) {
-          setErrorHours('Servidor de solicitudes no disponible. Por favor, verifica que el servidor Node.js esté corriendo en puerto 3001.');
+          setErrorHours('No se pudo conectar al servidor. Verifica tu conexión a internet.');
+        } else if (errorMsg.includes('Database connection not configured')) {
+          setErrorHours('La base de datos aún está siendo configurada. Por favor, actualiza la página en unos momentos.');
+        } else if (errorMsg.includes('unauthorized') || errorMsg.includes('permission')) {
+          setErrorHours('No tienes permiso para ver estas solicitudes.');
         } else {
-          setErrorHours(errorMsg);
+          setErrorHours(errorMsg || 'Error desconocido al cargar solicitudes de horas');
         }
-        console.error("Error cargando solicitudes de horas:", err);
+        console.error("❌ Error cargando solicitudes de horas:", err);
       } finally {
         setLoadingHours(false);
       }
