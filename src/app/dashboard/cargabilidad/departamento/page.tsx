@@ -270,7 +270,6 @@ export default function CargaDepartamento() {
 
           <div className="ml-auto flex gap-2">
             <Button onClick={handleExportExcel} variant="contained" color="success">📥 Exportar Excel</Button>
-            <Button onClick={() => router.push('/dashboard/cargabilidad')} variant="outlined">← Regresar</Button>
           </div>
         </Box>
       </LocalizationProvider>

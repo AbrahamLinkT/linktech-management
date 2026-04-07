@@ -409,12 +409,9 @@ export default function ResumenCargabilidad() {
         <div className="flex items-center mb-4">
           <h2 className="text-2xl font-bold">Resumen de Cargabilidad ({occupancyData.length} consultores)</h2>
           <div className="absolute right-6 top-0 flex gap-2" style={{ zIndex: 30 }}>
-            <button
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
-              onClick={handleExportExcel}
-            >
+            <Button variant="contained" color="success" onClick={handleExportExcel}>
               📥 Exportar Excel
-            </button>
+            </Button>
             <button
               className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow transition-colors duration-200"
               onClick={() => router.push('/dashboard/cargabilidad')}
