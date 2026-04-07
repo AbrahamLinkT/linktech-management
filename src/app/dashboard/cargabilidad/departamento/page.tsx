@@ -221,6 +221,18 @@ export default function CargaDepartamento() {
       {/* Filtros combinados: número de semanas, fechas y departamento en la misma fila */}
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
         <Box className="flex gap-4 items-center mb-4 bg-white p-4 rounded-lg shadow overflow-x-auto" style={{ whiteSpace: 'nowrap' }}>
+          <FormControl size="small" style={{ minWidth: 220 }}>
+            <InputLabel>Departamento</InputLabel>
+            <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value as number | '')} label="Departamento">
+              <MenuItem value="">Seleccione</MenuItem>
+              {(departments || []).map((d: any) => (
+                <MenuItem key={d.id} value={d.id}>{d.departamento}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <div className="text-gray-500 font-semibold">/</div>
+
           <FormControl size="small" style={{ minWidth: 150 }}>
             <InputLabel>Número de Semanas</InputLabel>
             <Select
@@ -238,7 +250,7 @@ export default function CargaDepartamento() {
             </Select>
           </FormControl>
 
-          <div className="text-gray-500 font-semibold">O</div>
+          <div className="text-gray-500 font-semibold">/</div>
 
           <DatePicker
             label="Fecha Inicio"
@@ -254,16 +266,6 @@ export default function CargaDepartamento() {
             minDate={startDate || undefined}
             slotProps={{ textField: { size: 'small', style: { minWidth: 150 } } }}
           />
-
-          <FormControl size="small" style={{ minWidth: 220 }}>
-            <InputLabel>Departamento</InputLabel>
-            <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value as number | '')} label="Departamento">
-              <MenuItem value="">Seleccione</MenuItem>
-              {(departments || []).map((d: any) => (
-                <MenuItem key={d.id} value={d.id}>{d.departamento}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
 
           <Button
             variant="outlined"
