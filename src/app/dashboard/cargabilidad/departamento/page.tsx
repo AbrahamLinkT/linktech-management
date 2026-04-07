@@ -28,7 +28,6 @@ export default function CargaDepartamento() {
 
   const [assignedHours, setAssignedHours] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<number | ''>('');
-  const [filteredWorkers, setFilteredWorkers] = useState<any[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [numberOfWeeks, setNumberOfWeeks] = useState<number>(4);
@@ -102,12 +101,11 @@ export default function CargaDepartamento() {
   const semanasAgrupadas = useMemo(() => generateWeeks(), [startDate, endDate, numberOfWeeks]);
   const allDays = useMemo(() => semanasAgrupadas.flatMap(s => s.dias), [semanasAgrupadas]);
 
-  const handleAccept = async () => {
-    if (!selectedDepartment) return;
-    // fetch workers by department from /worker via useWorkers hook or filter allWorkers
-    const matched = (allWorkers || []).filter((w: any) => Number(w.department_id) === Number(selectedDepartment));
-    setFilteredWorkers(matched);
-  };
+  // filteredWorkers is derived from selectedDepartment and allWorkers so the table updates automatically
+  const filteredWorkers = useMemo(() => {
+    if (!selectedDepartment) return [];
+    return (allWorkers || []).filter((w: any) => Number(w.department_id) === Number(selectedDepartment));
+  }, [allWorkers, selectedDepartment]);
 
   const calculateDailyHours = (schemeId?: number | null): string => {
     if (!schemeId) return 'N/A';
@@ -220,7 +218,7 @@ export default function CargaDepartamento() {
 
   return (
     <ContentBody title="Carga Departamento">
-      {/* Filtros: número de semanas / rango de fechas (igual que Resumen) */}
+      {/* Filtros combinados: número de semanas, fechas y departamento en la misma fila */}
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
         <Box className="flex gap-4 items-center flex-wrap mb-4 bg-white p-4 rounded-lg shadow">
           <FormControl size="small" style={{ minWidth: 150 }}>
@@ -257,31 +255,25 @@ export default function CargaDepartamento() {
             slotProps={{ textField: { size: 'small', style: { minWidth: 150 } } }}
           />
 
-          {(startDate || endDate) && (
-            <Button variant="outlined" size="small" onClick={() => { setStartDate(null); setEndDate(null); }}>
-              Limpiar Fechas
-            </Button>
-          )}
+          <FormControl size="small" style={{ minWidth: 220 }}>
+            <InputLabel>Departamento</InputLabel>
+            <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value as number | '')} label="Departamento">
+              <MenuItem value="">Seleccione</MenuItem>
+              {(departments || []).map((d: any) => (
+                <MenuItem key={d.id} value={d.id}>{d.departamento}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Button variant="outlined" size="small" onClick={() => { setStartDate(null); setEndDate(null); }}>Limpiar Fechas</Button>
+          <Button variant="outlined" size="small" onClick={() => { setSelectedDepartment(''); }}>Limpiar</Button>
+
+          <div className="ml-auto flex gap-2">
+            <Button onClick={handleExportExcel} variant="contained" color="success">📥 Exportar Excel</Button>
+            <Button onClick={() => router.push('/dashboard/cargabilidad')} variant="outlined">← Regresar</Button>
+          </div>
         </Box>
       </LocalizationProvider>
-
-      <div className="mb-4 flex items-center gap-4">
-        <FormControl size="small" style={{ minWidth: 200 }}>
-          <InputLabel>Departamento</InputLabel>
-          <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value as number | '')} label="Departamento">
-            <MenuItem value="">Seleccione</MenuItem>
-            {(departments || []).map((d: any) => (
-              <MenuItem key={d.id} value={d.id}>{d.departamento}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
-        <Button variant="outlined" onClick={() => { setSelectedDepartment(''); setFilteredWorkers([]); }}>Limpiar</Button>
-        <div className="ml-auto flex gap-2">
-          <Button onClick={handleExportExcel} variant="contained" color="success">📥 Exportar Excel</Button>
-          <Button onClick={() => router.push('/dashboard/cargabilidad')} variant="outlined">← Regresar</Button>
-        </div>
-      </div>
 
       {/* Si no hay departamento seleccionado mostramos un mensaje, sino la tabla */}
       {!selectedDepartment ? (
