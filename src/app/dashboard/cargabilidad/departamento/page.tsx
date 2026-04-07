@@ -60,14 +60,16 @@ export default function CargaDepartamento() {
     setLoadingSchedules(false);
   }, [allWorkers]);
 
+  const formatDateShort = (d: Date) => d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+
   const generateWeeks = () => {
     const weeks: any[] = [];
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
+      // Adjust to Monday
       start.setDate(start.getDate() - (start.getDay() === 0 ? 6 : start.getDay() - 1));
       let current = new Date(start);
-      let counter = 1;
       while (current <= end) {
         const dias: Date[] = [];
         for (let i = 0; i < 5; i++) {
@@ -75,8 +77,10 @@ export default function CargaDepartamento() {
           d.setDate(current.getDate() + i);
           dias.push(d);
         }
-        weeks.push({ nombre: `SEMANA ${counter}`, dias });
-        counter++;
+        const first = dias[0];
+        const last = dias[dias.length - 1];
+        const nombre = `${formatDateShort(first)} - ${formatDateShort(last)}`;
+        weeks.push({ nombre, dias });
         current.setDate(current.getDate() + 7);
       }
     } else {
@@ -92,7 +96,10 @@ export default function CargaDepartamento() {
           d.setDate(startOfWeek.getDate() + i);
           dias.push(d);
         }
-        weeks.push({ nombre: `SEMANA ${w + 1}`, dias });
+        const first = dias[0];
+        const last = dias[dias.length - 1];
+        const nombre = `${formatDateShort(first)} - ${formatDateShort(last)}`;
+        weeks.push({ nombre, dias });
       }
     }
     return weeks;
