@@ -107,8 +107,7 @@ router.get('/pending/:email', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: requests.length,
-      data: requests
+      requests: requests
     });
   } catch (error) {
     console.error('Error fetching pending requests:', error);
@@ -133,8 +132,7 @@ router.get('/project/:projectId', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: requests.length,
-      data: requests
+      requests: requests
     });
   } catch (error) {
     console.error('Error fetching project requests:', error);
@@ -159,8 +157,7 @@ router.get('/worker/:workerId', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: requests.length,
-      data: requests
+      requests: requests
     });
   } catch (error) {
     console.error('Error fetching worker requests:', error);
