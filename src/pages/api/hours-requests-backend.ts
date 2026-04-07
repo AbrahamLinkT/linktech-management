@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDB } from '@/lib/mongodb';
 
+// API Handler para solicitudes de horas - v2.1 (redeploy force)
 // Tipos
 interface HoursRequest {
   _id: string;
