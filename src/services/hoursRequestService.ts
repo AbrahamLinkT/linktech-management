@@ -59,7 +59,7 @@ export interface HoursRequest {
  * Crear nueva solicitud de horas
  */
 export async function createHoursRequest(params: CreateHoursRequestParams) {
-  const response = await fetch('/api/hours-requests/create', {
+  const response = await fetch('/api/hours-requests-backend?action=create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -78,7 +78,7 @@ export async function createHoursRequest(params: CreateHoursRequestParams) {
  */
 export async function getPendingHoursRequests(departmentHeadEmail: string) {
   const response = await fetch(
-    `/api/hours-requests/pending?email=${encodeURIComponent(departmentHeadEmail)}`
+    `/api/hours-requests-backend?action=pending&email=${encodeURIComponent(departmentHeadEmail)}`
   );
 
   if (!response.ok) {
@@ -94,7 +94,7 @@ export async function getPendingHoursRequests(departmentHeadEmail: string) {
  */
 export async function getProjectHoursRequests(projectId: string) {
   const response = await fetch(
-    `/api/hours-requests/project?id=${projectId}`
+    `/api/hours-requests-backend?action=project&projectId=${projectId}`
   );
 
   if (!response.ok) {
@@ -141,8 +141,8 @@ export async function getHoursRequest(requestId: string) {
  * Aprobar solicitud de horas
  */
 export async function approveHoursRequest(requestId: string, approvedBy: string) {
-  const response = await fetch(
-    `/api/hours-requests/action?id=${requestId}&action=approve`,
+    const response = await fetch(
+    `/api/hours-requests-backend?action=approve&id=${requestId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -167,13 +167,13 @@ export async function rejectHoursRequest(
   rejectionReason?: string
 ) {
   const response = await fetch(
-    `/api/hours-requests/action?id=${requestId}&action=reject`,
+    `/api/hours-requests-backend?action=reject&id=${requestId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         approved_by: approvedBy,
-        rejection_reason: rejectionReason
+        reason: rejectionReason
       })
     }
   );

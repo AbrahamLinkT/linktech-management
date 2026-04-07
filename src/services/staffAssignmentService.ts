@@ -51,7 +51,7 @@ export interface StaffAssignmentRequest {
  * Crear nueva solicitud de asignación
  */
 export async function createAssignmentRequest(params: CreateAssignmentRequestParams) {
-  const response = await fetch('/api/staff-assignment-requests/create', {
+  const response = await fetch('/api/staff-assignment-backend?action=create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -70,7 +70,7 @@ export async function createAssignmentRequest(params: CreateAssignmentRequestPar
  */
 export async function getPendingRequests(departmentHeadEmail: string) {
   const response = await fetch(
-    `/api/staff-assignment-requests/pending?email=${encodeURIComponent(departmentHeadEmail)}`
+    `/api/staff-assignment-backend?action=pending&email=${encodeURIComponent(departmentHeadEmail)}`
   );
 
   if (!response.ok) {
@@ -86,7 +86,7 @@ export async function getPendingRequests(departmentHeadEmail: string) {
  */
 export async function getProjectRequests(projectId: string) {
   const response = await fetch(
-    `/api/staff-assignment-requests/project?id=${projectId}`
+    `/api/staff-assignment-backend?action=project&projectId=${projectId}`
   );
 
   if (!response.ok) {
@@ -134,7 +134,7 @@ export async function getRequest(requestId: string) {
  */
 export async function approveRequest(requestId: string, approvedBy: string) {
   const response = await fetch(
-    `/api/staff-assignment-requests/action?id=${requestId}&action=approve`,
+    `/api/staff-assignment-backend?action=approve&id=${requestId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -155,7 +155,7 @@ export async function approveRequest(requestId: string, approvedBy: string) {
  */
 export async function approveAndAssignRequest(requestId: string, approvedBy: string) {
   const response = await fetch(
-    `/api/staff-assignment-requests/action?id=${requestId}&action=approve`,
+    `/api/staff-assignment-backend?action=approve&id=${requestId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -180,13 +180,13 @@ export async function rejectRequest(
   rejectionReason?: string
 ) {
   const response = await fetch(
-    `/api/staff-assignment-requests/action?id=${requestId}&action=reject`,
+    `/api/staff-assignment-backend?action=reject&id=${requestId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         approved_by: approvedBy,
-        rejection_reason: rejectionReason
+        reason: rejectionReason
       })
     }
   );
