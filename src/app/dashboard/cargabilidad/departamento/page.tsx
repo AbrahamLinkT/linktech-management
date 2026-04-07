@@ -220,6 +220,51 @@ export default function CargaDepartamento() {
 
   return (
     <ContentBody title="Carga Departamento">
+      {/* Filtros: número de semanas / rango de fechas (igual que Resumen) */}
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+        <Box className="flex gap-4 items-center flex-wrap mb-4 bg-white p-4 rounded-lg shadow">
+          <FormControl size="small" style={{ minWidth: 150 }}>
+            <InputLabel>Número de Semanas</InputLabel>
+            <Select
+              value={numberOfWeeks}
+              label="Número de Semanas"
+              onChange={(e) => { setNumberOfWeeks(e.target.value as number); setStartDate(null); setEndDate(null); }}
+            >
+              <MenuItem value={1}>1 semana</MenuItem>
+              <MenuItem value={2}>2 semanas</MenuItem>
+              <MenuItem value={3}>3 semanas</MenuItem>
+              <MenuItem value={4}>4 semanas</MenuItem>
+              <MenuItem value={6}>6 semanas</MenuItem>
+              <MenuItem value={8}>8 semanas</MenuItem>
+              <MenuItem value={12}>12 semanas</MenuItem>
+            </Select>
+          </FormControl>
+
+          <div className="text-gray-500 font-semibold">O</div>
+
+          <DatePicker
+            label="Fecha Inicio"
+            value={startDate}
+            onChange={(newValue) => setStartDate(newValue)}
+            slotProps={{ textField: { size: 'small', style: { minWidth: 150 } } }}
+          />
+
+          <DatePicker
+            label="Fecha Fin"
+            value={endDate}
+            onChange={(newValue) => setEndDate(newValue)}
+            minDate={startDate || undefined}
+            slotProps={{ textField: { size: 'small', style: { minWidth: 150 } } }}
+          />
+
+          {(startDate || endDate) && (
+            <Button variant="outlined" size="small" onClick={() => { setStartDate(null); setEndDate(null); }}>
+              Limpiar Fechas
+            </Button>
+          )}
+        </Box>
+      </LocalizationProvider>
+
       <div className="mb-4 flex items-center gap-4">
         <FormControl size="small" style={{ minWidth: 200 }}>
           <InputLabel>Departamento</InputLabel>
