@@ -275,7 +275,7 @@ export default function CargaDepartamento() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" color="primary" onClick={handleAccept}>Aceptar</Button>
+        <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
         <Button variant="outlined" onClick={() => { setSelectedDepartment(''); setFilteredWorkers([]); }}>Limpiar</Button>
         <div className="ml-auto flex gap-2">
           <Button onClick={handleExportExcel} variant="contained" color="success">📥 Exportar Excel</Button>
