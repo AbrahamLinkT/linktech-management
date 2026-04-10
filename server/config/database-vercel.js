@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 let cachedDb = null;
 
 const connectDB = async () => {
-  if (cachedDb) {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is not configured');
+  }
+
+  if (cachedDb && mongoose.connection.readyState === 1) {
     return cachedDb;
   }
 
