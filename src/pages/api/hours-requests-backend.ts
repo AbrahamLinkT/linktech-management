@@ -69,7 +69,18 @@ export default async function handler(
       body: method === 'GET' ? undefined : JSON.stringify(req.body)
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data: any;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = {
+        error: response.ok ? 'Unexpected response format' : 'Upstream service error',
+        message: raw
+      };
+    }
+
     return res.status(response.status).json(data);
   } catch (error: any) {
     console.error('❌ API Error en /api/hours-requests-backend:', error);
