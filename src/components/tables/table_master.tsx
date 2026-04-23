@@ -103,6 +103,7 @@ export function DataTable<T extends { id: string }>({
         enablePagination: true,
         initialState: {
             pagination: { pageIndex: 0, pageSize: 5 },
+            density: 'compact', // default to compact so Toggle Density appears selected
         },
         muiTablePaperProps: {
             sx: {
@@ -125,7 +126,6 @@ export function DataTable<T extends { id: string }>({
                         startIcon={<DehazeIcon />}
                         onClick={handleMenuOpen}
                     >
-                        Selecciona
                     </Button>
                     {topToolbarContent}
 
