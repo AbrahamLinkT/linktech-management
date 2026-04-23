@@ -187,9 +187,42 @@ router.put('/:email', async (req, res) => {
   }
 });
 
-// Listar todos los usuarios y sus permisos
+// Listar usuarios o consultar un usuario por query param: /api/permissions?email=...
 router.get('/', async (req, res) => {
   try {
+    const { email } = req.query;
+
+    if (email) {
+      const userPermissions = await UserPermissions.findOne({
+        email: String(email).toLowerCase()
+      });
+
+      if (!userPermissions) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found',
+          permissions: null
+        });
+      }
+
+      if (!userPermissions.isActive) {
+        return res.status(403).json({
+          success: false,
+          error: 'User account is inactive',
+          permissions: null
+        });
+      }
+
+      return res.json({
+        success: true,
+        email: userPermissions.email,
+        name: userPermissions.name,
+        role: userPermissions.role,
+        permissions: userPermissions.permissions,
+        isActive: userPermissions.isActive
+      });
+    }
+
     const users = await UserPermissions.find({})
       .select('-__v')
       .sort({ createdAt: -1 });

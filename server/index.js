@@ -19,10 +19,21 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Conectar a MongoDB (solo en desarrollo)
-if (!isProduction) {
-  connectDB();
-}
+// Garantiza conexión a MongoDB antes de atender cualquier ruta.
+// En Vercel serverless cada invocación puede iniciar "fría" sin conexión activa.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('❌ Database connection error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Database connection failed',
+      details: error.message
+    });
+  }
+});
 
 // Rutas
 app.get('/health', (req, res) => {
