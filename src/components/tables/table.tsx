@@ -101,7 +101,6 @@ export function DataTable<T extends { id: string }>({
         renderTopToolbarCustomActions: ({ table }) => (
             <Box sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}>
                 <Button variant="outlined" startIcon={<DehazeIcon />} onClick={handleMenuOpen}>
-                    Selecciona
                 </Button>
                 <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
                     <MenuItem onClick={() => { handleExportData(); handleMenuClose(); }}>Exportar Todo</MenuItem>
